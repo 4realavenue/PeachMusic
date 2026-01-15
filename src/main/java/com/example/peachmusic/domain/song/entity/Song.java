@@ -1,0 +1,76 @@
+package com.example.peachmusic.domain.song.entity;
+
+import com.example.peachmusic.common.entity.BaseEntity;
+import com.example.peachmusic.domain.album.entity.Album;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "songs")
+public class Song extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "song_id")
+    private Long songId;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @Column(name = "album_id")
+    private Album album;
+
+    @Column(name = "name", nullable = false)
+    private String name;
+
+    @Column(name = "duration", nullable = false)
+    private Long duration;
+
+    @Column(name = "license_ccurl")
+    private String licenseCcurl;
+
+    @Column(name = "position", nullable = false)
+    private Long position;
+
+    @Column(name = "audio", nullable = false, unique = true)
+    private String audio;
+
+    @Column(name = "vocalInstrumental")
+    private String vocalInstrumental;
+
+    @Column(name = "lang")
+    private String lang;
+
+    @Column(name = "speed")
+    private String speed;
+
+    @Column(name = "instruments")
+    private String instruments;
+
+    @Column(name = "vartags")
+    private String varTags;
+
+    @Column(name = "like_count", nullable = false)
+    private Long likeCount = 0L;
+
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted = false;
+
+
+    public Song(Album album, String name, Long duration, String licenseCcurl, Long position, String audio, String vocalInstrumental, String lang, String speed, String instruments, String varTags, Long likeCount) {
+        this.album = album;
+        this.name = name;
+        this.duration = duration;
+        this.licenseCcurl = licenseCcurl;
+        this.position = position;
+        this.audio = audio;
+        this.vocalInstrumental = vocalInstrumental;
+        this.lang = lang;
+        this.speed = speed;
+        this.instruments = instruments;
+        this.varTags = varTags;
+        this.likeCount = likeCount;
+    }
+}
