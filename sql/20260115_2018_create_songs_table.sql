@@ -22,9 +22,9 @@ CREATE TABLE songs
     UNIQUE KEY uk_songs_audio (audio),
 
     KEY idx_songs_album_id (album_id),
-    CONSTRAINT fk_songs_album
-        FOREIGN KEY (album_id)
-            REFERENCES albums (album_id)
+
+    CONSTRAINT fk_songs_album_id
+        FOREIGN KEY (album_id) REFERENCES albums (album_id)
 
 ) CHARACTER SET utf8mb4
   COLLATE utf8mb4_general_ci;
