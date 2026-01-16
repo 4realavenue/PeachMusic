@@ -19,7 +19,7 @@ public class Playlist extends BaseEntity {
     private Long playlistId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @Column(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(name = "playlist_name", nullable = false)
