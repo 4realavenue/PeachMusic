@@ -28,6 +28,6 @@ public class SongAdminController {
 
         CommonResponse<SongCreateResponseDto> commonResponse = new CommonResponse<>(true, "음원이 생성 되었습니다.", responseDto);
 
-        return new ResponseEntity<CommonResponse<SongCreateResponseDto>>(commonResponse, HttpStatus.CREATED);
+        return new ResponseEntity<>(commonResponse, HttpStatus.CREATED);
     }
 }
