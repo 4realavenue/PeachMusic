@@ -29,48 +29,52 @@ public class SongAdminService {
     private final GenreRepository genreRepository;
     private final SongGenreRepository songGenreRepository;
 
+    /**
+     * 음원 생성
+     * @param requestDto
+     * @return
+     */
     @Transactional
     public SongCreateResponseDto createSong(SongCreateRequestDto requestDto) {
 
-        // 1.
+        // 1. 음원 생성할 때 소속 시켜줄 앨범 찾아오기
         Album findAlbum = albumRepository.findById(requestDto.getAlbumId())
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 
-        // 2.
+        // 2. 요청 받은 데이터 담긴 음원 객체 생성
         Song song = new Song(findAlbum, requestDto.getName(), requestDto.getDuration(), requestDto.getLicenseCcurl(), requestDto.getPosition(), requestDto.getAudio(), requestDto.getVocalinstrumental(), requestDto.getLang(), requestDto.getSpeed(), requestDto.getInstruments(), requestDto.getVartags());
 
-        // 3.
+        // 3. 음원 레포지토리를 통해 DB에 저장
         Song saveSong = songRepository.save(song);
 
-        // 4. 요청 받은 아이디 리스트 중에 장르 레포지토리에 존재하는 데이터 갖고 와서 리스트에 담아줘
+        // 4. 요청 받은 장르를 장르 레포지토리를 통해서 전부 찾아오고
+        //    담아줄 장르 리스트에 담아주기
         List<Genre> genreList = genreRepository.findAllById(requestDto.getGenreId());
 
         // todo Song-Genre 서비스에서 수행해줄 로직 (5~7)
-        // 5. 중간테이블에 저장할거니까 받아줄 리스트를 만들어
+        // 5. 중간테이블에 저장 해줄거니까 받아줄 리스트 만들기
         List<SongGenre> songGenreList = new ArrayList<>();
 
-        // 6.
+        // 6. 반복문으로 장르 리스트 순회
+        //    중간 테이블 저장한 음원과 장르 넣어서 객체 생성하고 중간테이블 리스트에 담아주기
         for (Genre g : genreList) {
-            SongGenre songGenre = new SongGenre(song, g);
+            SongGenre songGenre = new SongGenre(saveSong, g);
             songGenreList.add(songGenre);
         }
-        // 7.
+        // 7. 중간 테이블 리스트를 중간테이블 레포지토리를 통해 DB에 전부 저장
         songGenreRepository.saveAll(songGenreList);
 
-
-        // 8.
+        // 8. 응답 반환할 때 사용할 장르 이름 담아줄 리스트 만들기
         List<String> genreNameList = new ArrayList<>();
 
+        // 9. 반복문으로 장르 리스트 순회
+        //    장르 이름 리스트에 장르의 이름 가져와서 담아주기
         for (Genre g : genreList) {
             genreNameList.add(g.getGenreName());
         }
 
-
         SongDto songDto = SongDto.from(saveSong);
 
         return SongCreateResponseDto.from(songDto, genreNameList, findAlbum.getAlbumId());
-
     }
-
-
 }

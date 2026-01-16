@@ -19,6 +19,11 @@ public class SongAdminController {
 
     private final SongAdminService songAdminService;
 
+    /**
+     * 음원 생성 API
+     * @param requestDto
+     * @return
+     */
     @PostMapping("/songs")
     public ResponseEntity<CommonResponse<SongCreateResponseDto>> createSong(
             @RequestBody SongCreateRequestDto requestDto
