@@ -1,10 +1,10 @@
 CREATE TABLE artist_likes
 (
-    artist_likes_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '아티스트-좋아요 고유 식별자',
+    artist_like_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '아티스트-좋아요 고유 식별자',
     user_id         BIGINT NOT NULL COMMENT '유저 고유 식별자(FK)',
     artist_id       BIGINT NOT NULL COMMENT '아티스트 고유 식별자(FK)',
 
-    PRIMARY KEY (artist_likes_id),
+    PRIMARY KEY (artist_like_id),
 
     UNIQUE KEY uk_artist_albums_user_id_artist_id (user_id, artist_id),
 

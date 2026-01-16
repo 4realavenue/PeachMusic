@@ -19,11 +19,11 @@ public class ArtistAlbum {
     private Long artistAlbumId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @Column(name = "artist_id")
+    @JoinColumn(name = "artist_id", nullable = false)
     private Artist artist;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @Column(name = "album_id")
+    @JoinColumn(name = "album_id", nullable = false)
     private Album album;
 
     public ArtistAlbum(Artist artist, Album album) {
