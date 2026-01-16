@@ -23,24 +23,9 @@ public class PageResponse<T> {
     }
 
 
-    // 성공 응답 (응답 데이터 없음)
-    public static PageResponse<Void> success(String message) {
-        return new PageResponse<>(true, message, null);
-    }
-
-    // 성공 응답 (응답 데이터 포함)
+    // 페이지 응답
     public static <T> PageResponse<T> success(String message, Page<T> page) {
         return new PageResponse<>(true, message, new PageData<>(page));
-    }
-
-    // 실패 응답 (응답 데이터 없음)
-    public static PageResponse<Void> fail(ErrorCode errorCode) {
-        return new PageResponse<>(false, errorCode.getMessage(), null);
-    }
-
-    // 실패 응답 (응답 데이터 포함)
-    public static <T> PageResponse<T> fail(ErrorCode errorCode, Page<T> page) {
-        return new PageResponse<>(false, errorCode.getMessage(), new PageData<>(page));
     }
 
 

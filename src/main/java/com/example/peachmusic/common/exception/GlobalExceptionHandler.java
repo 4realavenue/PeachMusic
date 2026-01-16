@@ -34,13 +34,4 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ex.getErrorCode().getStatus()).body(CommonResponse.fail(ex.getErrorCode()));
     }
 
-    // Custom 예외 - 공통 페이지 응답
-    @ExceptionHandler(value = CustomException.class)
-    public ResponseEntity<PageResponse> handlerCustomPageException(CustomException ex) {
-
-        log.error("CustomException 발생 : {} ", ex.getMessage());
-
-        return ResponseEntity.status(ex.getErrorCode().getStatus()).body(PageResponse.fail(ex.getErrorCode()));
-
-    }
 }
