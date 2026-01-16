@@ -19,11 +19,11 @@ public class SongLike {
     private Long songLikeId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @Column(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @Column(name = "song_id")
+    @JoinColumn(name = "song_id", nullable = false)
     private Song song;
 
     public SongLike(User user, Song song) {

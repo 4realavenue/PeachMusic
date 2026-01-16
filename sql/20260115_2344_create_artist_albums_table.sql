@@ -1,10 +1,10 @@
 CREATE TABLE artist_albums
 (
-    artist_albums_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '아티스트-앨범 고유 식별자',
+    artist_album_id BIGINT NOT NULL AUTO_INCREMENT COMMENT '아티스트-앨범 고유 식별자',
     artist_id        BIGINT NOT NULL COMMENT '아티스트 고유 식별자(FK)',
     album_id         BIGINT NOT NULL COMMENT '앨범 고유 식별자(FK)',
 
-    PRIMARY KEY (artist_albums_id),
+    PRIMARY KEY (artist_album_id),
 
     UNIQUE KEY uk_artist_albums_artist_id_album_id (artist_id, album_id),
 

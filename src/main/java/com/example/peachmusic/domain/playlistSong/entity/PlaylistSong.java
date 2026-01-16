@@ -19,11 +19,11 @@ public class PlaylistSong {
     private Long playlistSongId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @Column(name = "song_id")
+    @JoinColumn(name = "song_id", nullable = false)
     private Song song;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @Column(name = "playlist_id")
+    @JoinColumn(name = "playlist_id", nullable = false)
     private Playlist playlist;
 
     public PlaylistSong(Song song, Playlist playlist) {
