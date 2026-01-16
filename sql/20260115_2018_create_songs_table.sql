@@ -4,7 +4,7 @@ CREATE TABLE songs
     album_id          BIGINT       NOT NULL COMMENT '앨범 고유 식별자 (FK)',
     name              VARCHAR(255) NOT NULL COMMENT '음원 이름',
     duration          BIGINT       NOT NULL COMMENT '음원 길이',
-    license_ccrurl    VARCHAR(255) NULL COMMENT '저작권 정보',
+    license_ccurl    VARCHAR(255) NULL COMMENT '저작권 정보',
     position          BIGINT       NOT NULL COMMENT '수록 순서',
     audio             VARCHAR(255) NOT NULL COMMENT '음원 url',
     vocalinstrumental VARCHAR(255) NULL COMMENT '음원 보컬 유무',

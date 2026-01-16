@@ -37,8 +37,8 @@ public class Song extends BaseEntity {
     @Column(name = "audio", nullable = false, unique = true)
     private String audio;
 
-    @Column(name = "vocalInstrumental")
-    private String vocalInstrumental;
+    @Column(name = "vocalinstrumental")
+    private String vocalinstrumental;
 
     @Column(name = "lang")
     private String lang;
@@ -50,7 +50,7 @@ public class Song extends BaseEntity {
     private String instruments;
 
     @Column(name = "vartags")
-    private String varTags;
+    private String vartags;
 
     @Column(name = "like_count", nullable = false)
     private Long likeCount = 0L;
@@ -58,19 +58,18 @@ public class Song extends BaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
-
-    public Song(Album album, String name, Long duration, String licenseCcurl, Long position, String audio, String vocalInstrumental, String lang, String speed, String instruments, String varTags, Long likeCount) {
+    public Song(Album album, String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags, Long likeCount) {
         this.album = album;
         this.name = name;
         this.duration = duration;
         this.licenseCcurl = licenseCcurl;
         this.position = position;
         this.audio = audio;
-        this.vocalInstrumental = vocalInstrumental;
+        this.vocalinstrumental = vocalinstrumental;
         this.lang = lang;
         this.speed = speed;
         this.instruments = instruments;
-        this.varTags = varTags;
+        this.vartags = vartags;
         this.likeCount = likeCount;
     }
 }
