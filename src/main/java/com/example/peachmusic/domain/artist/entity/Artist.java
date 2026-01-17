@@ -30,4 +30,8 @@ public class Artist extends BaseEntity {
         this.artistName = artistName;
         this.likeCount = 0L;
     }
+
+    public void updateArtistName(String artistName) {
+        this.artistName = artistName;
+    }
 }

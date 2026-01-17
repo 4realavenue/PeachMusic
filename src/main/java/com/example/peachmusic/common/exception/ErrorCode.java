@@ -39,6 +39,7 @@ public enum ErrorCode {
     PLAYLIST_EXIST_SONG(HttpStatus.CONFLICT, "동일한 곡이 플레이리스트에 있습니다."),
     DUPLICATE_ARTIST(HttpStatus.CONFLICT, "이미 존재하는 아티스트입니다."),
     ARTIST_DELETED_ALREADY(HttpStatus.CONFLICT, "비활성화된 동일 이름 아티스트가 존재합니다. 복구 기능을 사용해주세요."),
+    ARTIST_NAME_DUPLICATED(HttpStatus.CONFLICT, "이미 존재하는 아티스트명입니다."),
 
     // 500
     SEARCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "일시적인 오류로 검색에 실패 했습니다."),
