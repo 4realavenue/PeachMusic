@@ -17,4 +17,7 @@ public interface ArtistRepository extends JpaRepository<Artist, Long> {
 
     // 활성 상태(isDeleted=false)인 아티스트 목록을 페이징 조건에 맞게 조회
     Page<Artist> findAllByIsDeletedFalse(Pageable pageable);
+
+    // 활성 상태(isDeleted=false)인 아티스트 조회
+    Optional<Artist> findByArtistIdAndIsDeletedFalse(Long artistId);
 }
