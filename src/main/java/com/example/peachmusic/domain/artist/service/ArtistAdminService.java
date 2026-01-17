@@ -139,4 +139,30 @@ public class ArtistAdminService {
 
         return ArtistUpdateResponseDto.from(foundArtist);
     }
+
+    /**
+     * 아티스트 비활성화 기능 (관리자 전용)
+     * @param userId 사용자 ID (JWT 적용 전까지 임시 사용)
+     * @param role 사용자 권한
+     * @param artistId 비활성화할 아티스트 ID
+     */
+    @Transactional
+    public void deleteArtist(Long userId, UserRole role, Long artistId) {
+
+        // 삭제되지 않은 유효한 사용자 여부 검증
+        userRepository.findByUserIdAndIsDeletedFalse(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_CERTIFICATION_REQUIRED));
+
+        // 관리자(ADMIN) 권한 여부 검증
+        if (role != UserRole.ADMIN) {
+            throw new CustomException(ErrorCode.AUTH_AUTHORIZATION_REQUIRED);
+        }
+
+        // 비활성화 대상 아티스트 조회 (이미 비활성화된 아티스트는 제외)
+        Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
+
+        // 아티스트 비활성화
+        foundArtist.delete();
+    }
 }

@@ -34,4 +34,8 @@ public class Artist extends BaseEntity {
     public void updateArtistName(String artistName) {
         this.artistName = artistName;
     }
+
+    public void delete() {
+        this.isDeleted = true;
+    }
 }
