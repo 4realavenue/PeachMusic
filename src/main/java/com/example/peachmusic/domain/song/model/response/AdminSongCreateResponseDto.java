@@ -8,7 +8,7 @@ import java.util.List;
 
 @Getter
 @RequiredArgsConstructor
-public class SongCreateResponseDto {
+public class AdminSongCreateResponseDto {
 
     private final Long songId;
     private final String name;
@@ -24,8 +24,8 @@ public class SongCreateResponseDto {
     private final Long albumId;
     private final Long likeCount;
 
-    public static SongCreateResponseDto from(SongDto songDto, List<String> genre, Long albumId) {
-        return new SongCreateResponseDto(songDto.getSongId(), songDto.getName(), songDto.getDuration(), songDto.getLicenseCcurl(), songDto.getPosition(), songDto.getVocalinstrumental(), songDto.getLang(), songDto.getSpeed(), genre, songDto.getInstruments(), songDto.getVartags(), albumId, songDto.getLikeCount());
+    public static AdminSongCreateResponseDto from(SongDto songDto, List<String> genre, Long albumId) {
+        return new AdminSongCreateResponseDto(songDto.getSongId(), songDto.getName(), songDto.getDuration(), songDto.getLicenseCcurl(), songDto.getPosition(), songDto.getVocalinstrumental(), songDto.getLang(), songDto.getSpeed(), genre, songDto.getInstruments(), songDto.getVartags(), albumId, songDto.getLikeCount());
     }
 
 }
