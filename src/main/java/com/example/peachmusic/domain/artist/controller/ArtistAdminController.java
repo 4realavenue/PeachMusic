@@ -106,4 +106,24 @@ public class ArtistAdminController {
 
         return ResponseEntity.ok(CommonResponse.success("아티스트 비활성화 성공", null));
     }
+
+    /**
+     * 아티스트 활성화 API (관리자 전용)
+     * JWT 적용 전 단계로, 요청 헤더에서 사용자 식별 정보와 권한을 임시로 전달받는다.
+     *
+     * @param userId 요청 헤더에 전달되는 사용자 ID (JWT 적용 전까지 임시 사용)
+     * @param role 요청 헤더에 전달되는 사용자 권한 (X-ROLE은 ADMIN 대문자)
+     * @param artistId 활성화할 아티스트 ID
+     * @return 응답 데이터 없이 성공 메시지만 반환
+     */
+    @PatchMapping("/{artistId}/restore")
+    public ResponseEntity<CommonResponse<Void>> restoreArtist(
+            @RequestHeader("X-USER-ID") Long userId,
+            @RequestHeader("X-ROLE") UserRole role,
+            @PathVariable("artistId") Long artistId) {
+
+        artistAdminService.restoreArtist(userId, role, artistId);
+
+        return ResponseEntity.ok(CommonResponse.success("아티스트 활성화 성공", null));
+    }
 }

@@ -23,4 +23,7 @@ public interface ArtistRepository extends JpaRepository<Artist, Long> {
 
     // 활성 상태(isDeleted=false)인 다른 아티스트가 동일 이름을 사용하는지 확인
     boolean existsByArtistNameAndIsDeletedFalseAndArtistIdNot(String newName, Long artistId);
+
+    // 비활성 상태(isDeleted=true)인 아티스트 조회
+    Optional<Artist> findByArtistIdAndIsDeletedTrue(Long artistId);
 }
