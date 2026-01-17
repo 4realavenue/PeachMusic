@@ -92,4 +92,8 @@ public class Song extends BaseEntity {
         this.isDeleted = true;
     }
 
+    public void restoreSong() {
+        this.isDeleted = false;
+    }
+
 }

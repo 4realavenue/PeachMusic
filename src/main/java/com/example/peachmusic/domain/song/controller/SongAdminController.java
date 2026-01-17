@@ -90,6 +90,11 @@ public class SongAdminController {
 
     }
 
+    /**
+     * 음원 삭제 (비활성화) API
+     * @param songId
+     * @return
+     */
     @DeleteMapping("/songs/{songId}")
     public ResponseEntity<CommonResponse> deleteSong(
             @PathVariable("songId") Long songId
@@ -100,6 +105,26 @@ public class SongAdminController {
 
         // 2. 공통 응답 객체 준비
         CommonResponse commonResponse = new CommonResponse<>(true, "음원이 비활성화 되었습니다", null);
+
+        // 3. ResponseEntity로 Response Body 및 응답 상태코드 정의
+        return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+    }
+
+    /**
+     * 음원 복구 (활성화) API
+     * @param songId
+     * @return
+     */
+    @PatchMapping("/songs/{songId}/restore")
+    public ResponseEntity<CommonResponse> restoreSong(
+            @PathVariable("songId") Long songId
+    ) {
+
+        // 1. 서비스 레이어로 songId 전달 및 음원 복구 로직 실행
+        songAdminService.restore(songId);
+
+        // 2. 공통 응답 객체 준비
+        CommonResponse commonResponse = new CommonResponse<>(true, "음원이 활성화 되었습니다", null);
 
         // 3. ResponseEntity로 Response Body 및 응답 상태코드 정의
         return new ResponseEntity<>(commonResponse, HttpStatus.OK);
