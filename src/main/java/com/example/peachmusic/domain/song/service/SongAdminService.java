@@ -113,6 +113,12 @@ public class SongAdminService {
         return new PageResponse.PageData<>(responseDtoPage);
     }
 
+    /**
+     * 음원 정보 수정
+     * @param requestDto
+     * @param songId
+     * @return
+     */
     @Transactional
     public AdminSongUpdateResponseDto updateSong(AdminSongUpdateRequestDto requestDto, Long songId) {
 
@@ -127,11 +133,13 @@ public class SongAdminService {
         // 3. 찾아온 음원의 updateSong 메서드 실행
         findSong.updateSong(requestDto.getName(), requestDto.getDuration(), requestDto.getLicenseCcurl(), requestDto.getPosition(), requestDto.getAudio(), requestDto.getVocalinstrumental(), requestDto.getLang(), requestDto.getSpeed(), requestDto.getInstruments(), requestDto.getVartags(), findAlbum);
 
-        // 4. 요청 받은 장르 리스트를 장르 레포지토리 통해 장르 DB에서 찾아오기
-        List<Genre> findGenreList = genreRepository.findAllById(requestDto.getGenreId());
+        // 4. 요청 받은 song에 관한 songGenre 데이터 초기화 / 즉시 동기화
+        //    todo deleteAllBySong는 songGenre에서 추가 예정
+        songGenreRepository.deleteAllBySong(findSong);
+        songGenreRepository.flush();
 
-        // 5. 찾아온 장르 리스트 비우기
-        findGenreList.clear();
+        // 5. 요청 받은 장르 리스트를 장르 레포지토리 통해 장르 DB에서 찾아오기
+        List<Genre> findGenreList = genreRepository.findAllById(requestDto.getGenreId());
 
         //    todo Song-Genre 서비스에서 수행해줄 로직 (6~10)
         // 6. 중간테이블에 저장 해줄거니까 받아줄 리스트 만들기

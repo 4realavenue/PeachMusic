@@ -88,4 +88,8 @@ public class Song extends BaseEntity {
         this.album = album;
     }
 
+    public void deleteSong() {
+        this.isDeleted = true;
+    }
+
 }

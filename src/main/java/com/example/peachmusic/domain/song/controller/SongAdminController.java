@@ -55,7 +55,7 @@ public class SongAdminController {
             @PageableDefault(size = 20, sort = "songId", direction = Sort.Direction.ASC) Pageable pageable
     ) {
 
-        // 1. 서비스 레이어로 요청 Dto 및 Pageable 설정 전달 및 음원 전체 조회 로직 수행
+        // 1. 서비스 레이어로 Pageable 설정 전달 및 음원 전체 조회 로직 수행
         PageResponse.PageData<AdminSongGetAllResponseDto> responseDtoPageData = songAdminService.getSongAll(pageable);
 
         // 2. 서비스 레이어가 반환한 데이터를 공통 페이지 응답 객체로 감싸줌
@@ -66,6 +66,13 @@ public class SongAdminController {
 
     }
 
+    /**
+     * 음원 정보 수정 API
+     *
+     * @param songId
+     * @param requestDto
+     * @return
+     */
     @PutMapping("/songs/{songId}")
     public ResponseEntity<CommonResponse<AdminSongUpdateResponseDto>> updateSong(
             @PathVariable("songId") Long songId,
