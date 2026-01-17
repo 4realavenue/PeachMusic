@@ -5,11 +5,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
-
 public interface SongRepository extends JpaRepository<Song, Long> {
 
+    Song findBySongIdAndIsDeletedFalse (Long songId);
 
     Page<Song> findAllByIsDeletedFalse (Pageable pageable);
+
+
 
 }

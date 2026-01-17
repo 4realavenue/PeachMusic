@@ -9,9 +9,11 @@ import com.example.peachmusic.domain.genre.entity.Genre;
 import com.example.peachmusic.domain.genre.repository.GenreRepository;
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.model.SongDto;
-import com.example.peachmusic.domain.song.model.request.SongCreateRequestDto;
+import com.example.peachmusic.domain.song.model.request.AdminSongCreateRequestDto;
+import com.example.peachmusic.domain.song.model.request.AdminSongUpdateRequestDto;
 import com.example.peachmusic.domain.song.model.response.AdminSongCreateResponseDto;
 import com.example.peachmusic.domain.song.model.response.AdminSongGetAllResponseDto;
+import com.example.peachmusic.domain.song.model.response.AdminSongUpdateResponseDto;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songGenre.entity.SongGenre;
 import com.example.peachmusic.domain.songGenre.repository.SongGenreRepository;
@@ -39,7 +41,7 @@ public class SongAdminService {
      * @return
      */
     @Transactional
-    public AdminSongCreateResponseDto createSong(SongCreateRequestDto requestDto) {
+    public AdminSongCreateResponseDto createSong(AdminSongCreateRequestDto requestDto) {
 
         // 1. 음원 생성할 때 소속 시켜줄 앨범 찾아오기
         //    todo findByIdAndIsDeletedFalse 로 변경 예정
@@ -56,7 +58,7 @@ public class SongAdminService {
         //    담아줄 장르 리스트에 담아주기
         List<Genre> genreList = genreRepository.findAllById(requestDto.getGenreId());
 
-        //    todo Song-Genre 서비스에서 수행해줄 로직 (5~7)
+        //    todo Song-Genre 서비스에서 수행해줄 로직 (5~9)
         // 5. 중간테이블에 저장 해줄거니까 받아줄 리스트 만들기
         List<SongGenre> songGenreList = new ArrayList<>();
 
@@ -111,5 +113,51 @@ public class SongAdminService {
         return new PageResponse.PageData<>(responseDtoPage);
     }
 
+    @Transactional
+    public AdminSongUpdateResponseDto updateSong(AdminSongUpdateRequestDto requestDto, Long songId) {
+
+        // 1. 요청 받은 songId로 음원 찾아오기
+        Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId);
+
+        // 2. 요청 받은 albumId로 앨범 찾아오기
+        // todo findByIdAndIsDeletedFalse로 변경 예정
+        Album findAlbum = albumRepository.findById(requestDto.getAlbumId())
+                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
+
+        // 3. 찾아온 음원의 updateSong 메서드 실행
+        findSong.updateSong(requestDto.getName(), requestDto.getDuration(), requestDto.getLicenseCcurl(), requestDto.getPosition(), requestDto.getAudio(), requestDto.getVocalinstrumental(), requestDto.getLang(), requestDto.getSpeed(), requestDto.getInstruments(), requestDto.getVartags(), findAlbum);
+
+        // 4. 요청 받은 장르 리스트를 장르 레포지토리 통해 장르 DB에서 찾아오기
+        List<Genre> findGenreList = genreRepository.findAllById(requestDto.getGenreId());
+
+        // 5. 찾아온 장르 리스트 비우기
+        findGenreList.clear();
+
+        //    todo Song-Genre 서비스에서 수행해줄 로직 (6~10)
+        // 6. 중간테이블에 저장 해줄거니까 받아줄 리스트 만들기
+        List<SongGenre> songGenreList = new ArrayList<>();
+
+        // 7. 반복문으로 장르 리스트 순회
+        //    중간 테이블 저장한 음원과 장르 넣어서 객체 생성하고 중간테이블 리스트에 담아주기
+        for (Genre g : findGenreList) {
+            SongGenre songGenre = new SongGenre(findSong, g);
+            songGenreList.add(songGenre);
+        }
+        // 8. 중간 테이블 리스트를 중간테이블 레포지토리를 통해 DB에 전부 저장
+        songGenreRepository.saveAll(songGenreList);
+
+        // 9. 응답 반환할 때 사용할 장르 이름 담아줄 리스트 만들기
+        List<String> genreNameList = new ArrayList<>();
+
+        // 10. 반복문으로 장르 리스트 순회
+        //    장르 이름 리스트에 장르의 이름 가져와서 담아주기
+        for (Genre g : findGenreList) {
+            genreNameList.add(g.getGenreName());
+        }
+
+        SongDto songDto = SongDto.from(findSong);
+
+        return AdminSongUpdateResponseDto.from(songDto, genreNameList, findAlbum.getAlbumId());
+    }
 
 }

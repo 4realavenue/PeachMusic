@@ -2,9 +2,11 @@ package com.example.peachmusic.domain.song.controller;
 
 import com.example.peachmusic.common.model.CommonResponse;
 import com.example.peachmusic.common.model.PageResponse;
-import com.example.peachmusic.domain.song.model.request.SongCreateRequestDto;
+import com.example.peachmusic.domain.song.model.request.AdminSongCreateRequestDto;
+import com.example.peachmusic.domain.song.model.request.AdminSongUpdateRequestDto;
 import com.example.peachmusic.domain.song.model.response.AdminSongCreateResponseDto;
 import com.example.peachmusic.domain.song.model.response.AdminSongGetAllResponseDto;
+import com.example.peachmusic.domain.song.model.response.AdminSongUpdateResponseDto;
 import com.example.peachmusic.domain.song.service.SongAdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -29,7 +31,7 @@ public class SongAdminController {
      */
     @PostMapping("/songs")
     public ResponseEntity<CommonResponse<AdminSongCreateResponseDto>> createSong(
-            @RequestBody SongCreateRequestDto requestDto
+            @RequestBody AdminSongCreateRequestDto requestDto
     ) {
 
         // 1. 서비스 레이어로 요청 Dto 전달 및 음원 생성 로직 수행
@@ -61,6 +63,23 @@ public class SongAdminController {
 
         // 3. ResponseEntity로 Response Body 및 응답 상태코드 정의
         return new ResponseEntity<>(pageResponse, HttpStatus.OK);
+
+    }
+
+    @PutMapping("/songs/{songId}")
+    public ResponseEntity<CommonResponse<AdminSongUpdateResponseDto>> updateSong(
+            @PathVariable("songId") Long songId,
+            @RequestBody AdminSongUpdateRequestDto requestDto
+    ) {
+
+        // 1. 서비스 레이어로 요청 Dto 및 songId 전달 및 음원 수정 로직 실행
+        AdminSongUpdateResponseDto responseDto = songAdminService.updateSong(requestDto, songId);
+
+        // 2. 서비스 레이어가 반환한 데이터를 공통 응답 객체로 감싸줌
+        CommonResponse<AdminSongUpdateResponseDto> commonResponse = new CommonResponse<>(true, "음원 정보가 수정 되었습니다.", responseDto);
+
+        // 3. ResponseEntity로 Response Body 및 응답 상태코드 정의
+        return new ResponseEntity<>(commonResponse, HttpStatus.OK);
 
     }
 }

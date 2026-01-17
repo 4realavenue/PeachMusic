@@ -7,6 +7,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -70,6 +72,20 @@ public class Song extends BaseEntity {
         this.speed = speed;
         this.instruments = instruments;
         this.vartags = vartags;
+    }
+
+    public void updateSong(String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags, Album album) {
+        this.name = name;
+        this.duration = duration;
+        this.licenseCcurl = licenseCcurl;
+        this.position = position;
+        this.audio = audio;
+        this.vocalinstrumental = vocalinstrumental;
+        this.lang = lang;
+        this.speed = speed;
+        this.instruments = instruments;
+        this.vartags = vartags;
+        this.album = album;
     }
 
 }

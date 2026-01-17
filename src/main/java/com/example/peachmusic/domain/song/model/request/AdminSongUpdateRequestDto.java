@@ -1,13 +1,13 @@
 package com.example.peachmusic.domain.song.model.request;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
 @Getter
-@AllArgsConstructor
-public class SongCreateRequestDto {
+@RequiredArgsConstructor
+public class AdminSongUpdateRequestDto {
 
     private final String name;
     private final Long duration;
