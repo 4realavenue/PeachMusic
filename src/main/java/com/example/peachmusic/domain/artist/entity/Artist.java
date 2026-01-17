@@ -26,8 +26,8 @@ public class Artist extends BaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
-    public Artist(String artistName, Long likeCount) {
+    public Artist(String artistName) {
         this.artistName = artistName;
-        this.likeCount = likeCount;
+        this.likeCount = 0L;
     }
 }
