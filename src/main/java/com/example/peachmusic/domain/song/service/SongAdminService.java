@@ -168,4 +168,24 @@ public class SongAdminService {
         return AdminSongUpdateResponseDto.from(songDto, genreNameList, findAlbum.getAlbumId());
     }
 
+    /**
+     * 음원 삭제 (비활성화)
+     * @param songId
+     */
+    @Transactional
+    public void deleteSong(Long songId) {
+
+        // 1. 요청 받은 songId로 음원 찾아오기
+        Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId);
+
+        // 2. 요청 받은 songId가 이미 비활성화 상태인지 확인
+        if (findSong.isDeleted()) {
+            throw new CustomException(ErrorCode.SONG_NOT_FOUND);
+        }
+
+        // 3. 찾아온 음원의 deleteSong 메서드 실행
+        findSong.deleteSong();
+
+    }
+
 }
