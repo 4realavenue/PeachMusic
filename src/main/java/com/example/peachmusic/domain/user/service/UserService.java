@@ -5,8 +5,10 @@ import com.example.peachmusic.common.exception.ErrorCode;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.model.UserDto;
 import com.example.peachmusic.domain.user.model.request.UserCreateRequestDto;
+import com.example.peachmusic.domain.user.model.request.UserUpdateRequestDto;
 import com.example.peachmusic.domain.user.model.response.UserCreateResponseDto;
 import com.example.peachmusic.domain.user.model.response.UserGetResponseDto;
+import com.example.peachmusic.domain.user.model.response.admin.UserUpdateResponseDto;
 import com.example.peachmusic.domain.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -15,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+
+import static com.example.peachmusic.domain.user.entity.QUser.user;
 
 @Service
 @RequiredArgsConstructor
@@ -51,6 +55,18 @@ public class UserService {
         return UserGetResponseDto.from(dto);
     }
 
+    // 유저 수정
+    public UserUpdateResponseDto update(@Valid UserUpdateRequestDto request, Long userId) {
+        User user = userRepository.findByUserIdAndIsDeletedFalse(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        user.UpdateUser(request.getName(), request.getNickname());
+
+        UserDto dto = UserDto.from(user);
+
+        return UserUpdateResponseDto.from(dto);
+    }
+
     // 유저 삭제
     public void deleteUser(Long userId) {
         User findUser = userRepository.findByUserIdAndIsDeletedFalse(userId)
@@ -60,5 +76,6 @@ public class UserService {
 
 
     }
+
 
 }

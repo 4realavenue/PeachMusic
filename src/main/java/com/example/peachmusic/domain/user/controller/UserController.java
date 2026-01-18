@@ -2,11 +2,14 @@ package com.example.peachmusic.domain.user.controller;
 
 import com.example.peachmusic.common.model.CommonResponse;
 import com.example.peachmusic.domain.user.model.request.UserCreateRequestDto;
+import com.example.peachmusic.domain.user.model.request.UserUpdateRequestDto;
 import com.example.peachmusic.domain.user.model.response.UserCreateResponseDto;
 import com.example.peachmusic.domain.user.model.response.UserGetResponseDto;
+import com.example.peachmusic.domain.user.model.response.admin.UserUpdateResponseDto;
 import com.example.peachmusic.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.aspectj.ConfigurableObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final ConfigurableObject configurableObject;
 
     // 생성
     @PostMapping("/auth/signup")
@@ -44,6 +48,22 @@ public class UserController {
         return ResponseEntity.ok(commonResponse);
 
     }
+
+    @PutMapping("/users/{userId}")
+    public ResponseEntity<CommonResponse<UserUpdateResponseDto>> updateUser(
+            @Valid @RequestBody UserUpdateRequestDto request,
+            @PathVariable Long userId
+    ) {
+
+        UserUpdateResponseDto result = userService.update(request, userId);
+
+        CommonResponse<UserUpdateResponseDto> commonResponse = new CommonResponse<>(true, "유저 정보 수정 성공",result);
+
+        ResponseEntity<CommonResponse<UserUpdateResponseDto>> response = new ResponseEntity<>(commonResponse, HttpStatus.OK);
+
+        return response;
+    }
+
 
     @DeleteMapping("/users/{userId}")
     public ResponseEntity deleteUser(
