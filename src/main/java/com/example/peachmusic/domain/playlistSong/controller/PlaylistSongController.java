@@ -16,6 +16,12 @@ public class PlaylistSongController {
 
     private final PlaylistSongService playlistSongService;
 
+    /**
+     * 플레이리스트 음원 추가 API
+     * @param playlistId
+     * @param requestDto
+     * @return
+     */
     @PostMapping("/playlists/{playlistId}/songs/{userId}")
     public ResponseEntity<CommonResponse<PlaylistSongAddResponseDto>> addPlaylistSong(
             @PathVariable("playlistId") Long playlistId,
