@@ -1,7 +1,7 @@
 package com.example.peachmusic.domain.song.service;
 
-import com.example.peachmusic.domain.album.repository.AlbumRepository;
-import com.example.peachmusic.domain.genre.repository.GenreRepository;
+import com.example.peachmusic.common.exception.CustomException;
+import com.example.peachmusic.common.exception.ErrorCode;
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.model.SongDto;
 import com.example.peachmusic.domain.song.model.response.SongGetDetailResponseDto;
@@ -20,8 +20,6 @@ import java.util.List;
 public class SongService {
 
     private final SongRepository songRepository;
-    private final AlbumRepository albumRepository;
-    private final GenreRepository genreRepository;
     private final SongGenreRepository songGenreRepository;
 
     /**
@@ -33,7 +31,8 @@ public class SongService {
     public SongGetDetailResponseDto getSong(Long songId) {
 
         // 1. 요청 받은 songId로 음원 찾아오기
-        Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId);
+        Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
         // 2. 찾아온 음원의 앨범 id값 가져오기
         Long findSongAlbumId = findSong.getAlbum().getAlbumId();

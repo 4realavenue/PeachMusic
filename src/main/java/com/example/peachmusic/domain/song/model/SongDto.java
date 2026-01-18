@@ -30,6 +30,4 @@ public class SongDto {
         return new SongDto(song.getSongId(), song.getAlbum().getAlbumId(), song.getName(), song.getDuration(), song.getLicenseCcurl(), song.getPosition(), song.getAudio(), song.getVocalinstrumental(), song.getLang(), song.getSpeed(), song.getInstruments(), song.getVartags(), song.getLikeCount(), song.getCreatedAt(), song.getModifiedAt());
     }
 
-
-
 }
