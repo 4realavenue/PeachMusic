@@ -1,10 +1,12 @@
 package com.example.peachmusic.domain.user.entity;
 
 import com.example.peachmusic.common.entity.BaseEntity;
+import com.example.peachmusic.common.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Where;
 
 @Entity
 @Getter
@@ -29,16 +31,11 @@ public class User extends BaseEntity {
     @Column(name = "password", nullable = false)
     private String password;
 
-//    @Column(name = "role")
-//    private  role;
+    @Column(name = "role")
+    private UserRole role;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
-    public User(String name, String nickname, String email, String password) {
-        this.name = name;
-        this.nickname = nickname;
-        this.email = email;
-        this.password = password;
-    }
+
 }

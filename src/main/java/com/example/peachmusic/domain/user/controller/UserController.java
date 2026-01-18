@@ -1,9 +1,14 @@
 package com.example.peachmusic.domain.user.controller;
 
+import com.example.peachmusic.common.model.CommonResponse;
+import com.example.peachmusic.domain.user.model.request.UserCreateRequestDto;
+import com.example.peachmusic.domain.user.model.response.UserCreateResponseDto;
 import com.example.peachmusic.domain.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -11,4 +16,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+
+    // 생성
+    @PostMapping("/auth/signup")
+    public ResponseEntity<CommonResponse<UserCreateResponseDto>> createUser(
+            @Valid @RequestBody UserCreateRequestDto request
+    ) {
+        UserCreateResponseDto response = userService.createUser(request);
+
+        CommonResponse<UserCreateResponseDto> commonResponse = new CommonResponse<>(true, "유저 생성 성공", response);
+
+        return new ResponseEntity<>(commonResponse, HttpStatus.CREATED);
+    }
+
+
 }
