@@ -37,6 +37,9 @@ public class User extends BaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
+    public void setRole(UserRole role) {
+        this.role = role;
+    }
 
     public User(String name, String nickname, String email, String password) {
         this.name = name;

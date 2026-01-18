@@ -1,5 +1,6 @@
 package com.example.peachmusic.domain.user.service;
 
+import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.exception.ErrorCode;
 import com.example.peachmusic.common.model.PageResponse;
@@ -57,6 +58,22 @@ public class UserAdminService {
         }
 
         user.restore();
+
+    }
+
+    // UserAdminService.java - 유저 권한 변경 (ADMIN ↔ USER)
+    public void role(Long userId, UserRole newRole) {
+        // 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        // 이미 같은 권한이면 변경 불필요
+        if (user.getRole() == newRole) {
+            throw new IllegalStateException("이미 해당 권한입니다.");
+        }
+
+        // 권한 변경
+        user.setRole(newRole);
 
     }
 }
