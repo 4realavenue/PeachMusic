@@ -3,9 +3,11 @@ package com.example.peachmusic.domain.album.service;
 import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.exception.ErrorCode;
+import com.example.peachmusic.common.model.PageResponse;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.model.request.AlbumCreateRequestDto;
 import com.example.peachmusic.domain.album.model.response.AlbumCreateResponseDto;
+import com.example.peachmusic.domain.album.model.response.AlbumGetAllResponseDto;
 import com.example.peachmusic.domain.album.model.response.ArtistSummaryDto;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.artist.entity.Artist;
@@ -14,6 +16,8 @@ import com.example.peachmusic.domain.artistAlbum.entity.ArtistAlbum;
 import com.example.peachmusic.domain.artistAlbum.repository.ArtistAlbumRepository;
 import com.example.peachmusic.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -91,5 +95,33 @@ public class AlbumAdminService {
                 .toList();
 
         return AlbumCreateResponseDto.from(savedAlbum, dtoList);
+    }
+
+    /**
+     * 전체 앨범 조회 기능 (관리자 전용)
+     * @param userId 사용자 ID (JWT 적용 전까지 임시 사용)
+     * @param role 사용자 권한
+     * @param pageable 페이지네이션 및 정렬 정보 (기본 정렬: albumReleaseDate DESC)
+     * @return 앨범 목록 페이징 조회 결과
+     */
+    @Transactional(readOnly = true)
+    public PageResponse<AlbumGetAllResponseDto> getAlbumList(Long userId, UserRole role, Pageable pageable) {
+
+        // 삭제되지 않은 유효한 사용자 여부 검증
+        userRepository.findByUserIdAndIsDeletedFalse(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_CERTIFICATION_REQUIRED));
+
+        // 관리자(ADMIN) 권한 여부 검증
+        if (role != UserRole.ADMIN) {
+            throw new CustomException(ErrorCode.AUTH_AUTHORIZATION_REQUIRED);
+        }
+
+        // 삭제되지 않은 앨범 목록을 페이징 조건에 맞게 조회
+        Page<Album> albumPage = albumRepository.findAllByIsDeletedFalse(pageable);
+
+        // Page<Album>을 응답 DTO 페이지로 변환
+        Page<AlbumGetAllResponseDto> dtoPage = albumPage.map(AlbumGetAllResponseDto::from);
+
+        return PageResponse.success("앨범 목록 조회 성공", dtoPage);
     }
 }
