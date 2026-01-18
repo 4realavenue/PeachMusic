@@ -2,9 +2,11 @@ package com.example.peachmusic.domain.playlist.controller;
 
 import com.example.peachmusic.common.model.CommonResponse;
 import com.example.peachmusic.domain.playlist.model.request.PlaylistCreateRequestDto;
+import com.example.peachmusic.domain.playlist.model.request.PlaylistUpdateRequestDto;
 import com.example.peachmusic.domain.playlist.model.response.PlaylistCreateResponseDto;
 import com.example.peachmusic.domain.playlist.model.response.PlaylistGetAllResponseDto;
 import com.example.peachmusic.domain.playlist.model.response.PlaylistGetSongResponseDto;
+import com.example.peachmusic.domain.playlist.model.response.PlaylistUpdateResponseDto;
 import com.example.peachmusic.domain.playlist.service.PlaylistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -72,6 +74,25 @@ public class PlaylistController {
         PlaylistGetSongResponseDto responseDto = playlistService.getPlaylistSongList(playlistId);
 
         CommonResponse<PlaylistGetSongResponseDto> commonResponse = new CommonResponse<>(true, "플레이리스트 조회에 성공했습니다.", responseDto);
+
+        return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+    }
+
+    /**
+     * 플레이리스트 정보 수정 API
+     * @param playlistId
+     * @param requestDto
+     * @return
+     */
+    @PutMapping("/playlists/{playlistId}")
+    public ResponseEntity<CommonResponse<PlaylistUpdateResponseDto>> updatePlaylist(
+            @PathVariable("playlistId") Long playlistId,
+            @RequestBody PlaylistUpdateRequestDto requestDto
+            ) {
+
+        PlaylistUpdateResponseDto responseDto = playlistService.updatePlaylist(playlistId, requestDto);
+
+        CommonResponse<PlaylistUpdateResponseDto> commonResponse = new CommonResponse<>(true, "플레이리스트 이름이 수정 되었습니다.", responseDto);
 
         return new ResponseEntity<>(commonResponse, HttpStatus.OK);
     }

@@ -5,9 +5,11 @@ import com.example.peachmusic.common.exception.ErrorCode;
 import com.example.peachmusic.domain.playlist.entity.Playlist;
 import com.example.peachmusic.domain.playlist.model.PlaylistDto;
 import com.example.peachmusic.domain.playlist.model.request.PlaylistCreateRequestDto;
+import com.example.peachmusic.domain.playlist.model.request.PlaylistUpdateRequestDto;
 import com.example.peachmusic.domain.playlist.model.response.PlaylistCreateResponseDto;
 import com.example.peachmusic.domain.playlist.model.response.PlaylistGetAllResponseDto;
 import com.example.peachmusic.domain.playlist.model.response.PlaylistGetSongResponseDto;
+import com.example.peachmusic.domain.playlist.model.response.PlaylistUpdateResponseDto;
 import com.example.peachmusic.domain.playlist.repository.PlaylistRepository;
 import com.example.peachmusic.domain.playlistSong.entity.PlaylistSong;
 import com.example.peachmusic.domain.playlistSong.model.response.PlaylistSongResponseDto;
@@ -123,6 +125,29 @@ public class PlaylistService {
         PlaylistDto playlistDto = PlaylistDto.from(findPlaylist);
 
         return PlaylistGetSongResponseDto.from(playlistDto, playlistSongDtoList);
+
+    }
+
+    /**
+     * 플레이리스트 정보 수정
+     * @param playlistId
+     * @param requestDto
+     * @return
+     */
+    @Transactional
+    public PlaylistUpdateResponseDto updatePlaylist(Long playlistId, PlaylistUpdateRequestDto requestDto) {
+
+        // 1. 요청 받은 플레이리스트 아이디로 플레이리스트 찾아오기
+        Playlist findPlaylist = playlistRepository.findById(playlistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PLAYLIST_NOT_FOUND));
+
+        // 2. 찾아온 플레이리스트의 updatePlaylist 메서드 실행
+        //    RequestBody로 받아온 playlistName으로 갈아 끼우기
+        findPlaylist.updatePlaylist(requestDto.getPlaylistName());
+
+        PlaylistDto playlistDto = PlaylistDto.from(findPlaylist);
+
+        return PlaylistUpdateResponseDto.from(playlistDto);
 
     }
 
