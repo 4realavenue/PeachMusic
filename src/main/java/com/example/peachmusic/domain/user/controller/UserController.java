@@ -44,4 +44,15 @@ public class UserController {
         return ResponseEntity.ok(commonResponse);
 
     }
+
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity deleteUser(
+            @PathVariable Long userId
+    ) {
+        userService.deleteUser(userId);
+
+        CommonResponse response = new CommonResponse<>(true, "유저 비활성화 성공", null);
+
+        return ResponseEntity.ok(response);
+    }
 }

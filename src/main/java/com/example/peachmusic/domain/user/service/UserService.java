@@ -51,6 +51,14 @@ public class UserService {
         return UserGetResponseDto.from(dto);
     }
 
+    // 유저 삭제
+    public void deleteUser(Long userId) {
+        User findUser = userRepository.findByUserIdAndIsDeletedFalse(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
+        findUser.delete();
+
+
+    }
 
 }
