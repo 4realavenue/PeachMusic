@@ -53,13 +53,13 @@ public class ArtistAdminService {
         // 이미 활성 상태로 존재하는 아티스트 이름인지 확인
         boolean exists = artistRepository.existsByArtistNameAndIsDeletedFalse(artistName);
         if (exists) {
-            throw new CustomException(ErrorCode.DUPLICATE_ARTIST);
+            throw new CustomException(ErrorCode.ARTIST_EXIST_NAME);
         }
 
         // 동일한 아티스트 이름이 비활성 상태로 존재하는지 확인 (복구 유도)
         Optional<Artist> deleted = artistRepository.findByArtistNameAndIsDeletedTrue(artistName);
         if (deleted.isPresent()) {
-            throw new CustomException(ErrorCode.ARTIST_DELETED_ALREADY);
+            throw new CustomException(ErrorCode.ARTIST_EXIST_NAME_DELETED);
         }
 
         // 요청 값으로 아티스트 엔티티 생성 및 저장
@@ -131,7 +131,7 @@ public class ArtistAdminService {
         // 다른 아티스트가 동일 이름을 사용 중인지 검증
         boolean exists = artistRepository.existsByArtistNameAndIsDeletedFalseAndArtistIdNot(newName, artistId);
         if (exists) {
-            throw new CustomException(ErrorCode.ARTIST_NAME_DUPLICATED);
+            throw new CustomException(ErrorCode.ARTIST_EXIST_NAME);
         }
 
         // 아티스트 이름 변경
