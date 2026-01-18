@@ -17,7 +17,7 @@ public class Artist extends BaseEntity {
     @Column(name = "artist_id")
     private Long artistId;
 
-    @Column(name = "artist_name", nullable = false)
+    @Column(name = "artist_name", nullable = false, unique = true)
     private String artistName;
 
     @Column(name = "like_count", nullable = false)
