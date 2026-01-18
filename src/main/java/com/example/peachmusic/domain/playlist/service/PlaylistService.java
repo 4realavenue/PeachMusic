@@ -151,4 +151,20 @@ public class PlaylistService {
 
     }
 
+    @Transactional
+    public void deletePlaylist(Long playlistId) {
+
+        // 1. 요청 받은 플레이리스트 아이디로 플레이리스트 찾아오기
+        Playlist findPlaylist = playlistRepository.findById(playlistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PLAYLIST_NOT_FOUND));
+
+        // 2. 연관관계로 묶여있어서 플레이리스트가 바로 삭제 안됨
+        //    찾아온 플레이리스트에 있는 음원들 전부 삭제
+        playlistSongRepository.deleteAllByPlaylist(findPlaylist);
+
+        // 3. 찾아온 플레이리스트 삭제
+        playlistRepository.delete(findPlaylist);
+
+    }
+
 }

@@ -5,7 +5,6 @@ import com.example.peachmusic.common.exception.ErrorCode;
 import com.example.peachmusic.domain.playlist.entity.Playlist;
 import com.example.peachmusic.domain.playlist.repository.PlaylistRepository;
 import com.example.peachmusic.domain.playlistSong.entity.PlaylistSong;
-import com.example.peachmusic.domain.playlistSong.model.PlaylistSongDto;
 import com.example.peachmusic.domain.playlistSong.model.request.PlaylistSongAddRequestDto;
 import com.example.peachmusic.domain.playlistSong.model.response.PlaylistSongAddResponseDto;
 import com.example.peachmusic.domain.playlistSong.repository.PlaylistSongRepository;

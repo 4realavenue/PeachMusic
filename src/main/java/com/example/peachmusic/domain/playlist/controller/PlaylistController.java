@@ -97,5 +97,17 @@ public class PlaylistController {
         return new ResponseEntity<>(commonResponse, HttpStatus.OK);
     }
 
+    @DeleteMapping("/playlists/{playlistId}")
+    public ResponseEntity<CommonResponse> deletePlaylist(
+            @PathVariable("playlistId") Long playlistId
+    ) {
+
+        playlistService.deletePlaylist(playlistId);
+
+        CommonResponse commonResponse = new CommonResponse<>(true, "플레이리스트가 삭제 되었습니다.", null);
+
+        return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+    }
+
 
 }
