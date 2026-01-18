@@ -46,4 +46,17 @@ public class UserAdminService {
 
 
     }
+
+    // 유저 복구
+    public void restorationUser(Long userId) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+
+        if (!user.isDeleted()) {
+            throw new IllegalStateException("이미 활성화된 사용자입니다.");
+        }
+
+        user.restore();
+
+    }
 }

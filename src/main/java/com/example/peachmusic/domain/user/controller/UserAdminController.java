@@ -44,4 +44,15 @@ public class UserAdminController {
         return ResponseEntity.ok(response);
     }
 
+    // 유저 복구
+    @PatchMapping("/{userId}/restore")
+    public ResponseEntity updateUser(
+            @PathVariable Long userId
+    ) {
+        useradminService.restorationUser(userId);
+
+        CommonResponse response = new CommonResponse<>(true, "유저 활성화 성공", null);
+
+        return ResponseEntity.ok(response);
+    }
 }
