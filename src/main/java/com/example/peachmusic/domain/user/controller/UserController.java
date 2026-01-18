@@ -3,6 +3,7 @@ package com.example.peachmusic.domain.user.controller;
 import com.example.peachmusic.common.model.CommonResponse;
 import com.example.peachmusic.domain.user.model.request.UserCreateRequestDto;
 import com.example.peachmusic.domain.user.model.response.UserCreateResponseDto;
+import com.example.peachmusic.domain.user.model.response.UserGetResponseDto;
 import com.example.peachmusic.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,4 +31,17 @@ public class UserController {
     }
 
 
+    // 단일 조회
+    // 내 정보 조회 jwt 후 헤더의 ID로 조회로직 작성 예정
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<CommonResponse<UserGetResponseDto>>  getUser(
+            @PathVariable Long userId
+    ) {
+
+        UserGetResponseDto response = userService.getUser(userId);
+
+        CommonResponse<UserGetResponseDto> commonResponse = new CommonResponse<>(true, "유저 조회 성공", response);
+        return ResponseEntity.ok(commonResponse);
+
+    }
 }

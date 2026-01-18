@@ -38,4 +38,14 @@ public class User extends BaseEntity {
     private boolean isDeleted = false;
 
 
+    public User(String name, String nickname, String email, String password) {
+        this.name = name;
+        this.nickname = nickname;
+        this.email = email;
+        this.password = password;
+    }
+
+    public void delete() {
+        this.isDeleted = true;
+    }
 }
