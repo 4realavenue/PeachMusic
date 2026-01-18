@@ -4,6 +4,7 @@ import com.example.peachmusic.common.model.CommonResponse;
 import com.example.peachmusic.domain.playlist.model.request.PlaylistCreateRequestDto;
 import com.example.peachmusic.domain.playlist.model.response.PlaylistCreateResponseDto;
 import com.example.peachmusic.domain.playlist.model.response.PlaylistGetAllResponseDto;
+import com.example.peachmusic.domain.playlist.model.response.PlaylistGetSongResponseDto;
 import com.example.peachmusic.domain.playlist.service.PlaylistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -55,6 +56,24 @@ public class PlaylistController {
 
         return new ResponseEntity<>(commonResponse, HttpStatus.OK);
 
+    }
+
+    /**
+     * todo url 수정 필요함 (목록 조회랑 url이 생긴게 비슷해서 에러나네)
+     * 플레이리스트 음원 조회
+     * @param playlistId
+     * @return
+     */
+    @GetMapping("/playlists/{playlistId}/a")
+    public ResponseEntity<CommonResponse<PlaylistGetSongResponseDto>> getPlaylistSongList(
+            @PathVariable("playlistId") Long playlistId
+    ) {
+
+        PlaylistGetSongResponseDto responseDto = playlistService.getPlaylistSongList(playlistId);
+
+        CommonResponse<PlaylistGetSongResponseDto> commonResponse = new CommonResponse<>(true, "플레이리스트 조회에 성공했습니다.", responseDto);
+
+        return new ResponseEntity<>(commonResponse, HttpStatus.OK);
     }
 
 

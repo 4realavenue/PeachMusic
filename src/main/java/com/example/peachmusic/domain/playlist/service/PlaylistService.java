@@ -7,8 +7,10 @@ import com.example.peachmusic.domain.playlist.model.PlaylistDto;
 import com.example.peachmusic.domain.playlist.model.request.PlaylistCreateRequestDto;
 import com.example.peachmusic.domain.playlist.model.response.PlaylistCreateResponseDto;
 import com.example.peachmusic.domain.playlist.model.response.PlaylistGetAllResponseDto;
+import com.example.peachmusic.domain.playlist.model.response.PlaylistGetSongResponseDto;
 import com.example.peachmusic.domain.playlist.repository.PlaylistRepository;
 import com.example.peachmusic.domain.playlistSong.entity.PlaylistSong;
+import com.example.peachmusic.domain.playlistSong.model.response.PlaylistSongResponseDto;
 import com.example.peachmusic.domain.playlistSong.repository.PlaylistSongRepository;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.repository.UserRepository;
@@ -90,6 +92,38 @@ public class PlaylistService {
         }
 
         return PlaylistGetAllResponseDto.from(responseDtoList);
+    }
+
+    /**
+     * 플레이리스트 음원 조회
+     * @param playlistId
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public PlaylistGetSongResponseDto getPlaylistSongList(Long playlistId) {
+
+        // 1. 플레이리스트 아이디로 플레이리스트 찾아옴
+        Playlist findPlaylist = playlistRepository.findById(playlistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PLAYLIST_NOT_FOUND));
+
+        // 2. 플레이리스트가 갖고 있는 음원들 리스트에 담아옴
+        List<PlaylistSong> findPlaylistSong = playlistSongRepository.findAllByPlaylist(findPlaylist);
+
+        // 3. 응답 데이터 객체 담아줄 리스트 생성
+        List<PlaylistSongResponseDto> playlistSongDtoList = new ArrayList<>();
+
+        // 4. 찾아온 플레이리스트가 갖고 있는 음원 리스트 순회
+        //    응답 데이터 객체 생성
+        //    응답 데이터 객체 담아줄 리스트에 응답 데이터 객체 담아줌
+        for (PlaylistSong ps : findPlaylistSong) {
+            PlaylistSongResponseDto playlistSongDto = new PlaylistSongResponseDto(ps.getPlaylistSongId(), ps.getSong().getSongId(), ps.getSong().getName(), ps.getSong().getDuration(), ps.getSong().getLikeCount());
+            playlistSongDtoList.add(playlistSongDto);
+        }
+
+        PlaylistDto playlistDto = PlaylistDto.from(findPlaylist);
+
+        return PlaylistGetSongResponseDto.from(playlistDto, playlistSongDtoList);
+
     }
 
 }
