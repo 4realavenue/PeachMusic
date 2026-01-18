@@ -6,7 +6,9 @@ import com.example.peachmusic.domain.playlist.entity.Playlist;
 import com.example.peachmusic.domain.playlist.repository.PlaylistRepository;
 import com.example.peachmusic.domain.playlistSong.entity.PlaylistSong;
 import com.example.peachmusic.domain.playlistSong.model.request.PlaylistSongAddRequestDto;
+import com.example.peachmusic.domain.playlistSong.model.request.PlaylistSongDeleteRequestDto;
 import com.example.peachmusic.domain.playlistSong.model.response.PlaylistSongAddResponseDto;
+import com.example.peachmusic.domain.playlistSong.model.response.PlaylistSongDeleteSongResponseDto;
 import com.example.peachmusic.domain.playlistSong.repository.PlaylistSongRepository;
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
@@ -21,6 +23,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PlaylistSongService {
 
+    /**
+     * 플레이리스트 음원 추가
+     */
     private final PlaylistSongRepository playlistSongRepository;
     private final PlaylistRepository playlistRepository;
     private final SongRepository songRepository;
@@ -69,6 +74,37 @@ public class PlaylistSongService {
         playlistSongRepository.saveAll(playlistSongList);
 
         return PlaylistSongAddResponseDto.from(findPlaylist.getPlaylistId(), requestSongIdList, addedCount);
+
+    }
+
+    /**
+     * 플레이리스트의 음원 삭제
+     * @param playlistId
+     * @param requestDto
+     * @return
+     */
+    @Transactional
+    public PlaylistSongDeleteSongResponseDto deletePlaylistSong(Long playlistId, PlaylistSongDeleteRequestDto requestDto) {
+
+        Playlist findPlaylist = playlistRepository.findById(playlistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PLAYLIST_NOT_FOUND));
+
+        // 2. 요청 받은 음원 아이디 담아오기
+        List<Long> requestSongIdList = requestDto.getSongIds();
+
+        // 3. 요청 받은 음원 아이디 리스트 순회
+        //    만약에 플레이리스트 아이디와 음원 아이디를 가진 playlistSong이 없다면
+        //    요청했던 플레이리스트에 해당 음원 없다고 예외 던짐
+        //    조건에 부합하는 playlistSong이 있다면 삭제함
+        for (Long songId : requestSongIdList) {
+            if (!playlistSongRepository.existsByPlaylist_PlaylistIdAndSong_SongId(findPlaylist.getPlaylistId(), songId)) {
+                throw new CustomException(ErrorCode.PLAYLIST_NOT_FOUND_SONG);
+            }
+
+            playlistSongRepository.deletePlaylistSongByPlaylist_PlaylistIdAndSong_SongId(findPlaylist.getPlaylistId(), songId);
+        }
+
+        return PlaylistSongDeleteSongResponseDto.from(findPlaylist, requestDto.getSongIds());
 
     }
 }
