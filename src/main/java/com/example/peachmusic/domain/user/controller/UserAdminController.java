@@ -3,7 +3,7 @@ package com.example.peachmusic.domain.user.controller;
 import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.model.CommonResponse;
 import com.example.peachmusic.common.model.PageResponse;
-import com.example.peachmusic.domain.user.model.request.UserRoleChangeRequest;
+import com.example.peachmusic.domain.user.model.request.UserRoleChangeRequestDto;
 import com.example.peachmusic.domain.user.model.response.admin.UserAdminGetResponse;
 import com.example.peachmusic.domain.user.service.UserAdminService;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +54,7 @@ public class UserAdminController {
     @PatchMapping("/{userId}/role")
     public ResponseEntity<CommonResponse<Void>> changeRole(
             @PathVariable Long userId,
-            @RequestBody UserRoleChangeRequest request
+            @RequestBody UserRoleChangeRequestDto request
     ) {
         UserRole newRole = request.getRole();
         useradminService.role(userId, newRole);

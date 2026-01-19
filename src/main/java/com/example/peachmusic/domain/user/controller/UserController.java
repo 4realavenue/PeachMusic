@@ -58,9 +58,6 @@ public class UserController {
 
         UserUpdateResponseDto result = userService.update(request, authUser);
 
-
-
-
         return ResponseEntity.ok(CommonResponse.success("유저 정보 수정 성공",result));
     }
 

@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 
 @Getter
-public class UserRoleChangeRequest {
+public class UserRoleChangeRequestDto {
 
     @NotBlank
     private UserRole role;  // "ADMIN" 또는 "USER"
