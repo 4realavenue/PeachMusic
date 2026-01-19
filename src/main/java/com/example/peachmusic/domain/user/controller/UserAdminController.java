@@ -7,6 +7,7 @@ import com.example.peachmusic.domain.user.model.request.UserRoleChangeRequest;
 import com.example.peachmusic.domain.user.model.response.admin.UserAdminGetResponse;
 import com.example.peachmusic.domain.user.service.UserAdminService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -25,21 +26,19 @@ public class UserAdminController {
     public ResponseEntity<PageResponse<UserAdminGetResponse>> getUsers(
             @PageableDefault(size = 10, page = 0, sort = "userId") Pageable pageable
     ) {
-        PageResponse<UserAdminGetResponse> response = useradminService.getAllUser(pageable);
+        Page<UserAdminGetResponse> response = useradminService.getAllUser(pageable);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(PageResponse.success("전체 유저 조회 성공", response));
     }
 
     // 유저 삭제
-    @DeleteMapping("/{userId}")
+    @DeleteMapping("/{userId}/delete")
     public ResponseEntity deleteUser(
             @PathVariable Long userId
     ) {
         useradminService.deleteUser(userId);
 
-        CommonResponse response = new CommonResponse<>(true, "유저 비활성화 성공", null);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(CommonResponse.success("계정 삭제 성공"));
     }
 
     // 유저 복구
@@ -49,9 +48,7 @@ public class UserAdminController {
     ) {
         useradminService.restorationUser(userId);
 
-        CommonResponse response = new CommonResponse<>(true, "유저 활성화 성공", null);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(CommonResponse.success("계정 복구 성공"));
     }
 
     @PatchMapping("/{userId}/role")
@@ -62,8 +59,6 @@ public class UserAdminController {
         UserRole newRole = request.getRole();
         useradminService.role(userId, newRole);
 
-        CommonResponse<Void> response = new CommonResponse<>(true, "계정 권한 변경 성공", null);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(CommonResponse.success("계정 권한 변경 성공" ));
     }
 }

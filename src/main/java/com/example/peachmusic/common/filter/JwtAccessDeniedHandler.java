@@ -18,10 +18,8 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
         response.setContentType("application/json;charset=UTF-8");
 
         String requestURI = request.getRequestURI();
-        String message = requestURI.startsWith("/api/admin/users") ? "관리자 권한이 필요합니다." : "접근 권한이 없습니다.";
+        String message = requestURI.startsWith("/api/admin") ? "관리자 권한이 필요합니다." : "접근 권한이 없습니다.";
 
-        response.getWriter().write(
-                "{\"message\": \"" + message + "\"}"
-        );
+        response.getWriter().write("{\"message\": \"" + message + "\"}");
     }
 }

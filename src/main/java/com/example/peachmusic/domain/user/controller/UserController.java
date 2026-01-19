@@ -1,5 +1,6 @@
 package com.example.peachmusic.domain.user.controller;
 
+import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.CommonResponse;
 import com.example.peachmusic.domain.user.model.request.LoginRequestDto;
 import com.example.peachmusic.domain.user.model.request.UserCreateRequestDto;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.aspectj.ConfigurableObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -31,52 +33,45 @@ public class UserController {
     ) {
         UserCreateResponseDto response = userService.createUser(request);
 
-        CommonResponse<UserCreateResponseDto> commonResponse = new CommonResponse<>(true, "유저 생성 성공", response);
-
-        return new ResponseEntity<>(commonResponse, HttpStatus.CREATED);
+        return new ResponseEntity<>(CommonResponse.success("유저 생성 성공", response), HttpStatus.CREATED);
     }
 
 
     // 단일 조회
-    // 내 정보 조회 jwt 후 헤더의 ID로 조회로직 작성 예정
-    @GetMapping("/users/{userId}")
+    @GetMapping("/users")
     public ResponseEntity<CommonResponse<UserGetResponseDto>>  getUser(
-            @PathVariable Long userId
-    ) {
+            @AuthenticationPrincipal AuthUser authUser
+            ) {
 
-        UserGetResponseDto response = userService.getUser(userId);
+        UserGetResponseDto response = userService.getUser(authUser);
 
-        CommonResponse<UserGetResponseDto> commonResponse = new CommonResponse<>(true, "유저 조회 성공", response);
-        return ResponseEntity.ok(commonResponse);
+        return ResponseEntity.ok(CommonResponse.success("유저 조회 성공", response));
 
     }
 
     // 정보 수정
-    @PutMapping("/users/{userId}")
+    @PutMapping("/users")
     public ResponseEntity<CommonResponse<UserUpdateResponseDto>> updateUser(
             @Valid @RequestBody UserUpdateRequestDto request,
-            @PathVariable Long userId
+            @AuthenticationPrincipal AuthUser authUser
     ) {
 
-        UserUpdateResponseDto result = userService.update(request, userId);
+        UserUpdateResponseDto result = userService.update(request, authUser);
 
-        CommonResponse<UserUpdateResponseDto> commonResponse = new CommonResponse<>(true, "유저 정보 수정 성공",result);
 
-        ResponseEntity<CommonResponse<UserUpdateResponseDto>> response = new ResponseEntity<>(commonResponse, HttpStatus.OK);
 
-        return response;
+
+        return ResponseEntity.ok(CommonResponse.success("유저 정보 수정 성공",result));
     }
 
     // 삭제
-    @DeleteMapping("/users/{userId}")
+    @DeleteMapping("/users")
     public ResponseEntity deleteUser(
-            @PathVariable Long userId
+            @AuthenticationPrincipal AuthUser authUser
     ) {
-        userService.deleteUser(userId);
+        userService.deleteUser(authUser);
 
-        CommonResponse response = new CommonResponse<>(true, "유저 비활성화 성공", null);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(CommonResponse.success("유저 비활성화 성공"));
     }
 
     // 로그인

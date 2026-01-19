@@ -1,7 +1,6 @@
 package com.example.peachmusic.domain.user.model.response.admin;
 
 import com.example.peachmusic.domain.user.entity.User;
-import com.example.peachmusic.domain.user.model.UserDto;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
