@@ -18,4 +18,7 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
 
     // 활성 상태(isDeleted=false)인 앨범 목록을 페이징 조건에 맞게 조회
     Page<Album> findAllByIsDeletedFalse(Pageable pageable);
+
+    // 활성 상태(isDeleted=false)인 앨범 조회
+    Optional<Album> findByAlbumIdAndIsDeletedFalse(Long albumId);
 }
