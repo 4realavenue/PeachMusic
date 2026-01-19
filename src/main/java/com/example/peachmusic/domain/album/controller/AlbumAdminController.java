@@ -4,8 +4,10 @@ import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.model.CommonResponse;
 import com.example.peachmusic.common.model.PageResponse;
 import com.example.peachmusic.domain.album.model.request.AlbumCreateRequestDto;
+import com.example.peachmusic.domain.album.model.request.AlbumUpdateRequestDto;
 import com.example.peachmusic.domain.album.model.response.AlbumCreateResponseDto;
 import com.example.peachmusic.domain.album.model.response.AlbumGetAllResponseDto;
+import com.example.peachmusic.domain.album.model.response.AlbumUpdateResponseDto;
 import com.example.peachmusic.domain.album.service.AlbumAdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/albums")
+@RequestMapping("/api")
 public class AlbumAdminController {
 
     private final AlbumAdminService albumAdminService;
@@ -32,7 +34,7 @@ public class AlbumAdminController {
      * @param requestDto 앨범 생성 요청 DTO
      * @return 생성된 앨범 정보
      */
-    @PostMapping
+    @PostMapping("/admin/albums")
     public ResponseEntity<CommonResponse<AlbumCreateResponseDto>> createAlbum(
             @RequestHeader("X-USER-ID") Long userId,
             @RequestHeader("X-ROLE") UserRole role,
@@ -52,7 +54,7 @@ public class AlbumAdminController {
      * @param pageable pageable 페이지네이션 및 정렬 정보 (기본 정렬: 앨범 발매일 내림차순)
      * @return 앨범 목록 페이징 조회 결과
      */
-    @GetMapping
+    @GetMapping("/admin/albums")
     public ResponseEntity<PageResponse<AlbumGetAllResponseDto>> getAlbumList(
             @RequestHeader("X-USER-ID") Long userId,
             @RequestHeader("X-ROLE") UserRole role,
@@ -61,5 +63,27 @@ public class AlbumAdminController {
         PageResponse<AlbumGetAllResponseDto> response = albumAdminService.getAlbumList(userId, role, pageable);
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 앨범 기본 정보 수정 API (관리자 전용)
+     * JWT 적용 전 단계로, 요청 헤더에서 사용자 식별 정보와 권한을 임시로 전달받는다.
+     *
+     * @param userId 요청 헤더에 전달되는 사용자 ID (JWT 적용 전까지 임시 사용)
+     * @param role 요청 헤더에 전달되는 사용자 권한 (X-ROLE은 ADMIN 대문자)
+     * @param albumId 수정할 앨범 ID
+     * @param requestDto 앨범 수정 요청 DTO
+     * @return 수정된 앨범 정보
+     */
+    @PatchMapping("/admin/albums/{albumId}")
+    public ResponseEntity<CommonResponse<AlbumUpdateResponseDto>> updateAlbum(
+            @RequestHeader("X-USER-ID") Long userId,
+            @RequestHeader("X-ROLE") UserRole role,
+            @PathVariable("albumId") Long albumId,
+            @RequestBody AlbumUpdateRequestDto requestDto) {
+
+        AlbumUpdateResponseDto responseDto = albumAdminService.updateAlbumInfo(userId, role, albumId, requestDto);
+
+        return ResponseEntity.ok(CommonResponse.success("앨범 기본 정보 수정 완료", responseDto));
     }
 }

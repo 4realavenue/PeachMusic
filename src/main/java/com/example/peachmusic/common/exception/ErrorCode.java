@@ -12,6 +12,8 @@ public enum ErrorCode {
     AUTH_EMAIL_PASSWORD_REQUIRED(HttpStatus.BAD_REQUEST, "이메일과 비밀번호를 입력해 주세요."),
     AUTH_EMAIL_PASSWORD_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "올바른 이메일 형식이 아닙니다."),
     SEARCH_KEYWORD_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "검색 키워드를 다시 입력해주세요"),
+    ALBUM_UPDATE_NO_CHANGES(HttpStatus.BAD_REQUEST, "수정할 값이 없습니다."),
+    ALBUM_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "앨범 이름은 필수입니다."),
 
 
     // 401

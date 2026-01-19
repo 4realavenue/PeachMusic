@@ -6,8 +6,10 @@ import com.example.peachmusic.common.exception.ErrorCode;
 import com.example.peachmusic.common.model.PageResponse;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.model.request.AlbumCreateRequestDto;
+import com.example.peachmusic.domain.album.model.request.AlbumUpdateRequestDto;
 import com.example.peachmusic.domain.album.model.response.AlbumCreateResponseDto;
 import com.example.peachmusic.domain.album.model.response.AlbumGetAllResponseDto;
+import com.example.peachmusic.domain.album.model.response.AlbumUpdateResponseDto;
 import com.example.peachmusic.domain.album.model.response.ArtistSummaryDto;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.artist.entity.Artist;
@@ -123,5 +125,78 @@ public class AlbumAdminService {
         Page<AlbumGetAllResponseDto> dtoPage = albumPage.map(AlbumGetAllResponseDto::from);
 
         return PageResponse.success("앨범 목록 조회 성공", dtoPage);
+    }
+
+    /**
+     * 앨범 기본 정보 수정 기능 (관리자 전용)
+     * @param userId 사용자 ID (JWT 적용 전까지 임시 사용)
+     * @param role 사용자 권한
+     * @param albumId 수정할 앨범 ID
+     * @param requestDto 앨범 수정 요청 DTO
+     * @return 수정된 앨범 정보
+     */
+    @Transactional
+    public AlbumUpdateResponseDto updateAlbumInfo(Long userId, UserRole role, Long albumId, AlbumUpdateRequestDto requestDto) {
+
+        // 삭제되지 않은 유효한 사용자 여부 검증
+        userRepository.findByUserIdAndIsDeletedFalse(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_CERTIFICATION_REQUIRED));
+
+        // 관리자(ADMIN) 권한 여부 검증
+        if (role != UserRole.ADMIN) {
+            throw new CustomException(ErrorCode.AUTH_AUTHORIZATION_REQUIRED);
+        }
+
+        // 변경 필드가 하나도 없을 경우 400 반환
+        String albumName = requestDto.getAlbumName();
+        LocalDate albumReleaseDate = requestDto.getAlbumReleaseDate();
+        String albumImage = requestDto.getAlbumImage();
+
+        if (albumName == null && albumReleaseDate == null && albumImage == null) {
+            throw new CustomException(ErrorCode.ALBUM_UPDATE_NO_CHANGES);
+        }
+
+        // 수정 대상 앨범 조회 (삭제된 앨범은 수정 불가)
+        Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
+
+        // 요청에 포함된 필드만 검증 후 반영
+        if (albumName != null) {
+            if (albumName.isBlank()) {
+                throw new CustomException(ErrorCode.ALBUM_NAME_REQUIRED);
+            }
+            foundAlbum.updateAlbumName(albumName.trim());
+        }
+
+        if (albumReleaseDate != null) {
+            foundAlbum.updateAlbumReleaseDate(albumReleaseDate);
+        }
+
+        if (albumImage != null) {
+            foundAlbum.updateAlbumImage(albumImage);
+        }
+
+        // 앨범 이름 또는 발매일 변경 시, 최종 값 기준 중복 여부 검증
+        if (albumName != null || albumReleaseDate != null) {
+            if (albumRepository.existsByAlbumNameAndAlbumReleaseDateAndIsDeletedFalseAndAlbumIdNot(
+                    foundAlbum.getAlbumName(),
+                    foundAlbum.getAlbumReleaseDate(),
+                    albumId
+            )) {
+                throw new CustomException(ErrorCode.ALBUM_EXIST_NAME_RELEASE_DATE);
+            }
+        }
+
+        // 응답 포맷 통일을 위해 현재 참여 아티스트 목록 조회
+        //    (아티스트 갱신은 별도 API에서 처리)
+        List<ArtistAlbum> mappings = artistAlbumRepository.findAllByAlbum_AlbumId(albumId);
+        List<ArtistSummaryDto> artistList = mappings.stream()
+                .map(m -> new ArtistSummaryDto(
+                        m.getArtist().getArtistId(),
+                        m.getArtist().getArtistName()
+                ))
+                .toList();
+
+        return AlbumUpdateResponseDto.from(foundAlbum, artistList);
     }
 }
