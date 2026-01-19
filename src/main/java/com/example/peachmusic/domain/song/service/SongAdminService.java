@@ -78,7 +78,7 @@ public class SongAdminService {
     public Page<AdminSongGetAllResponseDto> getSongAll(Pageable pageable) {
 
         // 1. isDeleted가 false인 모든 음악을 레포지토리 통해 DB에서 음원을 담을 수 있는 페이지에 담아서 가져옴
-        Page<Song> findSongPage = songRepository.findAllByIsDeletedFalse(pageable);
+        Page<Song> findSongPage = songRepository.findAll(pageable);
 
         // 2. 만약 가져왔는데 비어있다면 빈 데이터 반환
         if (findSongPage.isEmpty()) {
@@ -138,12 +138,7 @@ public class SongAdminService {
         Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
-        // 2. 요청 받은 songId가 이미 비활성화 상태인지 확인
-        if (findSong.isDeleted()) {
-            throw new CustomException(ErrorCode.SONG_NOT_FOUND);
-        }
-
-        // 3. 찾아온 음원의 deleteSong 메서드 실행
+        // 2. 찾아온 음원의 deleteSong 메서드 실행
         findSong.deleteSong();
 
     }
@@ -158,12 +153,7 @@ public class SongAdminService {
         Song findSong = songRepository.findById(songId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
-        // 2. 요청 받은 songId가 이미 활성화 상태인지 확인
-        if (!findSong.isDeleted()) {
-            throw new CustomException(ErrorCode.SONG_NOT_FOUND);
-        }
-
-        // 3. 찾아온 음원의 restoreSong 메서드 실행
+        // 2. 찾아온 음원의 restoreSong 메서드 실행
         findSong.restoreSong();
 
     }
