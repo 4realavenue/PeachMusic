@@ -16,4 +16,7 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
 
     // 활성 상태(isDeleted=false)인 앨범 중, 현재 앨범을 제외하고 동일한 앨범이 존재하는지 확인
     boolean existsByAlbumNameAndAlbumReleaseDateAndIsDeletedFalseAndAlbumIdNot(String albumName, LocalDate albumReleaseDate, Long albumId);
+
+    // 비활성 상태(isDeleted=true)인 앨범 조회
+    Optional<Album> findByAlbumIdAndIsDeletedTrue(Long albumId);
 }

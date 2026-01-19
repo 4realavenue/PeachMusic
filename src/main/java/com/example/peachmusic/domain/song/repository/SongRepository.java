@@ -7,6 +7,9 @@ import java.util.List;
 
 public interface SongRepository extends JpaRepository<Song, Long> {
 
-    // 활성 상태(isDeleted=false)인 앨범 음원을 음원 순서 오름차순으로 조회
+    // (활성) 앨범 음원 목록 조회 (position ASC)
     List<Song> findAllByAlbum_AlbumIdAndIsDeletedFalseOrderByPositionAsc(Long albumId);
+
+    // (비활성) 앨범 음원 목록 조회 (position ASC)
+    List<Song> findAllByAlbum_AlbumIdAndIsDeletedTrueOrderByPositionAsc(Long albumId);
 }
