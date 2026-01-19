@@ -83,5 +83,4 @@ public class JwtFilter extends OncePerRequestFilter {
             throw new AuthenticationServiceException("인증 처리 중 서버 JWT 서명입니다.", e);
         }
     }
-
 }

@@ -28,7 +28,6 @@ public class UserAdminService {
         Page<UserAdminGetResponseDto> response = users.map(user ->
                 UserAdminGetResponseDto.from(user)
         );
-
         return response;
     }
 
@@ -42,7 +41,6 @@ public class UserAdminService {
         if (user.isDeleted()) {
             throw new CustomException(ErrorCode.USER_EXIST_DELETED);
         }
-
         user.delete();
     }
 
@@ -56,7 +54,6 @@ public class UserAdminService {
         if (!user.isDeleted()) {
             throw new CustomException(ErrorCode.USER_EXIST_ACTIVATIONUSER);
         }
-
         user.restore();
     }
 
@@ -67,12 +64,10 @@ public class UserAdminService {
         // 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
         // 이미 같은 권한이면 변경 불필요
         if (user.getRole() == newRole) {
             throw new CustomException(ErrorCode.USER_EEXIST_ROLE);
         }
-
         // 권한 변경
         user.setRole(newRole);
     }

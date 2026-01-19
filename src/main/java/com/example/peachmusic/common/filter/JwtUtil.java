@@ -31,7 +31,6 @@ public class JwtUtil {
         byte[] bytes = Base64.getDecoder().decode(secretKey); // Base64인지 체크하겠다.
         key = Keys.hmacShaKeyFor(bytes);
     }
-
     // 토큰 생성
     public String createToken(Long userId, String email, UserRole userRole) {
 
@@ -47,14 +46,12 @@ public class JwtUtil {
                         .signWith(key, signatureAlgorithm) // 암호화 알고리즘
                         .compact();
     }
-
     public String substringToken(String tokenValue) throws ServerException { // 토큰에 Bearer 떼서 토큰 키만 받겠다.
         if (StringUtils.hasText(tokenValue) && tokenValue.startsWith(TOKEN_PREFIX)) { // 토큰값이 tokenValue 또는 TOKEN_PREFIX ("bearer ")을 잘라내서 받겠다..
             return tokenValue.substring(7); // ("bearer " 7자 날림)
         }
         throw new ServerException("Not Found Token");
     }
-
     // 토큰 복호화 위 클레임즈값을 전부 추출한다 [ email이랑 UserRole 추출하겠다. ] 값 꺼내 쓰겠다.
     public Claims extractClaims(String token) {
         return Jwts.parserBuilder()
@@ -63,5 +60,4 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
     }
-
 }
