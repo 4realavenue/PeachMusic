@@ -12,4 +12,10 @@ public interface SongRepository extends JpaRepository<Song, Long> {
 
     // (비활성) 앨범 음원 목록 조회 (position ASC)
     List<Song> findAllByAlbum_AlbumIdAndIsDeletedTrueOrderByPositionAsc(Long albumId);
+
+    // (활성) 여러 앨범 음원 조회
+    List<Song> findAllByAlbum_AlbumIdInAndIsDeletedFalseOrderByPositionAsc(List<Long> albumIds);
+
+    // (비활성) 여러 앨범 음원 조회
+    List<Song> findAllByAlbum_AlbumIdInAndIsDeletedTrueOrderByPositionAsc(List<Long> albumIds);
 }
