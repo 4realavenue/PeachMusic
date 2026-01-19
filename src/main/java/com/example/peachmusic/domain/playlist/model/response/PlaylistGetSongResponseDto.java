@@ -36,5 +36,4 @@ public class PlaylistGetSongResponseDto{
             return new PlaylistSongResponseDto(playlistSong.getPlaylistSongId(), playlistSong.getSong().getSongId(), playlistSong.getSong().getName(), playlistSong.getSong().getDuration(), playlistSong.getSong().getLikeCount());
         }
     }
-
 }
