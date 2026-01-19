@@ -17,7 +17,7 @@ public class Artist extends BaseEntity {
     @Column(name = "artist_id")
     private Long artistId;
 
-    @Column(name = "artist_name", nullable = false)
+    @Column(name = "artist_name", nullable = false, unique = true)
     private String artistName;
 
     @Column(name = "like_count", nullable = false)
@@ -26,8 +26,29 @@ public class Artist extends BaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
-    public Artist(String artistName, Long likeCount) {
+    public Artist(String artistName) {
         this.artistName = artistName;
-        this.likeCount = likeCount;
+    }
+
+    public void updateArtistName(String artistName) {
+        this.artistName = artistName;
+    }
+
+    public void delete() {
+        this.isDeleted = true;
+    }
+
+    public void restore() {
+        this.isDeleted = false;
+    }
+
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decreaseLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount--;
+        }
     }
 }
