@@ -26,9 +26,6 @@ public class SongAdminController {
 
     /**
      * 음원 생성 API
-     *
-     * @param requestDto
-     * @return
      */
     @PostMapping("/songs")
     public ResponseEntity<CommonResponse<AdminSongCreateResponseDto>> createSong(
@@ -44,9 +41,6 @@ public class SongAdminController {
 
     /**
      * 음원 전체 조회 API
-     *
-     * @param pageable
-     * @return
      */
     @GetMapping("/songs")
     public ResponseEntity<PageResponse<AdminSongGetAllResponseDto>> getSongAll(
@@ -62,10 +56,6 @@ public class SongAdminController {
 
     /**
      * 음원 정보 수정 API
-     *
-     * @param songId
-     * @param requestDto
-     * @return
      */
     @PutMapping("/songs/{songId}")
     public ResponseEntity<CommonResponse<AdminSongUpdateResponseDto>> updateSong(
