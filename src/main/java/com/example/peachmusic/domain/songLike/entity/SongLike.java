@@ -30,4 +30,5 @@ public class SongLike {
         this.user = user;
         this.song = song;
     }
+
 }
