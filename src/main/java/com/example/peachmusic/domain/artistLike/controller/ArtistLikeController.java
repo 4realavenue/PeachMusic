@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/artists/{artistId}/likes")
+@RequestMapping("/api")
 public class ArtistLikeController {
 
     private final ArtistLikeService artistLikeService;
@@ -22,7 +22,7 @@ public class ArtistLikeController {
      * @param artistId 좋아요 토글할 아티스트 ID
      * @return 토글 처리 결과(최종 좋아요 상태 및 좋아요 수)
      */
-    @PostMapping
+    @PostMapping("/artists/{artistId}/likes")
     public ResponseEntity<CommonResponse<ArtistLikeResponseDto>> likeArtist(
             @RequestHeader("X-USER-ID") Long userId,
             @PathVariable("artistId") Long artistId) {

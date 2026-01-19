@@ -46,17 +46,16 @@ public class ArtistLikeService {
         // 이미 좋아요 상태면 취소
         if (alreadyLiked) {
             artistLikeRepository.deleteByArtist_ArtistIdAndUser_UserId(artistId, userId);
+            foundArtist.decreaseLikeCount();
         } else {
             // 좋아요 상태가 아니면 등록
             artistLikeRepository.save(new ArtistLike(foundUser, foundArtist));
+            foundArtist.increaseLikeCount();
         }
 
         // 처리 후 최종 좋아요 상태
         boolean liked = !alreadyLiked;
 
-        // 처리 후 좋아요 수
-        long likeCount = artistLikeRepository.countByArtist_ArtistId(artistId);
-
-        return ArtistLikeResponseDto.of(foundArtist.getArtistId(), liked, likeCount);
+        return ArtistLikeResponseDto.of(foundArtist.getArtistId(), liked, foundArtist.getLikeCount());
     }
 }

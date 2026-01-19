@@ -50,16 +50,19 @@ public class ArtistAdminService {
 
         String artistName = requestDto.getArtistName();
 
-        // 이미 활성 상태로 존재하는 아티스트 이름인지 확인
-        boolean exists = artistRepository.existsByArtistNameAndIsDeletedFalse(artistName);
-        if (exists) {
-            throw new CustomException(ErrorCode.ARTIST_EXIST_NAME);
-        }
+        Optional<Artist> found = artistRepository.findByArtistName(artistName);
 
-        // 동일한 아티스트 이름이 비활성 상태로 존재하는지 확인 (복구 유도)
-        Optional<Artist> deleted = artistRepository.findByArtistNameAndIsDeletedTrue(artistName);
-        if (deleted.isPresent()) {
-            throw new CustomException(ErrorCode.ARTIST_EXIST_NAME_DELETED);
+        // 동일한 아티스트 이름이 이미 존재하는 경우
+        if (found.isPresent()) {
+            Artist artist = found.get();
+
+            // 비활성 상태(isDeleted=true)인 경우: 복구 대상이므로 생성 불가
+            if (artist.isDeleted()) {
+                throw new CustomException(ErrorCode.ARTIST_EXIST_NAME_DELETED);
+            }
+
+            // 활성 상태(isDeleted=false)인 경우: 중복 이름으로 생성 불가
+            throw new CustomException(ErrorCode.ARTIST_EXIST_NAME);
         }
 
         // 요청 값으로 아티스트 엔티티 생성 및 저장
@@ -88,8 +91,8 @@ public class ArtistAdminService {
             throw new CustomException(ErrorCode.AUTH_AUTHORIZATION_REQUIRED);
         }
 
-        // 삭제되지 않은 아티스트 목록을 페이징 조건에 맞게 조회
-        Page<Artist> artistPage = artistRepository.findAllByIsDeletedFalse(pageable);
+        // 삭제 여부와 관계없이 아티스트 전체 목록 조회
+        Page<Artist> artistPage = artistRepository.findAll(pageable);
 
         // Page<Artist>를 응답 DTO 페이지로 변환
         Page<ArtistGetAllResponseDto> dtoPage = artistPage.map(ArtistGetAllResponseDto::from);

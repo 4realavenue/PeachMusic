@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/artists")
+@RequestMapping("/api")
 public class ArtistController {
 
     private final ArtistService artistService;
@@ -19,7 +19,7 @@ public class ArtistController {
      * @param artistId 조회할 아티스트 ID
      * @return 조회한 아티스트 정보
      */
-    @GetMapping("/{artistId}")
+    @GetMapping("/artists/{artistId}")
     public ResponseEntity<CommonResponse<ArtistGetDetailResponseDto>> getArtistDetail(@PathVariable("artistId") Long artistId) {
 
        ArtistGetDetailResponseDto responseDto = artistService.getArtistDetail(artistId);
