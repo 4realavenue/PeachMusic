@@ -10,11 +10,8 @@ import java.util.Optional;
 
 public interface AlbumRepository extends JpaRepository<Album, Long> {
 
-    // 활성 상태(isDeleted=false)로 동일한 앨범이 존재하는지 여부 확인
-    boolean existsByAlbumNameAndAlbumReleaseDateAndIsDeletedFalse(String albumName, LocalDate albumReleaseDate);
-
-    // 비활성 상태(isDeleted=true)인 동일한 앨범 조회
-    Optional<Album> findByAlbumNameAndAlbumReleaseDateAndIsDeletedTrue(String albumName, LocalDate albumReleaseDate);
+    // 앨범 이름과 앨범 발매일로 단건 조회 (삭제 여부와 관계없이 조회)
+    Optional<Album> findByAlbumNameAndAlbumReleaseDate(String albumName, LocalDate albumReleaseDate);
 
     // 활성 상태(isDeleted=false)인 앨범 목록을 페이징 조건에 맞게 조회
     Page<Album> findAllByIsDeletedFalse(Pageable pageable);

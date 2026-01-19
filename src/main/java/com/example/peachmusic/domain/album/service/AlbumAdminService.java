@@ -69,16 +69,19 @@ public class AlbumAdminService {
         String albumName = requestDto.getAlbumName();
         LocalDate albumReleaseDate = requestDto.getAlbumReleaseDate();
 
-        // 이미 활성 상태로 존재하는 앨범인지 확인
-        boolean exists = albumRepository.existsByAlbumNameAndAlbumReleaseDateAndIsDeletedFalse(albumName, albumReleaseDate);
-        if (exists) {
-            throw new CustomException(ErrorCode.ALBUM_EXIST_NAME_RELEASE_DATE);
-        }
+        Optional<Album> found = albumRepository.findByAlbumNameAndAlbumReleaseDate(albumName, albumReleaseDate);
 
-        // 동일한 앨범이 비활성 상태로 존재하는지 확인 (복구 유도)
-        Optional<Album> deleted = albumRepository.findByAlbumNameAndAlbumReleaseDateAndIsDeletedTrue(albumName, albumReleaseDate);
-        if (deleted.isPresent()) {
-            throw new CustomException(ErrorCode.ALBUM_EXIST_NAME_RELEASE_DATE_DELETED);
+        // 동일한 앨범이 이미 존재하는 경우
+        if (found.isPresent()) {
+            Album album = found.get();
+
+            // 비활성 상태(isDeleted=true)인 경우: 복구 대상이므로 생성 불가
+            if (album.isDeleted()) {
+                throw new CustomException(ErrorCode.ALBUM_EXIST_NAME_RELEASE_DATE_DELETED);
+            }
+
+            // 활성 상태(isDeleted=false)인 경우: 중복 앨범으로 생성 불가
+            throw new CustomException(ErrorCode.ALBUM_EXIST_NAME_RELEASE_DATE);
         }
 
         // 요청 값으로 앨범 엔티티 생성 및 저장
