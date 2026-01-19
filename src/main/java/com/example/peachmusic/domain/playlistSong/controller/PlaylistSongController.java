@@ -6,6 +6,7 @@ import com.example.peachmusic.domain.playlistSong.model.request.PlaylistSongDele
 import com.example.peachmusic.domain.playlistSong.model.response.PlaylistSongAddResponseDto;
 import com.example.peachmusic.domain.playlistSong.model.response.PlaylistSongDeleteSongResponseDto;
 import com.example.peachmusic.domain.playlistSong.service.PlaylistSongService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ public class PlaylistSongController {
     @PostMapping("/playlists/{playlistId}/songs/{userId}")
     public ResponseEntity<CommonResponse<PlaylistSongAddResponseDto>> addPlaylistSong(
             @PathVariable("playlistId") Long playlistId,
-            @RequestBody PlaylistSongAddRequestDto requestDto
+            @Valid @RequestBody PlaylistSongAddRequestDto requestDto
             ) {
 
         PlaylistSongAddResponseDto responseDto = playlistSongService.addPlaylistSong(playlistId, requestDto);
@@ -44,7 +45,7 @@ public class PlaylistSongController {
     @DeleteMapping("/playlists/{playlistId}/songs")
     public ResponseEntity<CommonResponse<PlaylistSongDeleteSongResponseDto>> deletePlaylistSong(
             @PathVariable("playlistId") Long playlistId,
-            @RequestBody PlaylistSongDeleteRequestDto requestDto
+            @Valid @RequestBody PlaylistSongDeleteRequestDto requestDto
             ) {
 
         PlaylistSongDeleteSongResponseDto responseDto = playlistSongService.deletePlaylistSong(playlistId, requestDto);
