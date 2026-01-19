@@ -12,3 +12,7 @@ spring:
       hibernate:
         format_sql: true
     defer-datasource-initialization: true
+
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY}
