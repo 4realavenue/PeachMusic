@@ -1,13 +1,16 @@
 package com.example.peachmusic.domain.user.entity;
 
 import com.example.peachmusic.common.entity.BaseEntity;
+import com.example.peachmusic.common.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "users")
 public class User extends BaseEntity {
@@ -29,8 +32,9 @@ public class User extends BaseEntity {
     @Column(name = "password", nullable = false)
     private String password;
 
-//    @Column(name = "role")
-//    private  role;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private UserRole role = UserRole.USER;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
@@ -40,5 +44,19 @@ public class User extends BaseEntity {
         this.nickname = nickname;
         this.email = email;
         this.password = password;
+        this.role = UserRole.USER;  // ← 명시적으로 기본값 지정
+    }
+    public void setRole(UserRole role) {
+        this.role = role != null ? role : UserRole.USER;  // null 들어와도 USER로 방어
+    }
+    public void UpdateUser(String name, String nickname) {
+        this.name = name;
+        this.nickname = nickname;
+    }
+    public void delete() {
+        this.isDeleted = true;
+    }
+    public void restore() {
+        this.isDeleted = false;
     }
 }
