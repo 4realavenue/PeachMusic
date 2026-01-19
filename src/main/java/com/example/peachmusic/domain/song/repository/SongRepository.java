@@ -1,6 +1,9 @@
 package com.example.peachmusic.domain.song.repository;
 
+import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.song.entity.Song;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -8,5 +11,9 @@ import java.util.Optional;
 public interface SongRepository extends JpaRepository<Song, Long> {
 
     Optional<Song> findBySongIdAndIsDeletedFalse(Long songId);
+
+    Page<Song> findAll(Pageable pageable);
+
+    boolean existsSongByAlbumAndPosition(Album album, Long position);
 
 }
