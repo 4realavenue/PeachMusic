@@ -7,8 +7,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -23,6 +21,9 @@ public class Song extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "album_id", nullable = false)
     private Album album;
+
+    @Column(name = "jamendo_song_id", unique = true)
+    private String jamendoSongId;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -60,7 +61,7 @@ public class Song extends BaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
-    public Song(Album album, String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags) {
+    public Song(Album album, String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags, Long likeCount) {
         this.album = album;
         this.name = name;
         this.duration = duration;
@@ -72,6 +73,23 @@ public class Song extends BaseEntity {
         this.speed = speed;
         this.instruments = instruments;
         this.vartags = vartags;
+        this.likeCount = likeCount;
+    }
+
+    public Song(String jamendoSongId, Album album, String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags, Long likeCount) {
+        this.jamendoSongId = jamendoSongId;
+        this.album = album;
+        this.name = name;
+        this.duration = duration;
+        this.licenseCcurl = licenseCcurl;
+        this.position = position;
+        this.audio = audio;
+        this.vocalinstrumental = vocalinstrumental;
+        this.lang = lang;
+        this.speed = speed;
+        this.instruments = instruments;
+        this.vartags = vartags;
+        this.likeCount = likeCount;
     }
 
     public void updateSong(String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags, Album album) {
