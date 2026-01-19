@@ -23,10 +23,7 @@ public class UserAdminController {
     // 전체조회
     @GetMapping
     public ResponseEntity<PageResponse<UserAdminGetResponse>> getUsers(
-            @PageableDefault(
-                    size = 10,
-                    page = 0
-            ) Pageable pageable
+            @PageableDefault(size = 10, page = 0, sort = "userId") Pageable pageable
     ) {
         PageResponse<UserAdminGetResponse> response = useradminService.getAllUser(pageable);
 
