@@ -13,6 +13,8 @@ import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
 import com.example.peachmusic.domain.artistAlbum.entity.ArtistAlbum;
 import com.example.peachmusic.domain.artistAlbum.repository.ArtistAlbumRepository;
+import com.example.peachmusic.domain.song.entity.Song;
+import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,6 +34,7 @@ public class AlbumAdminService {
     private final UserRepository userRepository;
     private final ArtistRepository artistRepository;
     private final ArtistAlbumRepository artistAlbumRepository;
+    private final SongRepository songRepository;
 
     /**
      * 앨범 생성 기능 (관리자 전용)
@@ -246,5 +249,36 @@ public class AlbumAdminService {
                 .toList();
 
         return ArtistAlbumUpdateResponseDto.from(foundAlbum, dtoList);
+    }
+
+    /**
+     * 앨범 비활성화 기능 (관리자 전용)
+     * @param userId 사용자 ID (JWT 적용 전까지 임시 사용)
+     * @param role 사용자 권한
+     * @param albumId 비활성화할 앨범 ID
+     */
+    @Transactional
+    public void deleteAlbum(Long userId, UserRole role, Long albumId) {
+
+        // 삭제되지 않은 유효한 사용자 여부 검증
+        userRepository.findByUserIdAndIsDeletedFalse(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_CERTIFICATION_REQUIRED));
+
+        // 관리자(ADMIN) 권한 여부 검증
+        if (role != UserRole.ADMIN) {
+            throw new CustomException(ErrorCode.AUTH_AUTHORIZATION_REQUIRED);
+        }
+
+        // 비활성화 대상 앨범 조회 (이미 비활성화된 앨범은 제외)
+        Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
+
+        // 앨범에 포함된 음원 비활성화
+        List<Song> foundSongList = songRepository.findAllByAlbum_AlbumIdAndIsDeletedFalseOrderByPositionAsc(albumId);
+
+        foundSongList.forEach(Song::deleteSong);
+
+        // 앨범 비활성화
+        foundAlbum.delete();
     }
 }

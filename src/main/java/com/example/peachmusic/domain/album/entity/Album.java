@@ -61,4 +61,8 @@ public class Album extends BaseEntity {
     public void updateAlbumImage(String albumImage) {
         this.albumImage = albumImage;
     }
+
+    public void delete() {
+        this.isDeleted = true;
+    }
 }

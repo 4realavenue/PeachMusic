@@ -111,4 +111,24 @@ public class AlbumAdminController {
 
         return ResponseEntity.ok(CommonResponse.success("참여 아티스트 목록 갱신 완료", responseDto));
     }
+
+    /**
+     * 앨범 비활성화 API (관리자 전용)
+     * JWT 적용 전 단계로, 요청 헤더에서 사용자 식별 정보와 권한을 임시로 전달받는다.
+     *
+     * @param userId 요청 헤더에 전달되는 사용자 ID (JWT 적용 전까지 임시 사용)
+     * @param role 요청 헤더에 전달되는 사용자 권한 (X-ROLE은 ADMIN 대문자)
+     * @param albumId 비활성화할 앨범 ID
+     * @return 응답 데이터 없이 성공 메시지만 반환
+     */
+    @DeleteMapping("/admin/albums/{albumId}")
+    public ResponseEntity<CommonResponse<Void>> deleteAlbum(
+            @RequestHeader("X-USER-ID") Long userId,
+            @RequestHeader("X-ROLE") UserRole role,
+            @PathVariable("albumId") Long albumId) {
+
+        albumAdminService.deleteAlbum(userId, role, albumId);
+
+        return ResponseEntity.ok(CommonResponse.success("앨범 비활성화 성공", null));
+    }
 }
