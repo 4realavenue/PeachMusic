@@ -6,10 +6,8 @@ import com.example.peachmusic.common.exception.ErrorCode;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.model.request.AlbumCreateRequestDto;
 import com.example.peachmusic.domain.album.model.request.AlbumUpdateRequestDto;
-import com.example.peachmusic.domain.album.model.response.AlbumCreateResponseDto;
-import com.example.peachmusic.domain.album.model.response.AlbumGetAllResponseDto;
-import com.example.peachmusic.domain.album.model.response.AlbumUpdateResponseDto;
-import com.example.peachmusic.domain.album.model.response.ArtistSummaryDto;
+import com.example.peachmusic.domain.album.model.request.ArtistAlbumUpdateRequestDto;
+import com.example.peachmusic.domain.album.model.response.*;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
@@ -197,5 +195,56 @@ public class AlbumAdminService {
                 .toList();
 
         return AlbumUpdateResponseDto.from(foundAlbum, artistList);
+    }
+
+    /**
+     * 참여 아티스트 목록 전체 갱신 기능 (관리자 전용)
+     * @param userId 사용자 ID (JWT 적용 전까지 임시 사용)
+     * @param role 사용자 권한
+     * @param albumId 갱신할 앨범 ID
+     * @param requestDto 참여 아티스트 수정 요청 DTO
+     * @return 참여 아티스트가 반영된 앨범 정보
+     */
+    @Transactional
+    public ArtistAlbumUpdateResponseDto updateAlbumArtistList(Long userId, UserRole role, Long albumId, ArtistAlbumUpdateRequestDto requestDto) {
+
+        // 삭제되지 않은 유효한 사용자 여부 검증
+        userRepository.findByUserIdAndIsDeletedFalse(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_CERTIFICATION_REQUIRED));
+
+        // 관리자(ADMIN) 권한 여부 검증
+        if (role != UserRole.ADMIN) {
+            throw new CustomException(ErrorCode.AUTH_AUTHORIZATION_REQUIRED);
+        }
+
+        // 수정 대상 앨범 조회 (삭제된 앨범은 수정 불가)
+        Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
+
+        // 아티스트 조회 (중복 id 방어)
+        List<Long> artistIds = requestDto.getArtistIds().stream().distinct().toList();
+
+        List<Artist> artistList = artistRepository.findAllByArtistIdInAndIsDeletedFalse(artistIds);
+
+        // 요청한 아티스트 ID 중 존재하지 않는 항목이 있는지 검증
+        if (artistList.size() != artistIds.size()) {
+            throw new CustomException(ErrorCode.ARTIST_NOT_FOUND);
+        }
+
+        // 앨범 정책에 따라 기존 매핑은 하드 딜리트 후 재생성
+        artistAlbumRepository.deleteAllByAlbumId(foundAlbum.getAlbumId());
+
+        // 새 매핑 생성
+        List<ArtistAlbum> mappings = artistList.stream()
+                .map(artist -> new ArtistAlbum(artist, foundAlbum))
+                .toList();
+        artistAlbumRepository.saveAll(mappings);
+
+        // 응답에 필요한 아티스트 정보만 DTO로 변환
+        List<ArtistSummaryDto> dtoList = artistList.stream()
+                .map(artist -> new ArtistSummaryDto(artist.getArtistId(), artist.getArtistName()))
+                .toList();
+
+        return ArtistAlbumUpdateResponseDto.from(foundAlbum, dtoList);
     }
 }

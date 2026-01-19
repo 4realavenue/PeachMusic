@@ -5,9 +5,11 @@ import com.example.peachmusic.common.model.CommonResponse;
 import com.example.peachmusic.common.model.PageResponse;
 import com.example.peachmusic.domain.album.model.request.AlbumCreateRequestDto;
 import com.example.peachmusic.domain.album.model.request.AlbumUpdateRequestDto;
+import com.example.peachmusic.domain.album.model.request.ArtistAlbumUpdateRequestDto;
 import com.example.peachmusic.domain.album.model.response.AlbumCreateResponseDto;
 import com.example.peachmusic.domain.album.model.response.AlbumGetAllResponseDto;
 import com.example.peachmusic.domain.album.model.response.AlbumUpdateResponseDto;
+import com.example.peachmusic.domain.album.model.response.ArtistAlbumUpdateResponseDto;
 import com.example.peachmusic.domain.album.service.AlbumAdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -86,5 +88,27 @@ public class AlbumAdminController {
         AlbumUpdateResponseDto responseDto = albumAdminService.updateAlbumInfo(userId, role, albumId, requestDto);
 
         return ResponseEntity.ok(CommonResponse.success("앨범 기본 정보 수정 완료", responseDto));
+    }
+
+    /**
+     * 참여 아티스트 목록 전체 갱신 API (관리자 전용)
+     * JWT 적용 전 단계로, 요청 헤더에서 사용자 식별 정보와 권한을 임시로 전달받는다.
+     *
+     * @param userId 요청 헤더에 전달되는 사용자 ID (JWT 적용 전까지 임시 사용)
+     * @param role 요청 헤더에 전달되는 사용자 권한 (X-ROLE은 ADMIN 대문자)
+     * @param albumId 갱신할 앨범 ID
+     * @param requestDto 참여 아티스트 수정 요청 DTO
+     * @return 참여 아티스트가 반영된 앨범 정보
+     */
+    @PutMapping("/admin/albums/{albumId}/artists")
+    public ResponseEntity<CommonResponse<ArtistAlbumUpdateResponseDto>> updateAlbumArtistList(
+            @RequestHeader("X-USER-ID") Long userId,
+            @RequestHeader("X-ROLE") UserRole role,
+            @PathVariable("albumId") Long albumId,
+            @Valid @RequestBody ArtistAlbumUpdateRequestDto requestDto) {
+
+        ArtistAlbumUpdateResponseDto responseDto = albumAdminService.updateAlbumArtistList(userId, role, albumId, requestDto);
+
+        return ResponseEntity.ok(CommonResponse.success("참여 아티스트 목록 갱신 완료", responseDto));
     }
 }
