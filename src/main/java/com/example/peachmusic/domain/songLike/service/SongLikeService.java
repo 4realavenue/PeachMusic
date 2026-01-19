@@ -2,6 +2,7 @@ package com.example.peachmusic.domain.songLike.service;
 
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.exception.ErrorCode;
+import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songLike.entity.SongLike;
@@ -24,12 +25,13 @@ public class SongLikeService {
     /**
      * 음원 좋아요/좋아요 취소 기능
      *
-     * @param userId todo 인증/인가 들어온 후에 로그인 한 유저로 로직이 실행되도록 수정 예정
      * @param songId
      * @return
      */
     @Transactional
-    public SongLikeResponseDto likeSong(Long userId, Long songId) {
+    public SongLikeResponseDto likeSong(AuthUser authUser, Long songId) {
+
+        Long userId = authUser.getUserId();
 
         // 1. 유저 찾아오기
         User findUser = userRepository.findByUserIdAndIsDeletedFalse(userId)
