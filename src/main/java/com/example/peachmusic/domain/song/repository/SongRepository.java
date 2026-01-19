@@ -13,6 +13,6 @@ public interface SongRepository extends JpaRepository<Song, Long> {
 
     Page<Song> findAllByIsDeletedFalse(Pageable pageable);
 
-    boolean existsSongByAlbum_AlbumIdAndPosition(Long albumId, Long position);
+    boolean existsSongByAlbumAndPosition(Album album, Long position);
 
 }
