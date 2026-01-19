@@ -43,7 +43,7 @@ public class SongAdminService {
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 
         // 2. 요청 받은 음원의 데이터가 중복 되는지 검증
-        if (songRepository.existsSongByAlbum_AlbumIdAndPosition(findAlbum.getAlbumId(), requestDto.getPosition())) {
+        if (songRepository.existsSongByAlbumAndPosition(findAlbum, requestDto.getPosition())) {
             throw new CustomException(ErrorCode.ALBUM_EXIST_SONG_POSITION);
         }
 
