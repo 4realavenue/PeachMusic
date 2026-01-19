@@ -10,4 +10,5 @@ public interface SongLikeRepository extends JpaRepository<SongLike, Long> {
     boolean existsSongLikeByUserAndSong(User user, Song song);
 
     SongLike deleteSongLikeByUserAndSong(User user, Song song);
+
 }

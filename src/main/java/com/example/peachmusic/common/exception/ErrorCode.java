@@ -37,6 +37,7 @@ public enum ErrorCode {
     USER_EXIST_EMAIL(HttpStatus.CONFLICT, "이미 존재하는 이메일 입니다."),
     USER_EXIST_NICKNAME(HttpStatus.CONFLICT, "이미 존재하는 닉네임 입니다."),
     PLAYLIST_EXIST_SONG(HttpStatus.CONFLICT, "동일한 곡이 플레이리스트에 있습니다."),
+    ALBUM_EXIST_SONG_POSITION(HttpStatus.CONFLICT, "해당 앨범에 이미 동일한 수록 번호가 있습니다."),
 
 
     // 500

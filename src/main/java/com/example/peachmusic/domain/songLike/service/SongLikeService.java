@@ -5,7 +5,6 @@ import com.example.peachmusic.common.exception.ErrorCode;
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songLike.entity.SongLike;
-import com.example.peachmusic.domain.songLike.model.SongLikeDto;
 import com.example.peachmusic.domain.songLike.model.response.SongLikeResponseDto;
 import com.example.peachmusic.domain.songLike.repository.SongLikeRepository;
 import com.example.peachmusic.domain.user.entity.User;
@@ -24,8 +23,8 @@ public class SongLikeService {
 
     /**
      * 음원 좋아요/좋아요 취소 기능
-     * todo 인증/인가 들어온 후에 로그인 한 유저로 로직이 실행되도록 수정 예정
-     * @param userId
+     *
+     * @param userId todo 인증/인가 들어온 후에 로그인 한 유저로 로직이 실행되도록 수정 예정
      * @param songId
      * @return
      */
@@ -60,9 +59,7 @@ public class SongLikeService {
             findSong.likeSong();
         }
 
-        SongLikeDto songLikeDto = SongLikeDto.from(findSong, liked, findSong.getLikeCount());
-
-        return SongLikeResponseDto.from(songLikeDto);
+        return SongLikeResponseDto.from(findSong, liked);
 
     }
 }

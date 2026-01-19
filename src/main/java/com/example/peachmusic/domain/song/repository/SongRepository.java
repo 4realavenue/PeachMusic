@@ -9,8 +9,10 @@ import java.util.Optional;
 
 public interface SongRepository extends JpaRepository<Song, Long> {
 
-    Optional<Song> findBySongIdAndIsDeletedFalse (Long songId);
+    Optional<Song> findBySongIdAndIsDeletedFalse(Long songId);
 
-    Page<Song> findAllByIsDeletedFalse (Pageable pageable);
+    Page<Song> findAllByIsDeletedFalse(Pageable pageable);
+
+    boolean existsSongByAlbum_AlbumIdAndPosition(Long albumId, Long position);
 
 }

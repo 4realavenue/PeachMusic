@@ -61,7 +61,7 @@ public class Song extends BaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
-    public Song(Album album, String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags, Long likeCount) {
+    public Song(Album album, String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags) {
         this.album = album;
         this.name = name;
         this.duration = duration;
@@ -73,7 +73,6 @@ public class Song extends BaseEntity {
         this.speed = speed;
         this.instruments = instruments;
         this.vartags = vartags;
-        this.likeCount = likeCount;
     }
 
     public Song(String jamendoSongId, Album album, String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags, Long likeCount) {
@@ -115,7 +114,7 @@ public class Song extends BaseEntity {
     }
 
     public void unlikeSong() {
-        if(this.likeCount > 0) {
+        if (this.likeCount > 0) {
             this.likeCount--;
         }
     }

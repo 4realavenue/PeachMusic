@@ -1,6 +1,6 @@
 package com.example.peachmusic.domain.song.model.response;
 
-import com.example.peachmusic.domain.song.model.SongDto;
+import com.example.peachmusic.domain.song.entity.Song;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -24,7 +24,7 @@ public class AdminSongUpdateResponseDto {
     private final Long albumId;
     private final Long likeCount;
 
-    public static AdminSongUpdateResponseDto from(SongDto songDto, List<String> genre, Long albumId) {
-        return new AdminSongUpdateResponseDto(songDto.getSongId(), songDto.getName(), songDto.getDuration(), songDto.getLicenseCcurl(), songDto.getPosition(), songDto.getVocalinstrumental(), songDto.getLang(), songDto.getSpeed(), genre, songDto.getInstruments(), songDto.getVartags(), albumId, songDto.getLikeCount());
+    public static AdminSongUpdateResponseDto from(Song song, List<String> genre, Long albumId) {
+        return new AdminSongUpdateResponseDto(song.getSongId(), song.getName(), song.getDuration(), song.getLicenseCcurl(), song.getPosition(), song.getVocalinstrumental(), song.getLang(), song.getSpeed(), genre, song.getInstruments(), song.getVartags(), albumId, song.getLikeCount());
     }
 }
