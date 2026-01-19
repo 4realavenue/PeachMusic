@@ -18,13 +18,7 @@ public class UserUpdateResponseDto {
     private final LocalDateTime modifiedAt;
 
     public static UserUpdateResponseDto from(User user) {
-        return new UserUpdateResponseDto(
-                user.getUserId(),
-                user.getName(),
-                user.getNickname(),
-                user.getEmail(),
-                user.getCreatedAt(),
-                user.getModifiedAt()
+        return new UserUpdateResponseDto(user.getUserId(), user.getName(), user.getNickname(), user.getEmail(), user.getCreatedAt(), user.getModifiedAt()
         );
     }
 

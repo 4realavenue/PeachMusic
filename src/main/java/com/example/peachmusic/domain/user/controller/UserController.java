@@ -55,7 +55,6 @@ public class UserController {
             @Valid @RequestBody UserUpdateRequestDto request,
             @AuthenticationPrincipal AuthUser authUser
     ) {
-
         UserUpdateResponseDto result = userService.update(request, authUser);
 
         return ResponseEntity.ok(CommonResponse.success("유저 정보 수정 성공",result));

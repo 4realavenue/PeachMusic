@@ -19,13 +19,7 @@ public class UserAdminGetResponseDto {
     private final LocalDateTime modifiedAt;
 
     public static UserAdminGetResponseDto from(User user) {
-        return new UserAdminGetResponseDto(
-                user.getUserId(),
-                user.getName(),
-                user.getNickname(),
-                user.getEmail(),
-                user.getCreatedAt(),
-                user.getModifiedAt()
+        return new UserAdminGetResponseDto(user.getUserId(), user.getName(), user.getNickname(), user.getEmail(), user.getCreatedAt(), user.getModifiedAt()
         );
     }
 }

@@ -39,7 +39,6 @@ public class User extends BaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
-
     public User(String name, String nickname, String email, String password) {
         this.name = name;
         this.nickname = nickname;
@@ -47,20 +46,16 @@ public class User extends BaseEntity {
         this.password = password;
         this.role = UserRole.USER;  // ← 명시적으로 기본값 지정
     }
-
     public void setRole(UserRole role) {
         this.role = role != null ? role : UserRole.USER;  // null 들어와도 USER로 방어
     }
-
     public void UpdateUser(String name, String nickname) {
         this.name = name;
         this.nickname = nickname;
     }
-
     public void delete() {
         this.isDeleted = true;
     }
-
     public void restore() {
         this.isDeleted = false;
     }

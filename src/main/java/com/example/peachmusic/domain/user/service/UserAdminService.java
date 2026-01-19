@@ -35,6 +35,7 @@ public class UserAdminService {
     // 유저 삭제
     @Transactional
     public void deleteUser(Long userId) {
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
@@ -43,25 +44,26 @@ public class UserAdminService {
         }
 
         user.delete();
-
     }
 
     // 유저 복구
     @Transactional
     public void restorationUser(Long userId) {
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         if (!user.isDeleted()) {
             throw new CustomException(ErrorCode.USER_EXIST_ACTIVATIONUSER);
         }
-        user.restore();
 
+        user.restore();
     }
 
     // UserAdminService.java - 유저 권한 변경 (ADMIN ↔ USER)
     @Transactional
     public void role(Long userId, UserRole newRole) {
+
         // 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -73,6 +75,5 @@ public class UserAdminService {
 
         // 권한 변경
         user.setRole(newRole);
-
     }
 }

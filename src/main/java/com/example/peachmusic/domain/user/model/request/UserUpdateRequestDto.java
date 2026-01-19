@@ -13,7 +13,4 @@ public class UserUpdateRequestDto {
     private String name;
 
     private String nickname;
-
-
-
 }

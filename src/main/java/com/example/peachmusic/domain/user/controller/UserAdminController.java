@@ -16,13 +16,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/users")
+@RequestMapping("/api/")
 public class UserAdminController {
 
     private final UserAdminService useradminService;
 
     // 전체조회
-    @GetMapping
+    @GetMapping("/admin/users")
     public ResponseEntity<PageResponse<UserAdminGetResponseDto>> getUsers(
             @PageableDefault(size = 10, page = 0, sort = "userId") Pageable pageable
     ) {
@@ -32,7 +32,7 @@ public class UserAdminController {
     }
 
     // 유저 삭제
-    @DeleteMapping("/{userId}/delete")
+    @DeleteMapping("/admin/users/{userId}/delete")
     public ResponseEntity deleteUser(
             @PathVariable Long userId
     ) {
@@ -42,7 +42,7 @@ public class UserAdminController {
     }
 
     // 유저 복구
-    @PatchMapping("/{userId}/restore")
+    @PatchMapping("/admin/users/{userId}/restore")
     public ResponseEntity updateUser(
             @PathVariable Long userId
     ) {
@@ -51,12 +51,13 @@ public class UserAdminController {
         return ResponseEntity.ok(CommonResponse.success("계정 복구 성공"));
     }
 
-    @PatchMapping("/{userId}/role")
+    @PatchMapping("/admin/users/{userId}/role")
     public ResponseEntity<CommonResponse<Void>> changeRole(
             @PathVariable Long userId,
             @RequestBody UserRoleChangeRequestDto request
     ) {
         UserRole newRole = request.getRole();
+
         useradminService.role(userId, newRole);
 
         return ResponseEntity.ok(CommonResponse.success("계정 권한 변경 성공" ));

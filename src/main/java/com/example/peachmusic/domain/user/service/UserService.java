@@ -60,10 +60,7 @@ public class UserService {
         if (request.getName() == null && request.getNickname() == null) {
             throw new  CustomException(ErrorCode.AUTH_NAME_NICKNAME_REQUIRED);
         }
-
-
         if (request.getName() != null ) { // 이름만 들어왔을때
-
             if (request.getNickname() != null) { // 이름과 닉네임 같이 들어왔을때
                 user.setNickname(request.getNickname());
             }
@@ -71,18 +68,17 @@ public class UserService {
         } if (request.getNickname() != null ) { // 닉네임만 들어왔을때
             user.setNickname(request.getNickname());
         }
-
         return UserUpdateResponseDto.from(user);
     }
 
     // 유저 삭제
     @Transactional
     public void deleteUser(AuthUser authUser) {
+
         User findUser = userRepository.findById(authUser.getUserId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         findUser.delete();
-
     }
 
     // 로그인
@@ -98,7 +94,6 @@ public class UserService {
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new CustomException(ErrorCode.AUTH_INVALID_PASSWORD);
         }
-
         return jwtUtil.createToken(user.getUserId(),user.getEmail(),user.getRole());
     }
 }
