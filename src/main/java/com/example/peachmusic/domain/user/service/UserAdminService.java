@@ -4,7 +4,7 @@ import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.exception.ErrorCode;
 import com.example.peachmusic.domain.user.entity.User;
-import com.example.peachmusic.domain.user.model.response.admin.UserAdminGetResponse;
+import com.example.peachmusic.domain.user.model.response.admin.UserAdminGetResponseDto;
 import com.example.peachmusic.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,12 +21,12 @@ public class UserAdminService {
 
     // 전체 조회
     @Transactional(readOnly = true)
-    public Page<UserAdminGetResponse> getAllUser(Pageable pageable) {
+    public Page<UserAdminGetResponseDto> getAllUser(Pageable pageable) {
 
         Page<User> users = userRepository.findAll(pageable);
 
-        Page<UserAdminGetResponse> response = users.map(user ->
-                UserAdminGetResponse.from(user)
+        Page<UserAdminGetResponseDto> response = users.map(user ->
+                UserAdminGetResponseDto.from(user)
         );
 
         return response;

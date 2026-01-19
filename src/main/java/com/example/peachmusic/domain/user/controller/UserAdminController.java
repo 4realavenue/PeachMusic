@@ -4,7 +4,7 @@ import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.model.CommonResponse;
 import com.example.peachmusic.common.model.PageResponse;
 import com.example.peachmusic.domain.user.model.request.UserRoleChangeRequestDto;
-import com.example.peachmusic.domain.user.model.response.admin.UserAdminGetResponse;
+import com.example.peachmusic.domain.user.model.response.admin.UserAdminGetResponseDto;
 import com.example.peachmusic.domain.user.service.UserAdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,10 +23,10 @@ public class UserAdminController {
 
     // 전체조회
     @GetMapping
-    public ResponseEntity<PageResponse<UserAdminGetResponse>> getUsers(
+    public ResponseEntity<PageResponse<UserAdminGetResponseDto>> getUsers(
             @PageableDefault(size = 10, page = 0, sort = "userId") Pageable pageable
     ) {
-        Page<UserAdminGetResponse> response = useradminService.getAllUser(pageable);
+        Page<UserAdminGetResponseDto> response = useradminService.getAllUser(pageable);
 
         return ResponseEntity.ok(PageResponse.success("전체 유저 조회 성공", response));
     }

@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @RequiredArgsConstructor
-public class UserAdminGetResponse {
+public class UserAdminGetResponseDto {
 
     private final Long userId;
     private final String name;
@@ -18,8 +18,8 @@ public class UserAdminGetResponse {
     private final LocalDateTime createdAt;
     private final LocalDateTime modifiedAt;
 
-    public static UserAdminGetResponse from(User user) {
-        return new UserAdminGetResponse(
+    public static UserAdminGetResponseDto from(User user) {
+        return new UserAdminGetResponseDto(
                 user.getUserId(),
                 user.getName(),
                 user.getNickname(),
