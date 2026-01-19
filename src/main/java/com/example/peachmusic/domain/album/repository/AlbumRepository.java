@@ -3,11 +3,16 @@ package com.example.peachmusic.domain.album.repository;
 import com.example.peachmusic.domain.album.entity.Album;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 public interface AlbumRepository extends JpaRepository<Album, Long> {
+
+    Optional<Album> findByAlbumIdAndIsDeletedFalse(Long albumId);
+
 
     // 앨범 이름과 앨범 발매일로 단건 조회 (삭제 여부와 관계없이 조회)
     Optional<Album> findByAlbumNameAndAlbumReleaseDate(String albumName, LocalDate albumReleaseDate);
