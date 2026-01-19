@@ -15,12 +15,12 @@ public class JamendoApiController {
 
     private final JamendoSongService jamendoSongService;
 
-    @GetMapping("/admin/jamendo/tracks")
+    @GetMapping("/admin/jamendo/tracks/import/initial")
     public CommonResponse<Void> importInitJamendo(
             @RequestParam String type
     ) {
         jamendoSongService.importInitJamendo(type);
-        return CommonResponse.success("초기 vocal 데이터 적재 성공");
+        return CommonResponse.success("초기" + type + "데이터 적재 성공");
     }
 
 }

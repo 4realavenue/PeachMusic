@@ -28,7 +28,7 @@ public class JamendoApiService {
                         .queryParam("format", "json")
                         .queryParam("include", "musicinfo")
                         .queryParam("vocalinstrumental", type)
-                        .queryParam("datebetween", "2024-01-01_2026-12-31")
+                        .queryParam("datebetween", "2024-01-01_2026-01-19")
                         .queryParam("order", "releasedate_asc")
                         .queryParam("limit", limit)
                         .queryParam("offset", (page - 1) * limit)
@@ -37,6 +37,19 @@ public class JamendoApiService {
                 .body(JamendoSongResponse.class);
     }
 
-//    https://api.jamendo.com/v3.0/tracks/?client_id=4a916b12&format=json&include=musicinfo&vocalinstrumental=instrumental&order=id_desc&releasedate=2024-01-01_2026-12-31
+    public JamendoSongResponse scheduleJamendo(int page, int limit, String datebetween) {
+        return jamendoRestClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/tracks")
+                        .queryParam("client_id", clientId)
+                        .queryParam("format", "json")
+                        .queryParam("include", "musicinfo")
+                        .queryParam("datebetween", datebetween)
+                        .queryParam("order", "releasedate_desc")
+                        .queryParam("limit", limit)
+                        .queryParam("offset", (page - 1) * limit)
+                        .build())
+                .retrieve()
+                .body(JamendoSongResponse.class);
+    }
 }
-
