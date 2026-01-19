@@ -1,5 +1,6 @@
 package com.example.peachmusic.domain.user.model;
 
+import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.domain.user.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,6 +17,7 @@ public class UserDto {
     private final String email;
     private final String password;
     private final boolean isDeleted;
+    private final UserRole role;
     private final LocalDateTime createdAt;
     private final LocalDateTime modifiedAt;
 
@@ -28,6 +30,7 @@ public class UserDto {
                 user.getEmail(),
                 user.getPassword(),
                 user.isDeleted(),
+                user.getRole(),
                 user.getCreatedAt(),
                 user.getModifiedAt()
         );

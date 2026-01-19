@@ -2,8 +2,10 @@ package com.example.peachmusic.domain.user.service;
 
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.exception.ErrorCode;
+import com.example.peachmusic.common.filter.JwtUtil;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.model.UserDto;
+import com.example.peachmusic.domain.user.model.request.LoginRequestDto;
 import com.example.peachmusic.domain.user.model.request.UserCreateRequestDto;
 import com.example.peachmusic.domain.user.model.request.UserUpdateRequestDto;
 import com.example.peachmusic.domain.user.model.response.UserCreateResponseDto;
@@ -14,11 +16,8 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-
-import static com.example.peachmusic.domain.user.entity.QUser.user;
 
 @Service
 @RequiredArgsConstructor
@@ -26,15 +25,19 @@ import static com.example.peachmusic.domain.user.entity.QUser.user;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     // 생성
     public UserCreateResponseDto createUser(@Valid UserCreateRequestDto request) {
+
+        String encodePassword = passwordEncoder.encode(request.getPassword());
 
         User user = new User(
                 request.getName(),
                 request.getNickname(),
                 request.getEmail(),
-                request.getPassword()
+                encodePassword
         );
 
         userRepository.save(user);
@@ -77,5 +80,19 @@ public class UserService {
 
     }
 
+    // 로그인
+    public String login(@Valid LoginRequestDto request) {
 
+        String email = request.getEmail();
+        String password = request.getPassword();
+
+        User user = userRepository.findUserByEmailAndIsDeletedFalse(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new CustomException(ErrorCode.AUTH_INVALID_PASSWORD);
+        }
+
+        return jwtUtil.createToken(user.getUserId(),user.getEmail(),user.getRole());
+    }
 }

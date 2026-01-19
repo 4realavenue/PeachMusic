@@ -6,7 +6,6 @@ import com.example.peachmusic.common.model.PageResponse;
 import com.example.peachmusic.domain.user.model.request.UserRoleChangeRequest;
 import com.example.peachmusic.domain.user.model.response.admin.UserAdminGetResponse;
 import com.example.peachmusic.domain.user.service.UserAdminService;
-import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;

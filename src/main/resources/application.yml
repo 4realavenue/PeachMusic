@@ -7,8 +7,12 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     properties:
       hibernate:
         format_sql: true
     defer-datasource-initialization: true
+
+jwt:
+  secret:
+    key: "lkqehi1h34ouhwdhf23y423846dfho3241326497162479qerfegwufguidgfigiy24f"

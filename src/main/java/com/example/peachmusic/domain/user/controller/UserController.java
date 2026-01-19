@@ -1,10 +1,12 @@
 package com.example.peachmusic.domain.user.controller;
 
 import com.example.peachmusic.common.model.CommonResponse;
+import com.example.peachmusic.domain.user.model.request.LoginRequestDto;
 import com.example.peachmusic.domain.user.model.request.UserCreateRequestDto;
 import com.example.peachmusic.domain.user.model.request.UserUpdateRequestDto;
 import com.example.peachmusic.domain.user.model.response.UserCreateResponseDto;
 import com.example.peachmusic.domain.user.model.response.UserGetResponseDto;
+import com.example.peachmusic.domain.user.model.response.LoginResponseDto;
 import com.example.peachmusic.domain.user.model.response.admin.UserUpdateResponseDto;
 import com.example.peachmusic.domain.user.service.UserService;
 import jakarta.validation.Valid;
@@ -49,6 +51,7 @@ public class UserController {
 
     }
 
+    // 정보 수정
     @PutMapping("/users/{userId}")
     public ResponseEntity<CommonResponse<UserUpdateResponseDto>> updateUser(
             @Valid @RequestBody UserUpdateRequestDto request,
@@ -64,7 +67,7 @@ public class UserController {
         return response;
     }
 
-
+    // 삭제
     @DeleteMapping("/users/{userId}")
     public ResponseEntity deleteUser(
             @PathVariable Long userId
@@ -75,4 +78,22 @@ public class UserController {
 
         return ResponseEntity.ok(response);
     }
+
+    // 로그인
+    @PostMapping("/auth/login")
+    public ResponseEntity<CommonResponse<LoginResponseDto>> login(
+            @Valid @RequestBody LoginRequestDto request
+    ) {
+        String token = userService.login(request);
+
+        LoginResponseDto responseDto = new LoginResponseDto(token);
+
+        CommonResponse<LoginResponseDto> commonResponse = new CommonResponse<>(true, "로그인 성공", responseDto);
+
+        ResponseEntity<CommonResponse<LoginResponseDto>> response = new ResponseEntity<>(commonResponse, HttpStatus.OK);
+
+        return response;
+    }
+
+
 }

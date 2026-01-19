@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Where;
 
 @Entity
 @Getter
@@ -31,21 +30,24 @@ public class User extends BaseEntity {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "role")
-    private UserRole role;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private UserRole role = UserRole.USER;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
-    public void setRole(UserRole role) {
-        this.role = role;
-    }
 
     public User(String name, String nickname, String email, String password) {
         this.name = name;
         this.nickname = nickname;
         this.email = email;
         this.password = password;
+        this.role = UserRole.USER;  // ← 명시적으로 기본값 지정
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role != null ? role : UserRole.USER;  // null 들어와도 USER로 방어
     }
 
     public void UpdateUser(String name, String nickname) {
