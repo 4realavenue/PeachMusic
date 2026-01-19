@@ -54,10 +54,12 @@ public class JamendoSongService {
         int limit = 200;
         int maxPage;
 
+        String dateBetween = "2024-01-01_2026-01-18";
+
         if(type.equals("vocal")) {
-            maxPage = 200; // 4만건
-        } else if(type.equals("instrumental")) {
             maxPage = 50; // 1만건
+        } else if(type.equals("instrumental")) {
+            maxPage = 10;
         } else {
             throw new IllegalArgumentException("지원하지 않는 type입니다: " + type);
         }
@@ -70,7 +72,7 @@ public class JamendoSongService {
             log.info("Jamendo 초기 적재 중... page={}", page);
 
             // api 호출 결과 -> response안에 result가 들어있음.
-            JamendoSongResponse response = jamendoApiService.initJamendo(page, limit, type);
+            JamendoSongResponse response = jamendoApiService.fetchSongs(page, limit, type, dateBetween);
 
             // 더 이상 데이터 없으면 적재 종료
             if (response.getResults().isEmpty()) {
@@ -165,6 +167,7 @@ public class JamendoSongService {
 
         int limit = 200;
         int maxPage = 100;
+        String type = null;
 
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         LocalDate yesterday = today.minusDays(1);
@@ -179,7 +182,7 @@ public class JamendoSongService {
             log.info("Jamendo 정기 적재 중... page={}, dateBetween={}", page, dateBetween);
 
             // api 호출 결과 -> response안에 result가 들어있음.
-            JamendoSongResponse response = jamendoApiService.scheduleJamendo(page, limit, dateBetween);
+            JamendoSongResponse response = jamendoApiService.fetchSongs(page, limit, type, dateBetween);
 
             // 더 이상 데이터 없으면 적재 종료
             if (response.getResults().isEmpty()) {
