@@ -17,7 +17,6 @@ public enum ErrorCode {
     AUTH_NAME_NICKNAME_REQUIRED(HttpStatus.BAD_REQUEST, "이름과 닉네임을 입력해주세요."),
 
 
-
     // 401
     AUTH_EMAIL_CERTIFICATION_FAILED(HttpStatus.BAD_REQUEST, "이메일 인증에 실패 했습니다."),
     AUTH_CERTIFICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "로그인이 필요한 서비스 입니다."),
@@ -41,6 +40,7 @@ public enum ErrorCode {
     USER_EXIST_EMAIL(HttpStatus.CONFLICT, "이미 존재하는 이메일 입니다."),
     USER_EXIST_NICKNAME(HttpStatus.CONFLICT, "이미 존재하는 닉네임 입니다."),
     PLAYLIST_EXIST_SONG(HttpStatus.CONFLICT, "동일한 곡이 플레이리스트에 있습니다."),
+    ALBUM_EXIST_SONG_POSITION(HttpStatus.CONFLICT, "해당 앨범에 이미 동일한 수록 번호가 있습니다."),
     USER_EXIST_ACTIVATIONUSER(HttpStatus.CONFLICT, "이미 존재하는 유저 입니다."),
     USER_EEXIST_ROLE(HttpStatus.CONFLICT, "이미 부여된 권한입니다."),
     USER_EXIST_DELETED(HttpStatus.CONFLICT, "이미 삭제된 유저 입니다."),
