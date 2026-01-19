@@ -65,11 +65,7 @@ public class UserAdminController {
         UserRole newRole = request.getRole();
         useradminService.role(userId, newRole);
 
-        CommonResponse<Void> response = new CommonResponse<>(
-                true,
-                "계정 권한 변경 성공",
-                null
-        );
+        CommonResponse<Void> response = new CommonResponse<>(true, "계정 권한 변경 성공", null);
 
         return ResponseEntity.ok(response);
     }
