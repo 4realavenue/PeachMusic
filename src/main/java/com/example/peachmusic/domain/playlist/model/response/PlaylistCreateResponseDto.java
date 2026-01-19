@@ -1,6 +1,6 @@
 package com.example.peachmusic.domain.playlist.model.response;
 
-import com.example.peachmusic.domain.playlist.model.PlaylistDto;
+import com.example.peachmusic.domain.playlist.entity.Playlist;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -16,7 +16,7 @@ public class PlaylistCreateResponseDto {
     private final LocalDateTime createdAt;
     private final LocalDateTime modifiedAt;
 
-    public static PlaylistCreateResponseDto from(PlaylistDto playlistDto) {
-        return new PlaylistCreateResponseDto(playlistDto.getPlaylistId(), playlistDto.getUserId(), playlistDto.getPlaylistName(), playlistDto.getCreatedAt(), playlistDto.getModifiedAt());
+    public static PlaylistCreateResponseDto from(Playlist playlist) {
+        return new PlaylistCreateResponseDto(playlist.getPlaylistId(), playlist.getUser().getUserId(), playlist.getPlaylistName(), playlist.getCreatedAt(), playlist.getModifiedAt());
     }
 }

@@ -29,11 +29,10 @@ public class PlaylistSongController {
             @PathVariable("playlistId") Long playlistId,
             @RequestBody PlaylistSongAddRequestDto requestDto
             ) {
+
         PlaylistSongAddResponseDto responseDto = playlistSongService.addPlaylistSong(playlistId, requestDto);
 
-        CommonResponse<PlaylistSongAddResponseDto> commonResponse = new CommonResponse<>(true, "플레이리스트에 곡이 추가 되었습니다.", responseDto);
-
-        return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+        return ResponseEntity.ok(CommonResponse.success("플레이리스트에 곡이 추가 되었습니다.", responseDto));
     }
 
     /**
@@ -50,8 +49,6 @@ public class PlaylistSongController {
 
         PlaylistSongDeleteSongResponseDto responseDto = playlistSongService.deletePlaylistSong(playlistId, requestDto);
 
-        CommonResponse<PlaylistSongDeleteSongResponseDto> commonResponse = new CommonResponse<>(true, "플레이리스트에서 곡이 삭제 되었습니다.", responseDto);
-
-        return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+        return ResponseEntity.ok(CommonResponse.success("플레이리스트에서 곡이 삭제 되었습니다.", responseDto));
     }
 }

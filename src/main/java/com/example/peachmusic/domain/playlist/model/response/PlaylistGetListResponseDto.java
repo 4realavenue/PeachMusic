@@ -8,13 +8,15 @@ import java.time.LocalDateTime;
 
 @Getter
 @RequiredArgsConstructor
-public class PlaylistUpdateResponseDto {
+public class PlaylistGetListResponseDto {
 
     private final Long playlistId;
     private final String playlistName;
+    private final LocalDateTime createdAt;
     private final LocalDateTime modifiedAt;
 
-    public static PlaylistUpdateResponseDto from(Playlist playlist) {
-        return new PlaylistUpdateResponseDto(playlist.getPlaylistId(), playlist.getPlaylistName(), playlist.getModifiedAt());
+    public static PlaylistGetListResponseDto from(Playlist playlist) {
+        return new PlaylistGetListResponseDto(playlist.getPlaylistId(), playlist.getPlaylistName(), playlist.getCreatedAt(), playlist.getModifiedAt());
     }
 }
+

@@ -37,16 +37,21 @@ public class PlaylistSongService {
         Playlist findPlaylist =  playlistRepository.findById(playlistId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PLAYLIST_NOT_FOUND));
 
-        // 2. 요청 받은 음원 아이디 담아오기
+        // 2. 요청이 유효한지 검증
+        if (requestDto.getSongIds().isEmpty() || requestDto.getSongIds() == null) {
+            throw new CustomException(ErrorCode.PLAYLIST_ADD_SONG_REQUIRED);
+        }
+
+        // 3. 요청 받은 음원 아이디 담아오기
         List<Long> requestSongIdList = requestDto.getSongIds();
 
-        // 3. 요청 받은 음원 아이디 리스트의 크기
+        // 4. 요청 받은 음원 아이디 리스트의 크기
         Integer addedCount = requestSongIdList.size();
 
-        // 4. 음원 담아줄 리스트 생성
+        // 5. 음원 담아줄 리스트 생성
         List<Song> requestSongList = new ArrayList<>();
 
-        // 5. 요청 받은 음원 리스트 순회
+        // 6. 요청 받은 음원 리스트 순회
         //    만약에 요청 받은 아이디가 이미 존재하면 중복 예외 처리
         //    그게 아니면 음원 아이디로 음원 찾아 옴
         //    음원 담아줄 리스트에 추가
@@ -61,18 +66,13 @@ public class PlaylistSongService {
             requestSongList.add(findSong);
         }
 
-        // 6. 중간테이블 리스트 생성
-        List<PlaylistSong> playlistSongList = new ArrayList<>();
+        // 7. 중간테이블 리스트 생성
+        List<PlaylistSong> playlistSongList = requestSongList.stream().map(song -> new PlaylistSong(song, findPlaylist)).toList();
 
-        // 7. 요청 받은 음원 담아둔 리스트 순회
-        //    새로운 중간테이블 객체 생성
-        //    중간테이블 리스트에 객체 추가
-        for (Song song : requestSongList) {
-            PlaylistSong playlistSong = new PlaylistSong(song, findPlaylist);
-            playlistSongList.add(playlistSong);
-        }
+        // 8. 중간테이블 레포지토리를 통해 DB에 중간테이블 리스트 전부 저장
         playlistSongRepository.saveAll(playlistSongList);
 
+        // 9. 응답dto의 from 메서드를 실행 후 반환
         return PlaylistSongAddResponseDto.from(findPlaylist.getPlaylistId(), requestSongIdList, addedCount);
 
     }
@@ -86,6 +86,7 @@ public class PlaylistSongService {
     @Transactional
     public PlaylistSongDeleteSongResponseDto deletePlaylistSong(Long playlistId, PlaylistSongDeleteRequestDto requestDto) {
 
+        // 1. 요청 받은 플레이리스트 아이디로 플레이리스트 찾아오기
         Playlist findPlaylist = playlistRepository.findById(playlistId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PLAYLIST_NOT_FOUND));
 
@@ -104,6 +105,7 @@ public class PlaylistSongService {
             playlistSongRepository.deletePlaylistSongByPlaylist_PlaylistIdAndSong_SongId(findPlaylist.getPlaylistId(), songId);
         }
 
+        // 4. 응답dto의 from 메서드 실행 후 반환
         return PlaylistSongDeleteSongResponseDto.from(findPlaylist, requestDto.getSongIds());
 
     }
