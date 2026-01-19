@@ -13,6 +13,10 @@ spring:
         format_sql: true
     defer-datasource-initialization: true
 
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY}
+
 jamendo:
   api:
     url: ${JAMENDO_API_BASE_URL}
