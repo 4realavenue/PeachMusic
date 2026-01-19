@@ -42,9 +42,8 @@ public class UserService {
 
         userRepository.save(user);
 
-        UserDto dto = UserDto.from(user);
 
-        return UserCreateResponseDto.from(dto);
+        return UserCreateResponseDto.from(user);
     }
 
     // 내 정보 조회 jwt 후 헤더의 ID로 조회로직 작성 예정
@@ -53,9 +52,8 @@ public class UserService {
         User user = userRepository.findByUserIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        UserDto dto = UserDto.from(user);
 
-        return UserGetResponseDto.from(dto);
+        return UserGetResponseDto.from(user);
     }
 
     // 유저 수정
@@ -65,9 +63,7 @@ public class UserService {
 
         user.UpdateUser(request.getName(), request.getNickname());
 
-        UserDto dto = UserDto.from(user);
-
-        return UserUpdateResponseDto.from(dto);
+        return UserUpdateResponseDto.from(user);
     }
 
     // 유저 삭제

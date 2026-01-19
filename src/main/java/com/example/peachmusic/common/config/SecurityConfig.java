@@ -46,7 +46,7 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll() // 무조건 통과
-                        .requestMatchers("/api/admin/users/**").hasRole("ADMIN") // 어드민 권한만 통과
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // 어드민 권한만 통과
                         // 통과목록에 필요할경우 추가
                         .anyRequest().authenticated() // 위 통과 목록 아니면 인증해야됨
                 );

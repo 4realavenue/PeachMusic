@@ -1,5 +1,6 @@
 package com.example.peachmusic.domain.user.model.response.admin;
 
+import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.model.UserDto;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -17,14 +18,14 @@ public class UserUpdateResponseDto {
     private final LocalDateTime createdAt;
     private final LocalDateTime modifiedAt;
 
-    public static UserUpdateResponseDto from(UserDto dto) {
+    public static UserUpdateResponseDto from(User user) {
         return new UserUpdateResponseDto(
-                dto.getUserId(),
-                dto.getName(),
-                dto.getNickname(),
-                dto.getEmail(),
-                dto.getCreatedAt(),
-                dto.getModifiedAt()
+                user.getUserId(),
+                user.getName(),
+                user.getNickname(),
+                user.getEmail(),
+                user.getCreatedAt(),
+                user.getModifiedAt()
         );
     }
 
