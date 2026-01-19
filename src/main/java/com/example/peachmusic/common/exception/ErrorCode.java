@@ -15,7 +15,6 @@ public enum ErrorCode {
     AUTH_PASSWORD_REQUIRED(HttpStatus.BAD_REQUEST, "이메일과 비밀번호를 입력해 주세요."),
     AUTH_INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 올바르지 않습니다."),
     AUTH_NAME_NICKNAME_REQUIRED(HttpStatus.BAD_REQUEST, "이름과 닉네임을 입력해주세요."),
-
     ALBUM_UPDATE_NO_CHANGES(HttpStatus.BAD_REQUEST, "수정할 값이 없습니다."),
     ALBUM_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "앨범 이름은 필수입니다."),
 
@@ -48,8 +47,6 @@ public enum ErrorCode {
     USER_EXIST_DELETED(HttpStatus.CONFLICT, "이미 삭제된 유저 입니다."),
     ARTIST_EXIST_NAME(HttpStatus.CONFLICT, "이미 존재하는 아티스트명입니다."),
     ARTIST_EXIST_NAME_DELETED(HttpStatus.CONFLICT, "비활성화된 동일 이름 아티스트가 존재합니다. 복구 기능을 사용해주세요."),
-    ALBUM_EXIST_NAME_RELEASE_DATE(HttpStatus.CONFLICT, "이미 동일한 앨범이 존재합니다."),
-    ALBUM_EXIST_NAME_RELEASE_DATE_DELETED(HttpStatus.CONFLICT, "비활성화된 동일 앨범이 존재합니다. 복구 기능을 사용해주세요."),
 
     // 500
     SEARCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "일시적인 오류로 검색에 실패 했습니다."),
