@@ -24,9 +24,6 @@ public class SongLikeService {
 
     /**
      * 음원 좋아요/좋아요 취소 기능
-     *
-     * @param songId
-     * @return
      */
     @Transactional
     public SongLikeResponseDto likeSong(AuthUser authUser, Long songId) {

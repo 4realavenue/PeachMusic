@@ -22,9 +22,6 @@ public class SongService {
 
     /**
      * 음원 단건 조회
-     *
-     * @param songId
-     * @return
      */
     @Transactional(readOnly = true)
     public SongGetDetailResponseDto getSong(Long songId) {

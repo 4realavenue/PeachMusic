@@ -19,9 +19,6 @@ public class SongController {
 
     /**
      * 음원 단건 조회 API
-     *
-     * @param songId
-     * @return
      */
     @GetMapping("/songs/{songId}")
     public ResponseEntity<CommonResponse<SongGetDetailResponseDto>> getSong(

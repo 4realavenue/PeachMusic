@@ -21,9 +21,6 @@ public class SongLikeController {
 
     /**
      * 음원 좋아요/좋아요취소 기능 API
-     *
-     * @param songId
-     * @return
      */
     @PostMapping("/songs/{songId}/likes")
     public ResponseEntity<CommonResponse<SongLikeResponseDto>> likeSong(

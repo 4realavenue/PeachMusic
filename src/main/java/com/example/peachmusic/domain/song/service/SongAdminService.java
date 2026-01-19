@@ -34,9 +34,6 @@ public class SongAdminService {
 
     /**
      * 음원 생성
-     *
-     * @param requestDto
-     * @return
      */
     @Transactional
     public AdminSongCreateResponseDto createSong(AdminSongCreateRequestDto requestDto) {
@@ -76,9 +73,6 @@ public class SongAdminService {
 
     /**
      * 음원 전체 조회
-     *
-     * @param pageable
-     * @return
      */
     @Transactional(readOnly = true)
     public Page<AdminSongGetAllResponseDto> getSongAll(Pageable pageable) {
@@ -98,10 +92,6 @@ public class SongAdminService {
 
     /**
      * 음원 정보 수정
-     *
-     * @param requestDto
-     * @param songId
-     * @return
      */
     @Transactional
     public AdminSongUpdateResponseDto updateSong(AdminSongUpdateRequestDto requestDto, Long songId) {
@@ -140,8 +130,6 @@ public class SongAdminService {
 
     /**
      * 음원 삭제 (비활성화)
-     *
-     * @param songId
      */
     @Transactional
     public void deleteSong(Long songId) {
@@ -162,8 +150,6 @@ public class SongAdminService {
 
     /**
      * 음원 복구 (활성화)
-     *
-     * @param songId
      */
     @Transactional
     public void restoreSong(Long songId) {

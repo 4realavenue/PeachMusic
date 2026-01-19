@@ -82,9 +82,6 @@ public class SongAdminController {
 
     /**
      * 음원 삭제 (비활성화) API
-     *
-     * @param songId
-     * @return
      */
     @DeleteMapping("/songs/{songId}")
     public ResponseEntity<CommonResponse> deleteSong(
@@ -100,9 +97,6 @@ public class SongAdminController {
 
     /**
      * 음원 복구 (활성화) API
-     *
-     * @param songId
-     * @return
      */
     @PatchMapping("/songs/{songId}/restore")
     public ResponseEntity<CommonResponse> restoreSong(
