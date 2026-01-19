@@ -1,8 +1,8 @@
 package com.example.peachmusic.domain.album.service;
 
-import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.exception.ErrorCode;
+import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.model.request.AlbumCreateRequestDto;
 import com.example.peachmusic.domain.album.model.request.AlbumUpdateRequestDto;
@@ -38,26 +38,22 @@ public class AlbumAdminService {
 
     /**
      * 앨범 생성 기능 (관리자 전용)
-     * JWT 적용 전 단계로, 사용자 식별 정보와 권한을 파라미터로 임시 전달받아 처리한다.
-     *
-     * @param userId 사용자 ID (JWT 적용 전까지 임시 사용)
-     * @param role 사용자 권한
+     * @param authUser 인증된 사용자 정보
      * @param requestDto 앨범 생성 요청 DTO
      * @return 생성된 앨범 정보
      */
     @Transactional
-    public AlbumCreateResponseDto createAlbum(Long userId, UserRole role, AlbumCreateRequestDto requestDto) {
+    public AlbumCreateResponseDto createAlbum(AuthUser authUser, AlbumCreateRequestDto requestDto) {
+
+        // AuthUser에서 사용자 ID 추출
+        Long userId = authUser.getUserId();
 
         // 삭제되지 않은 유효한 사용자 여부 검증
         userRepository.findByUserIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_CERTIFICATION_REQUIRED));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        // 관리자(ADMIN) 권한 여부 검증
-        if (role != UserRole.ADMIN) {
-            throw new CustomException(ErrorCode.AUTH_AUTHORIZATION_REQUIRED);
-        }
-
-        List<Long> artistIds = requestDto.getArtistIds();
+        // 요청된 아티스트 ID 중복 제거
+        List<Long> artistIds = requestDto.getArtistIds().stream().distinct().toList();
 
         List<Artist> artistList = artistRepository.findAllById(artistIds);
 
@@ -104,22 +100,19 @@ public class AlbumAdminService {
 
     /**
      * 전체 앨범 조회 기능 (관리자 전용)
-     * @param userId 사용자 ID (JWT 적용 전까지 임시 사용)
-     * @param role 사용자 권한
+     * @param authUser 인증된 사용자 정보
      * @param pageable 페이지네이션 및 정렬 정보 (기본 정렬: albumReleaseDate DESC)
      * @return 앨범 목록 페이징 조회 결과
      */
     @Transactional(readOnly = true)
-    public Page<AlbumGetAllResponseDto> getAlbumList(Long userId, UserRole role, Pageable pageable) {
+    public Page<AlbumGetAllResponseDto> getAlbumList(AuthUser authUser, Pageable pageable) {
+
+        // AuthUser에서 사용자 ID 추출
+        Long userId = authUser.getUserId();
 
         // 삭제되지 않은 유효한 사용자 여부 검증
         userRepository.findByUserIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_CERTIFICATION_REQUIRED));
-
-        // 관리자(ADMIN) 권한 여부 검증
-        if (role != UserRole.ADMIN) {
-            throw new CustomException(ErrorCode.AUTH_AUTHORIZATION_REQUIRED);
-        }
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 삭제되지 않은 앨범 목록을 페이징 조건에 맞게 조회
         Page<Album> albumPage = albumRepository.findAll(pageable);
@@ -129,23 +122,20 @@ public class AlbumAdminService {
 
     /**
      * 앨범 기본 정보 수정 기능 (관리자 전용)
-     * @param userId 사용자 ID (JWT 적용 전까지 임시 사용)
-     * @param role 사용자 권한
+     * @param authUser 인증된 사용자 정보
      * @param albumId 수정할 앨범 ID
      * @param requestDto 앨범 수정 요청 DTO
      * @return 수정된 앨범 정보
      */
     @Transactional
-    public AlbumUpdateResponseDto updateAlbumInfo(Long userId, UserRole role, Long albumId, AlbumUpdateRequestDto requestDto) {
+    public AlbumUpdateResponseDto updateAlbumInfo(AuthUser authUser, Long albumId, AlbumUpdateRequestDto requestDto) {
+
+        // AuthUser에서 사용자 ID 추출
+        Long userId = authUser.getUserId();
 
         // 삭제되지 않은 유효한 사용자 여부 검증
         userRepository.findByUserIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_CERTIFICATION_REQUIRED));
-
-        // 관리자(ADMIN) 권한 여부 검증
-        if (role != UserRole.ADMIN) {
-            throw new CustomException(ErrorCode.AUTH_AUTHORIZATION_REQUIRED);
-        }
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 변경 필드가 하나도 없을 경우 400 반환
         String albumName = requestDto.getAlbumName();
@@ -202,29 +192,26 @@ public class AlbumAdminService {
 
     /**
      * 참여 아티스트 목록 전체 갱신 기능 (관리자 전용)
-     * @param userId 사용자 ID (JWT 적용 전까지 임시 사용)
-     * @param role 사용자 권한
+     * @param authUser 인증된 사용자 정보
      * @param albumId 갱신할 앨범 ID
      * @param requestDto 참여 아티스트 수정 요청 DTO
      * @return 참여 아티스트가 반영된 앨범 정보
      */
     @Transactional
-    public ArtistAlbumUpdateResponseDto updateAlbumArtistList(Long userId, UserRole role, Long albumId, ArtistAlbumUpdateRequestDto requestDto) {
+    public ArtistAlbumUpdateResponseDto updateAlbumArtistList(AuthUser authUser, Long albumId, ArtistAlbumUpdateRequestDto requestDto) {
+
+        // AuthUser에서 사용자 ID 추출
+        Long userId = authUser.getUserId();
 
         // 삭제되지 않은 유효한 사용자 여부 검증
         userRepository.findByUserIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_CERTIFICATION_REQUIRED));
-
-        // 관리자(ADMIN) 권한 여부 검증
-        if (role != UserRole.ADMIN) {
-            throw new CustomException(ErrorCode.AUTH_AUTHORIZATION_REQUIRED);
-        }
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 수정 대상 앨범 조회 (삭제된 앨범은 수정 불가)
         Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 
-        // 아티스트 조회 (중복 id 방어)
+        // 요청된 아티스트 ID 중복 제거
         List<Long> artistIds = requestDto.getArtistIds().stream().distinct().toList();
 
         List<Artist> artistList = artistRepository.findAllByArtistIdInAndIsDeletedFalse(artistIds);
@@ -253,21 +240,18 @@ public class AlbumAdminService {
 
     /**
      * 앨범 비활성화 기능 (관리자 전용)
-     * @param userId 사용자 ID (JWT 적용 전까지 임시 사용)
-     * @param role 사용자 권한
+     * @param authUser 인증된 사용자 정보
      * @param albumId 비활성화할 앨범 ID
      */
     @Transactional
-    public void deleteAlbum(Long userId, UserRole role, Long albumId) {
+    public void deleteAlbum(AuthUser authUser, Long albumId) {
+
+        // AuthUser에서 사용자 ID 추출
+        Long userId = authUser.getUserId();
 
         // 삭제되지 않은 유효한 사용자 여부 검증
         userRepository.findByUserIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_CERTIFICATION_REQUIRED));
-
-        // 관리자(ADMIN) 권한 여부 검증
-        if (role != UserRole.ADMIN) {
-            throw new CustomException(ErrorCode.AUTH_AUTHORIZATION_REQUIRED);
-        }
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 비활성화 대상 앨범 조회 (이미 비활성화된 앨범은 제외)
         Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
@@ -284,21 +268,19 @@ public class AlbumAdminService {
 
     /**
      * 앨범 활성화 기능 (관리자 전용)
-     * @param userId 사용자 ID (JWT 적용 전까지 임시 사용)
-     * @param role 사용자 권한
+     * @param authUser 인증된 사용자 정보
      * @param albumId 활성화할 앨범 ID
      */
     @Transactional
-    public void restoreAlbum(Long userId, UserRole role, Long albumId) {
+    public void restoreAlbum(AuthUser authUser, Long albumId) {
+
+        // AuthUser에서 사용자 ID 추출
+        Long userId = authUser.getUserId();
 
         // 삭제되지 않은 유효한 사용자 여부 검증
         userRepository.findByUserIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_CERTIFICATION_REQUIRED));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        // 관리자(ADMIN) 권한 여부 검증
-        if (role != UserRole.ADMIN) {
-            throw new CustomException(ErrorCode.AUTH_AUTHORIZATION_REQUIRED);
-        }
 
         // 활성화 대상 앨범 조회 (삭제된 앨범만 복구 가능)
         Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedTrue(albumId)

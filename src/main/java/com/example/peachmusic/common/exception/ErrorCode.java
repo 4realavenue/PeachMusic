@@ -47,6 +47,8 @@ public enum ErrorCode {
     USER_EXIST_DELETED(HttpStatus.CONFLICT, "이미 삭제된 유저 입니다."),
     ARTIST_EXIST_NAME(HttpStatus.CONFLICT, "이미 존재하는 아티스트명입니다."),
     ARTIST_EXIST_NAME_DELETED(HttpStatus.CONFLICT, "비활성화된 동일 이름 아티스트가 존재합니다. 복구 기능을 사용해주세요."),
+    ALBUM_EXIST_NAME_RELEASE_DATE(HttpStatus.CONFLICT, "이미 동일한 앨범이 존재합니다."),
+    ALBUM_EXIST_NAME_RELEASE_DATE_DELETED(HttpStatus.CONFLICT, "비활성화된 동일 앨범이 존재합니다. 복구 기능을 사용해주세요."),
 
     // 500
     SEARCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "일시적인 오류로 검색에 실패 했습니다."),

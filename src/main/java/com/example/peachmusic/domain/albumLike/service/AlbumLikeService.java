@@ -37,7 +37,7 @@ public class AlbumLikeService {
 
         // 삭제되지 않은 유효한 사용자 여부 검증
         User foundUser = userRepository.findByUserIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_CERTIFICATION_REQUIRED));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 좋아요 대상 앨범 조회 (삭제된 앨범은 좋아요 불가)
         Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
