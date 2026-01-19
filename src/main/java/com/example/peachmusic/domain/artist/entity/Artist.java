@@ -28,7 +28,6 @@ public class Artist extends BaseEntity {
 
     public Artist(String artistName) {
         this.artistName = artistName;
-        this.likeCount = 0L;
     }
 
     public void updateArtistName(String artistName) {
@@ -41,5 +40,15 @@ public class Artist extends BaseEntity {
 
     public void restore() {
         this.isDeleted = false;
+    }
+
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decreaseLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount--;
+        }
     }
 }

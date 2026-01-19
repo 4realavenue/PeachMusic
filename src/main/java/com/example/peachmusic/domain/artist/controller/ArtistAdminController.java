@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/artists")
+@RequestMapping("/api")
 public class ArtistAdminController {
 
     private final ArtistAdminService artistAdminService;
@@ -34,7 +34,7 @@ public class ArtistAdminController {
      * @param requestDto 아티스트 생성 요청 DTO
      * @return 생성된 아티스트 정보
      */
-    @PostMapping
+    @PostMapping("/admin/artists")
     public ResponseEntity<CommonResponse<ArtistCreateResponseDto>> createArtist(
             @RequestHeader("X-USER-ID") Long userId,
             @RequestHeader("X-ROLE") UserRole role,
@@ -54,7 +54,7 @@ public class ArtistAdminController {
      * @param pageable pageable 페이지네이션 및 정렬 정보 (기본 정렬: 생성 시점 내림차순)
      * @return 아티스트 목록 페이징 조회 결과
      */
-    @GetMapping
+    @GetMapping("/admin/artists")
     public ResponseEntity<PageResponse<ArtistGetAllResponseDto>> getArtistList(
             @RequestHeader("X-USER-ID") Long userId,
             @RequestHeader("X-ROLE") UserRole role,
@@ -75,7 +75,7 @@ public class ArtistAdminController {
      * @param requestDto 아티스트 수정 요청 DTO
      * @return 수정된 아티스트 정보
      */
-    @PutMapping("/{artistId}")
+    @PutMapping("/admin/artists/{artistId}")
     public ResponseEntity<CommonResponse<ArtistUpdateResponseDto>> updateArtist(
             @RequestHeader("X-USER-ID") Long userId,
             @RequestHeader("X-ROLE") UserRole role,
@@ -96,7 +96,7 @@ public class ArtistAdminController {
      * @param artistId 비활성화할 아티스트 ID
      * @return 응답 데이터 없이 성공 메시지만 반환
      */
-    @DeleteMapping("/{artistId}")
+    @DeleteMapping("/admin/artists/{artistId}")
     public ResponseEntity<CommonResponse<Void>> deleteArtist(
             @RequestHeader("X-USER-ID") Long userId,
             @RequestHeader("X-ROLE") UserRole role,
@@ -116,7 +116,7 @@ public class ArtistAdminController {
      * @param artistId 활성화할 아티스트 ID
      * @return 응답 데이터 없이 성공 메시지만 반환
      */
-    @PatchMapping("/{artistId}/restore")
+    @PatchMapping("/admin/artists/{artistId}/restore")
     public ResponseEntity<CommonResponse<Void>> restoreArtist(
             @RequestHeader("X-USER-ID") Long userId,
             @RequestHeader("X-ROLE") UserRole role,
