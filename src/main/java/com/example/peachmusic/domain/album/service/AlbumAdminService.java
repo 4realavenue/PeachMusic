@@ -3,7 +3,6 @@ package com.example.peachmusic.domain.album.service;
 import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.exception.ErrorCode;
-import com.example.peachmusic.common.model.PageResponse;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.model.request.AlbumCreateRequestDto;
 import com.example.peachmusic.domain.album.model.request.AlbumUpdateRequestDto;
@@ -110,7 +109,7 @@ public class AlbumAdminService {
      * @return 앨범 목록 페이징 조회 결과
      */
     @Transactional(readOnly = true)
-    public PageResponse<AlbumGetAllResponseDto> getAlbumList(Long userId, UserRole role, Pageable pageable) {
+    public Page<AlbumGetAllResponseDto> getAlbumList(Long userId, UserRole role, Pageable pageable) {
 
         // 삭제되지 않은 유효한 사용자 여부 검증
         userRepository.findByUserIdAndIsDeletedFalse(userId)
@@ -122,12 +121,9 @@ public class AlbumAdminService {
         }
 
         // 삭제되지 않은 앨범 목록을 페이징 조건에 맞게 조회
-        Page<Album> albumPage = albumRepository.findAllByIsDeletedFalse(pageable);
+        Page<Album> albumPage = albumRepository.findAll(pageable);
 
-        // Page<Album>을 응답 DTO 페이지로 변환
-        Page<AlbumGetAllResponseDto> dtoPage = albumPage.map(AlbumGetAllResponseDto::from);
-
-        return PageResponse.success("앨범 목록 조회 성공", dtoPage);
+        return albumPage.map(AlbumGetAllResponseDto::from);
     }
 
     /**

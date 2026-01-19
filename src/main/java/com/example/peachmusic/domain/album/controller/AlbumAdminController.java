@@ -11,6 +11,7 @@ import com.example.peachmusic.domain.album.model.response.AlbumUpdateResponseDto
 import com.example.peachmusic.domain.album.service.AlbumAdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -60,9 +61,9 @@ public class AlbumAdminController {
             @RequestHeader("X-ROLE") UserRole role,
             @PageableDefault(page = 0, size = 10, sort = "albumReleaseDate", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        PageResponse<AlbumGetAllResponseDto> response = albumAdminService.getAlbumList(userId, role, pageable);
+        Page<AlbumGetAllResponseDto> responseDtoPage = albumAdminService.getAlbumList(userId, role, pageable);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(PageResponse.success("앨범 목록 조회 성공", responseDtoPage));
     }
 
     /**
