@@ -1,8 +1,6 @@
 package com.example.peachmusic.common.model;
 
-import com.example.peachmusic.common.exception.ErrorCode;
 import lombok.Getter;
-
 import java.time.LocalDateTime;
 
 @Getter
@@ -22,7 +20,6 @@ public class CommonResponse<T> {
 
     }
 
-
     // 성공 응답 (응답 데이터 없음)
     public static CommonResponse<Void> success(String message) {
         return new CommonResponse<>(true, message, null);
@@ -34,7 +31,7 @@ public class CommonResponse<T> {
     }
 
     // 실패 응답 (응답 데이터 없음)
-    public static CommonResponse<Void> fail(ErrorCode errorCode) {
-        return new CommonResponse<>(false, errorCode.getMessage(), null);
+    public static CommonResponse<Void> fail(String message) {
+        return new CommonResponse<>(false, message, null);
     }
 }

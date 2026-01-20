@@ -12,7 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.util.StringUtils;
 import java.util.List;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
-import static com.example.peachmusic.domain.artistAlbum.entity.QArtistAlbum.artistAlbum;
 import static com.example.peachmusic.domain.artistSong.entity.QArtistSong.artistSong;
 import static com.example.peachmusic.domain.song.entity.QSong.song;
 
@@ -42,7 +41,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
                 .select(song.songId.countDistinct()) // join으로 인한 중복 카운트 발생 방지
                 .from(song)
                 .join(artistSong).on(artistSong.song.eq(song))
-                .join(artist).on(artistAlbum.artist.eq(artist))
+                .join(artist).on(artistSong.artist.eq(artist))
                 .where(SearchCondition(word))
                 .fetchOne();
 
@@ -69,7 +68,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
                 .select(Projections.constructor(SongSearchResponse.class, song.songId, song.name, artist.artistName, song.likeCount))
                 .from(song)
                 .join(artistSong).on(artistSong.song.eq(song))
-                .join(artist).on(artistAlbum.artist.eq(artist))
+                .join(artist).on(artistSong.artist.eq(artist))
                 .where(SearchCondition(word));
     }
 

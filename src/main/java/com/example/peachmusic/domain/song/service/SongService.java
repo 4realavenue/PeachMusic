@@ -59,6 +59,7 @@ public class SongService {
      * @param word 검색어
      * @return 음원 검색 응답 DTO 리스트
      */
+    @Transactional(readOnly = true)
     public List<SongSearchResponse> searchSongList(String word) {
         final int limit = 5;
         return songRepository.findSongListByWord(word, limit);
