@@ -37,4 +37,5 @@ public interface ArtistAlbumRepository extends JpaRepository<ArtistAlbum, Long> 
     """)
     List<Album> findAlbumsByArtistIdAndIsDeleted(@Param("artistId") Long artistId, @Param("isDeleted") boolean isDeleted);
 
+    boolean existsByArtist_ArtistIdAndAlbum_AlbumId(Long artistId, Long albumId);
 }
