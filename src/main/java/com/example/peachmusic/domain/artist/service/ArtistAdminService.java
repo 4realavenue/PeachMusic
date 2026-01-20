@@ -3,7 +3,6 @@ package com.example.peachmusic.domain.artist.service;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.exception.ErrorCode;
 import com.example.peachmusic.domain.album.entity.Album;
-import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.model.request.ArtistCreateRequestDto;
 import com.example.peachmusic.domain.artist.model.request.ArtistUpdateRequestDto;
@@ -11,6 +10,7 @@ import com.example.peachmusic.domain.artist.model.response.ArtistCreateResponseD
 import com.example.peachmusic.domain.artist.model.response.ArtistGetAllResponseDto;
 import com.example.peachmusic.domain.artist.model.response.ArtistUpdateResponseDto;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
+import com.example.peachmusic.domain.artistAlbum.repository.ArtistAlbumRepository;
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +27,8 @@ import java.util.Optional;
 public class ArtistAdminService {
 
     private final ArtistRepository artistRepository;
-    private final AlbumRepository albumRepository;
     private final SongRepository songRepository;
+    private final ArtistAlbumRepository artistAlbumRepository;
 
     /**
      * 아티스트 생성 기능 (관리자 전용)
@@ -120,7 +120,7 @@ public class ArtistAdminService {
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
 
         // 아티스트가 발매한 앨범 비활성화
-        List<Album> foundAlbumList = albumRepository.findAllByArtist_ArtistIdAndIsDeletedFalse(artistId);
+        List<Album> foundAlbumList = artistAlbumRepository.findAlbumsByArtistIdAndIsDeleted(artistId, false);
 
         // 앨범 ID 목록 추출
         List<Long> albumIds = foundAlbumList.stream()
@@ -152,7 +152,7 @@ public class ArtistAdminService {
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
 
         // 아티스트가 발매한 앨범 활성화
-        List<Album> foundAlbumList = albumRepository.findAllByArtist_ArtistIdAndIsDeletedTrue(artistId);
+        List<Album> foundAlbumList = artistAlbumRepository.findAlbumsByArtistIdAndIsDeleted(artistId, true);
 
         // 앨범 ID 목록 추출
         List<Long> albumIds = foundAlbumList.stream()

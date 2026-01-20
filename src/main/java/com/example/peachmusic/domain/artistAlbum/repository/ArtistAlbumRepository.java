@@ -1,5 +1,6 @@
 package com.example.peachmusic.domain.artistAlbum.repository;
 
+import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.artistAlbum.entity.ArtistAlbum;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -22,4 +23,18 @@ public interface ArtistAlbumRepository extends JpaRepository<ArtistAlbum, Long> 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("delete from ArtistAlbum aa where aa.album.albumId = :albumId")
     void deleteAllByAlbumId(@Param("albumId") Long albumId);
+
+    /**
+     * ArtistAlbum 매핑 테이블을 기준으로 앨범을 조회
+     * N:M 구조로 인한 중복 앨범 제거를 위해 distinct 사용
+     * 아티스트 비활성화/복구 로직에서 사용
+     */
+    @Query("""
+        select distinct aa.album
+        from ArtistAlbum aa
+        where aa.artist.artistId = :artistId
+          and aa.album.isDeleted = :isDeleted
+    """)
+    List<Album> findAlbumsByArtistIdAndIsDeleted(@Param("artistId") Long artistId, @Param("isDeleted") boolean isDeleted);
+
 }
