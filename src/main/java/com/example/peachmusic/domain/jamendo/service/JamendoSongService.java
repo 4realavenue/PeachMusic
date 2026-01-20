@@ -10,10 +10,10 @@ import com.example.peachmusic.domain.artistSong.entity.ArtistSong;
 import com.example.peachmusic.domain.artistSong.repository.ArtistSongRepository;
 import com.example.peachmusic.domain.genre.entity.Genre;
 import com.example.peachmusic.domain.genre.repository.GenreRepository;
-import com.example.peachmusic.domain.jamendo.dto.JamendoMusicInfoDto;
-import com.example.peachmusic.domain.jamendo.dto.JamendoSongDto;
-import com.example.peachmusic.domain.jamendo.dto.JamendoSongResponse;
-import com.example.peachmusic.domain.jamendo.dto.JamendoTagDto;
+import com.example.peachmusic.domain.jamendo.model.JamendoMusicInfoDto;
+import com.example.peachmusic.domain.jamendo.model.JamendoSongDto;
+import com.example.peachmusic.domain.jamendo.model.JamendoSongResponse;
+import com.example.peachmusic.domain.jamendo.model.JamendoTagDto;
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songGenre.entity.SongGenre;
@@ -51,144 +51,51 @@ public class JamendoSongService {
      * - 데이터가 없으면 생성
      */
     @Transactional
-    public void importInitJamendo(String type) {
+    public void importInitJamendo(LocalDate startDate, LocalDate endDate) {
+        int maxPage = 200;
+        String dateBetween = startDate + "_" + endDate;
+        duplicationJamendo(maxPage, dateBetween);
+    }
 
-        int limit = 200;
-        int maxPage;
+    /**
+     * Jamendo 음원 매일 3시 정기 적재
+     */
+    @Scheduled(cron = "0 0 3 * * ?")
+    @Transactional
+    public void importScheduledJamendo() {
+        int maxPage = 50;
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        LocalDate yesterday = today.minusDays(1);
+        String dateBetween = yesterday + "_" + today;
+        duplicationJamendo(maxPage, dateBetween);
+    }
 
-        String dateBetween = "2024-01-19_2026-01-20";
-
-        if(type.equals("vocal")) {
-            maxPage = 50;
-        } else if(type.equals("instrumental")) {
-            maxPage = 10;
-        } else {
-            throw new IllegalArgumentException("지원하지 않는 type입니다: " + type);
-        }
-
+    /**
+     * Jamendo 중복 코드
+     */
+    public void duplicationJamendo(int maxPage, String dateBetween) {
         int successCount = 0;
         int skipCount = 0;
+        int limit = 200;
 
         for (int page = 1; page <= maxPage; page++) {
 
-            log.info("Jamendo 초기 적재 중... page={}", page);
+            log.info("Jamendo 적재 중... page={}", page);
 
             // api 호출 결과 -> response안에 result가 들어있음.
-            JamendoSongResponse response = jamendoApiService.fetchSongs(page, limit, type, dateBetween);
-
-            // 더 이상 데이터 없으면 적재 종료
-            if (response.getResults().isEmpty()) {
-                log.info("더 이상 데이터 없음. 적재 종료");
-                break;
-            }
+            JamendoSongResponse response = jamendoApiService.fetchSongs(page, limit, dateBetween);
 
             // 이번 페이지에서 내려온 음원 목록 // 시간을 찍어보자
             List<JamendoSongDto> results = response.getResults();
 
-            // 페이지 안의 음원들을 하나씩 반복
-            for (JamendoSongDto dto : results) {
-
-                // 음원 중복 체크
-                if (songRepository.existsByJamendoSongId(dto.getJamendoSongId())) {
-                    skipCount++; // 이미 있는 음원이면 skip
-                    continue;
-                }
-
-                // 아티스트 조회 및 생성
-                Artist artist = getOrCreateArtist(dto.getArtistName());
-                // 앨범 조회 및 생성
-                Album album = getOrCreateAlbum(dto);
-
-                // musicInfo가 없는 경우도 존재 musicInfo가 없으면 tags도 없음.
-                JamendoMusicInfoDto musicInfo = dto.getMusicInfo();
-                // musicInfo가 있을 때만 악기, 분위기, 장르를 사용
-                JamendoTagDto tags = (musicInfo != null) ? musicInfo.getTags() : null;
-
-                String instruments = null;
-                String vartags = null;
-
-                // tags가 있을때 악기/분위기 ,로 묶기
-                if (tags != null) {
-                    instruments = joinList(tags.getInstruments());
-                    vartags = joinList(tags.getMoods());
-                }
-
-                // 음원 저장
-                Song song = new Song(
-                        dto.getJamendoSongId(),
-                        album,
-                        dto.getName(),
-                        dto.getDuration() != null ? dto.getDuration().longValue() : 0L,
-                        dto.getLicenseCcurl(),
-                        dto.getPosition() != null ? dto.getPosition().longValue() : 0L,
-                        dto.getAudioUrl(),
-                        musicInfo != null ? musicInfo.getVocalInstrumental() : null,
-                        musicInfo != null ? musicInfo.getLang() : null,
-                        musicInfo != null ? musicInfo.getSpeed() : null,
-                        instruments,
-                        vartags,
-                        0L   // likeCount 기본값
-                );
-
-                // 음원 저장
-                songRepository.save(song);
-
-                // 아티스트_음원 중간 테이블 저장(중복 방지)
-                existsArtistAndSong(artist, song);
-                // 아티스트_앨범 중간 테이블 저장(중복 방지)
-                existsArtistAndAlbum(artist, album);
-
-                if (tags != null && tags.getGenres() != null) {
-                    for (String genreName : tags.getGenres()) {
-
-                        // 장르 조회 및 생성
-                        Genre genre = getOrCreateGenre(genreName);
-
-                        // 음원_장르 중간 테이블 저장
-                        if (!songGenreRepository.existsBySong_SongIdAndGenre_GenreId(song.getSongId(), genre.getGenreId())) {
-                            songGenreRepository.save(new SongGenre(song, genre));
-                        }
-                    }
-                }
-                successCount++;
-            }
-        }
-
-        log.info("=== Jamendo 초기 적재 완료 ===");
-        log.info("성공: {}, 중복: {}", successCount, skipCount);
-    }
-
-    @Scheduled(cron = "0 0 3 * * ?")
-    @Transactional
-    public void importScheduledJamendo() {
-
-        int limit = 200;
-        int maxPage = 100;
-        String type = null;
-
-        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
-        LocalDate yesterday = today.minusDays(1);
-
-        String dateBetween = yesterday + "_" + today;
-
-        int successCount = 0;
-        int skipCount = 0;
-
-        for (int page = 1; page <= maxPage; page++) {
-
-            log.info("Jamendo 정기 적재 중... page={}, dateBetween={}", page, dateBetween);
-
-            // api 호출 결과 -> response안에 result가 들어있음.
-            JamendoSongResponse response = jamendoApiService.fetchSongs(page, limit, type, dateBetween);
-
             // 더 이상 데이터 없으면 적재 종료
-            if (response.getResults().isEmpty()) {
-                log.info("더 이상 데이터 없음. 적재 종료");
+            if (results == null || results.isEmpty()) {
+                log.info("Api 응답 결과 : 데이터 없음. 적재 종료");
                 break;
             }
 
-            // 이번 페이지에서 내려온 음원 목록
-            List<JamendoSongDto> results = response.getResults();
+            int insertedInPage = 0;
+            int skipInPage = 0;
 
             // 페이지 안의 음원들을 하나씩 반복
             for (JamendoSongDto dto : results) {
@@ -196,6 +103,7 @@ public class JamendoSongService {
                 // 음원 중복 체크
                 if (songRepository.existsByJamendoSongId(dto.getJamendoSongId())) {
                     skipCount++; // 이미 있는 음원이면 skip
+                    skipInPage++;
                     continue;
                 }
 
@@ -219,20 +127,12 @@ public class JamendoSongService {
                 }
 
                 // 음원 저장
-                Song song = new Song(
-                        dto.getJamendoSongId(),
-                        album,
-                        dto.getName(),
-                        dto.getDuration() != null ? dto.getDuration().longValue() : 0L,
-                        dto.getLicenseCcurl(),
-                        dto.getPosition() != null ? dto.getPosition().longValue() : 0L,
-                        dto.getAudioUrl(),
+                Song song = new Song(dto.getJamendoSongId(), album, dto.getName(),
+                        dto.getDuration() != null ? dto.getDuration().longValue() : 0L, dto.getLicenseCcurl(),
+                        dto.getPosition() != null ? dto.getPosition().longValue() : 0L, dto.getAudioUrl(),
                         musicInfo != null ? musicInfo.getVocalInstrumental() : null,
                         musicInfo != null ? musicInfo.getLang() : null,
-                        musicInfo != null ? musicInfo.getSpeed() : null,
-                        instruments,
-                        vartags,
-                        0L   // likeCount 기본값
+                        musicInfo != null ? musicInfo.getSpeed() : null, instruments, vartags
                 );
 
                 // 음원 저장
@@ -242,7 +142,7 @@ public class JamendoSongService {
                 existsArtistAndSong(artist, song);
                 // 아티스트_앨범 중간 테이블 저장(중복 방지)
                 existsArtistAndAlbum(artist, album);
-                
+
                 if (tags != null && tags.getGenres() != null) {
                     for (String genreName : tags.getGenres()) {
 
@@ -256,15 +156,18 @@ public class JamendoSongService {
                     }
                 }
                 successCount++;
+                insertedInPage++;
             }
 
-            // API 호출 보호
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException ignored) {}
+            log.info("page={} 결과 → 신규 {}, 중복 {}", page, insertedInPage, skipInPage);
+
+            if (results.size() < limit) {
+                log.info("마지막 페이지 -> 적재 종료 page : {}", page);
+                break;
+            }
         }
 
-        log.info("=== Jamendo 정기 적재 완료 ===");
+        log.info("=== Jamendo 적재 완료 ===");
         log.info("성공: {}, 중복: {}", successCount, skipCount);
     }
 

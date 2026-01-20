@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
@@ -17,9 +19,10 @@ public class JamendoApiController {
 
     @GetMapping("/admin/jamendo/tracks/import/initial")
     public CommonResponse<Void> importInitJamendo(
-            @RequestParam String type
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate
     ) {
-        jamendoSongService.importInitJamendo(type);
-        return CommonResponse.success("초기" + type + "데이터 적재 성공");
+        jamendoSongService.importInitJamendo(startDate, endDate);
+        return CommonResponse.success("기간 : " + startDate + " - " + endDate + " 데이터 적재 성공");
     }
 }
