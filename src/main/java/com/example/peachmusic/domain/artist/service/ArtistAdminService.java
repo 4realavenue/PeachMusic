@@ -2,9 +2,7 @@ package com.example.peachmusic.domain.artist.service;
 
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.exception.ErrorCode;
-import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.domain.album.entity.Album;
-import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.model.request.ArtistCreateRequestDto;
 import com.example.peachmusic.domain.artist.model.request.ArtistUpdateRequestDto;
@@ -12,9 +10,9 @@ import com.example.peachmusic.domain.artist.model.response.ArtistCreateResponseD
 import com.example.peachmusic.domain.artist.model.response.ArtistGetAllResponseDto;
 import com.example.peachmusic.domain.artist.model.response.ArtistUpdateResponseDto;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
+import com.example.peachmusic.domain.artistAlbum.repository.ArtistAlbumRepository;
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
-import com.example.peachmusic.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,25 +27,16 @@ import java.util.Optional;
 public class ArtistAdminService {
 
     private final ArtistRepository artistRepository;
-    private final UserRepository userRepository;
-    private final AlbumRepository albumRepository;
     private final SongRepository songRepository;
+    private final ArtistAlbumRepository artistAlbumRepository;
 
     /**
      * 아티스트 생성 기능 (관리자 전용)
-     * @param authUser 인증된 사용자 정보
      * @param requestDto 아티스트 생성 요청 DTO
      * @return 생성된 아티스트 정보
      */
     @Transactional
-    public ArtistCreateResponseDto createArtist(AuthUser authUser, ArtistCreateRequestDto requestDto) {
-
-        // AuthUser에서 사용자 ID 추출
-        Long userId = authUser.getUserId();
-
-        // 삭제되지 않은 유효한 사용자 여부 검증
-        userRepository.findByUserIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    public ArtistCreateResponseDto createArtist(ArtistCreateRequestDto requestDto) {
 
         String artistName = requestDto.getArtistName();
 
@@ -75,19 +64,11 @@ public class ArtistAdminService {
 
     /**
      * 전체 아티스트 조회 기능 (관리자 전용)
-     * @param authUser 인증된 사용자 정보
      * @param pageable 페이지네이션 및 정렬 정보 (기본 정렬: createdAt DESC)
      * @return 아티스트 목록 페이징 조회 결과
      */
     @Transactional(readOnly = true)
-    public Page<ArtistGetAllResponseDto> getArtistList(AuthUser authUser, Pageable pageable) {
-
-        // AuthUser에서 사용자 ID 추출
-        Long userId = authUser.getUserId();
-
-        // 삭제되지 않은 유효한 사용자 여부 검증
-        userRepository.findByUserIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    public Page<ArtistGetAllResponseDto> getArtistList(Pageable pageable) {
 
         // 삭제 여부와 관계없이 아티스트 전체 목록 조회
         Page<Artist> artistPage = artistRepository.findAll(pageable);
@@ -97,20 +78,12 @@ public class ArtistAdminService {
 
     /**
      * 아티스트 수정 기능 (관리자 전용)
-     * @param authUser 인증된 사용자 정보
      * @param artistId 수정할 아티스트 ID
      * @param requestDto 아티스트 수정 요청 DTO
      * @return 수정된 아티스트 정보
      */
     @Transactional
-    public ArtistUpdateResponseDto updateArtist(AuthUser authUser, Long artistId, ArtistUpdateRequestDto requestDto) {
-
-        // AuthUser에서 사용자 ID 추출
-        Long userId = authUser.getUserId();
-
-        // 삭제되지 않은 유효한 사용자 여부 검증
-        userRepository.findByUserIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    public ArtistUpdateResponseDto updateArtist(Long artistId, ArtistUpdateRequestDto requestDto) {
 
         // 수정 대상 아티스트 조회 (삭제되지 않은 아티스트만 허용)
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
@@ -137,25 +110,17 @@ public class ArtistAdminService {
 
     /**
      * 아티스트 비활성화 기능 (관리자 전용)
-     * @param authUser 인증된 사용자 정보
      * @param artistId 비활성화할 아티스트 ID
      */
     @Transactional
-    public void deleteArtist(AuthUser authUser, Long artistId) {
-
-        // AuthUser에서 사용자 ID 추출
-        Long userId = authUser.getUserId();
-
-        // 삭제되지 않은 유효한 사용자 여부 검증
-        userRepository.findByUserIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    public void deleteArtist(Long artistId) {
 
         // 비활성화 대상 아티스트 조회 (이미 비활성화된 아티스트는 제외)
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
 
         // 아티스트가 발매한 앨범 비활성화
-        List<Album> foundAlbumList = albumRepository.findAllByArtist_ArtistIdAndIsDeletedFalse(artistId);
+        List<Album> foundAlbumList = artistAlbumRepository.findAlbumsByArtistIdAndIsDeleted(artistId, false);
 
         // 앨범 ID 목록 추출
         List<Long> albumIds = foundAlbumList.stream()
@@ -177,25 +142,17 @@ public class ArtistAdminService {
 
     /**
      * 아티스트 활성화 기능 (관리자 전용)
-     * @param authUser 인증된 사용자 정보
      * @param artistId 활성화할 아티스트 ID
      */
     @Transactional
-    public void restoreArtist(AuthUser authUser, Long artistId) {
-
-        // AuthUser에서 사용자 ID 추출
-        Long userId = authUser.getUserId();
-
-        // 삭제되지 않은 유효한 사용자 여부 검증
-        userRepository.findByUserIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    public void restoreArtist(Long artistId) {
 
         // 활성화 대상 아티스트 조회 (삭제된 아티스트만 복구 가능)
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedTrue(artistId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
 
         // 아티스트가 발매한 앨범 활성화
-        List<Album> foundAlbumList = albumRepository.findAllByArtist_ArtistIdAndIsDeletedTrue(artistId);
+        List<Album> foundAlbumList = artistAlbumRepository.findAlbumsByArtistIdAndIsDeleted(artistId, true);
 
         // 앨범 ID 목록 추출
         List<Long> albumIds = foundAlbumList.stream()

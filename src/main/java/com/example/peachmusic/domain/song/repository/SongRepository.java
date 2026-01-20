@@ -27,4 +27,6 @@ public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRep
 
     // (비활성) 여러 앨범 음원 조회
     List<Song> findAllByAlbum_AlbumIdInAndIsDeletedTrue(List<Long> albumIds);
+
+    boolean existsByJamendoSongId(String jamendoSongId);
 }
