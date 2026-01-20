@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
+import java.util.List;
+
 public interface SongRepository extends JpaRepository<Song, Long> {
 
     Optional<Song> findBySongIdAndIsDeletedFalse(Long songId);
@@ -16,4 +18,16 @@ public interface SongRepository extends JpaRepository<Song, Long> {
 
     boolean existsSongByAlbumAndPosition(Album album, Long position);
 
+
+    // (활성) 앨범 음원 목록 조회
+    List<Song> findAllByAlbum_AlbumIdAndIsDeletedFalse(Long albumId);
+
+    // (비활성) 앨범 음원 목록 조회
+    List<Song> findAllByAlbum_AlbumIdAndIsDeletedTrue(Long albumId);
+
+    // (활성) 여러 앨범 음원 조회
+    List<Song> findAllByAlbum_AlbumIdInAndIsDeletedFalse(List<Long> albumIds);
+
+    // (비활성) 여러 앨범 음원 조회
+    List<Song> findAllByAlbum_AlbumIdInAndIsDeletedTrue(List<Long> albumIds);
 }
