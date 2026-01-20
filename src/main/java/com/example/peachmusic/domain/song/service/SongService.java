@@ -4,13 +4,15 @@ import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.exception.ErrorCode;
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.model.response.SongGetDetailResponseDto;
+import com.example.peachmusic.domain.song.model.response.SongSearchResponse;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songGenre.entity.SongGenre;
 import com.example.peachmusic.domain.songGenre.repository.SongGenreRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 
 @Service
@@ -39,5 +41,27 @@ public class SongService {
         // 4. 응답dto의 from 메서드 실행 후 반환
         return SongGetDetailResponseDto.from(findSong, genreNameList);
 
+    }
+
+    /**
+     * 음원 검색 - 자세히 보기
+     * @param word 검색어
+     * @param pageable 페이징 정보 - 인기순 정렬
+     * @return 페이징된 음원 검색 응답 DTO
+     */
+    @Transactional(readOnly = true)
+    public Page<SongSearchResponse> searchSongPage(String word, Pageable pageable) {
+        return songRepository.findSongPageByWord(word, pageable);
+    }
+
+    /**
+     * 음원 검색 - 미리보기
+     * @param word 검색어
+     * @return 음원 검색 응답 DTO 리스트
+     */
+    @Transactional(readOnly = true)
+    public List<SongSearchResponse> searchSongList(String word) {
+        final int limit = 5;
+        return songRepository.findSongListByWord(word, limit);
     }
 }

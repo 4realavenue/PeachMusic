@@ -5,19 +5,16 @@ import com.example.peachmusic.domain.song.entity.Song;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.Optional;
-
 import java.util.List;
 
-public interface SongRepository extends JpaRepository<Song, Long> {
+public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRepository {
 
     Optional<Song> findBySongIdAndIsDeletedFalse(Long songId);
 
     Page<Song> findAll(Pageable pageable);
 
     boolean existsSongByAlbumAndPosition(Album album, Long position);
-
 
     // (활성) 앨범 음원 목록 조회
     List<Song> findAllByAlbum_AlbumIdAndIsDeletedFalse(Long albumId);
