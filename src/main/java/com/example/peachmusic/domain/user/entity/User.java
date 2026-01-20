@@ -39,6 +39,13 @@ public class User extends BaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
+    @Column(name = "token_version", nullable = false)
+    private Long tokenVersion = 0L;  // 기본값 0
+
+    public void increaseTokenVersion() {
+        this.tokenVersion++;
+    }
+
     public User(String name, String nickname, String email, String password) {
         this.name = name;
         this.nickname = nickname;

@@ -19,7 +19,7 @@ import java.util.Date;
 public class JwtUtil {
 
     private static final String TOKEN_PREFIX = "Bearer ";
-    private static final Long TOKEN_TIME = 60 * 60 * 1000L; // 60분
+    private static final Long TOKEN_TIME = 10 * 60 * 1000L; // 60분
 
     @Value("${jwt.secret.key}")
     private String secretKey; // 야물 키
@@ -31,21 +31,7 @@ public class JwtUtil {
         byte[] bytes = Base64.getDecoder().decode(secretKey); // Base64인지 체크하겠다.
         key = Keys.hmacShaKeyFor(bytes);
     }
-    // 토큰 생성
-    public String createToken(Long userId, String email, UserRole userRole) {
 
-        Date date = new Date();
-
-        return TOKEN_PREFIX +
-                Jwts.builder()
-                        .setSubject(String.valueOf(userId))
-                        .claim("email", email) // 토큰에 닉네임 넣겠다 (토큰 커스텀)
-                        .claim("userRole", userRole != null ? userRole.name() : UserRole.USER.name()) // 토큰에 유저롤 넣겠다 (토큰 커스텀)
-                        .setExpiration(new Date(date.getTime() + TOKEN_TIME)) // 현재일자 + 만료시간 (1시간) ex) 오후 2시 -> 2시 + 1시간 = 3시 만료
-                        .setIssuedAt(date) // 발급일 알려줌
-                        .signWith(key, signatureAlgorithm) // 암호화 알고리즘
-                        .compact();
-    }
     public String substringToken(String tokenValue) throws ServerException { // 토큰에 Bearer 떼서 토큰 키만 받겠다.
         if (StringUtils.hasText(tokenValue) && tokenValue.startsWith(TOKEN_PREFIX)) { // 토큰값이 tokenValue 또는 TOKEN_PREFIX ("bearer ")을 잘라내서 받겠다..
             return tokenValue.substring(7); // ("bearer " 7자 날림)
@@ -59,5 +45,21 @@ public class JwtUtil {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    // 토큰 생성
+    public String createToken(Long userId, String email, UserRole role, Long tokenVersion) {
+        Date date = new Date();
+
+        return TOKEN_PREFIX +
+                Jwts.builder()
+                        .setSubject(String.valueOf(userId))
+                        .claim("email", email) // 토큰에 닉네임 넣겠다 (토큰 커스텀)
+                        .claim("userRole", role != null ? role.name() : UserRole.USER.name())// 토큰에 유저롤 넣겠다 (토큰 커스텀)
+                        .claim("version", tokenVersion)  // 버전 정보 추가
+                        .setExpiration(new Date(date.getTime() + TOKEN_TIME))// 현재일자 + 만료시간 (1시간) ex) 오후 2시 -> 2시 + 1시간 = 3시 만료
+                        .setIssuedAt(date)// 발급일 알려줌
+                        .signWith(key, signatureAlgorithm) // 암호화 알고리즘
+                        .compact();
     }
 }

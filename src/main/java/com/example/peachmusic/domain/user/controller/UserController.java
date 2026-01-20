@@ -75,15 +75,19 @@ public class UserController {
     public ResponseEntity<CommonResponse<LoginResponseDto>> login(
             @Valid @RequestBody LoginRequestDto request
     ) {
-        String token = userService.login(request);
+        LoginResponseDto responseDto = userService.login(request);
 
-        LoginResponseDto responseDto = new LoginResponseDto(token);
+        return ResponseEntity.ok(CommonResponse.success("로그인 성공",responseDto));
+    }
 
-        CommonResponse<LoginResponseDto> commonResponse = new CommonResponse<>(true, "로그인 성공", responseDto);
+    // 로그아웃
+    @DeleteMapping("/auth/logout")
+    public ResponseEntity<CommonResponse<Void>> logout(
+            @AuthenticationPrincipal AuthUser authUser
+    ) {
+        userService.logout(authUser.getUserId());
 
-        ResponseEntity<CommonResponse<LoginResponseDto>> response = new ResponseEntity<>(commonResponse, HttpStatus.OK);
-
-        return response;
+        return ResponseEntity.ok(CommonResponse.success("로그아웃 완료"));
     }
 
 
