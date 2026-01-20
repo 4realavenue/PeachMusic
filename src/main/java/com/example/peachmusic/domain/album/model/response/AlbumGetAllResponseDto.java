@@ -1,13 +1,13 @@
 package com.example.peachmusic.domain.album.model.response;
 
 import com.example.peachmusic.domain.album.entity.Album;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
 
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AlbumGetAllResponseDto {
 
     private final Long albumId;
@@ -18,10 +18,6 @@ public class AlbumGetAllResponseDto {
 
     public static AlbumGetAllResponseDto from(Album album) {
         return new AlbumGetAllResponseDto(
-                album.getAlbumId(),
-                album.getAlbumName(),
-                album.getAlbumReleaseDate(),
-                album.getAlbumImage(),
-                album.getLikeCount());
+                album.getAlbumId(), album.getAlbumName(), album.getAlbumReleaseDate(), album.getAlbumImage(), album.getLikeCount());
     }
 }

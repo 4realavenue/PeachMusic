@@ -48,7 +48,7 @@ public class AlbumService {
         }
 
         // 앨범 음원 조회 -> DTO 변환
-        List<Song> songList = songRepository.findAllByAlbum_AlbumIdAndIsDeletedFalseOrderByPositionAsc(albumId);
+        List<Song> songList = songRepository.findAllByAlbum_AlbumIdAndIsDeletedFalse(albumId);
         List<SongSummaryDto> songs = new ArrayList<>();
         for (Song song : songList) {
             songs.add(new SongSummaryDto(song.getSongId(), song.getName(), song.getDuration(), song.getPosition()));

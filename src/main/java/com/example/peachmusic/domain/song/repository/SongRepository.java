@@ -19,15 +19,15 @@ public interface SongRepository extends JpaRepository<Song, Long> {
     boolean existsSongByAlbumAndPosition(Album album, Long position);
 
 
-    // (활성) 앨범 음원 목록 조회 (position ASC)
-    List<Song> findAllByAlbum_AlbumIdAndIsDeletedFalseOrderByPositionAsc(Long albumId);
+    // (활성) 앨범 음원 목록 조회
+    List<Song> findAllByAlbum_AlbumIdAndIsDeletedFalse(Long albumId);
 
-    // (비활성) 앨범 음원 목록 조회 (position ASC)
-    List<Song> findAllByAlbum_AlbumIdAndIsDeletedTrueOrderByPositionAsc(Long albumId);
+    // (비활성) 앨범 음원 목록 조회
+    List<Song> findAllByAlbum_AlbumIdAndIsDeletedTrue(Long albumId);
 
     // (활성) 여러 앨범 음원 조회
-    List<Song> findAllByAlbum_AlbumIdInAndIsDeletedFalseOrderByPositionAsc(List<Long> albumIds);
+    List<Song> findAllByAlbum_AlbumIdInAndIsDeletedFalse(List<Long> albumIds);
 
     // (비활성) 여러 앨범 음원 조회
-    List<Song> findAllByAlbum_AlbumIdInAndIsDeletedTrueOrderByPositionAsc(List<Long> albumIds);
+    List<Song> findAllByAlbum_AlbumIdInAndIsDeletedTrue(List<Long> albumIds);
 }

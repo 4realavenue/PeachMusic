@@ -164,7 +164,7 @@ public class ArtistAdminService {
 
         // 앨범에 포함된 음원 비활성화 (앨범들이 없으면 스킵)
         if (!albumIds.isEmpty()) {
-            List<Song> foundSongList = songRepository.findAllByAlbum_AlbumIdInAndIsDeletedFalseOrderByPositionAsc(albumIds);
+            List<Song> foundSongList = songRepository.findAllByAlbum_AlbumIdInAndIsDeletedFalse(albumIds);
             foundSongList.forEach(Song::deleteSong);
         }
 
@@ -204,7 +204,7 @@ public class ArtistAdminService {
 
         // 앨범에 포함된 음원 활성화
         if (!albumIds.isEmpty()) {
-            List<Song> foundSongList = songRepository.findAllByAlbum_AlbumIdInAndIsDeletedTrueOrderByPositionAsc(albumIds);
+            List<Song> foundSongList = songRepository.findAllByAlbum_AlbumIdInAndIsDeletedTrue(albumIds);
             foundSongList.forEach(Song::restoreSong);
         }
 
