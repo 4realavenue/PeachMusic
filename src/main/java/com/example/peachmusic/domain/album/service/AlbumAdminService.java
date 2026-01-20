@@ -114,7 +114,7 @@ public class AlbumAdminService {
         userRepository.findByUserIdAndIsDeletedFalse(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        // 삭제되지 않은 앨범 목록을 페이징 조건에 맞게 조회
+        // 삭제 여부와 관계없이 앨범 전체 목록 조회
         Page<Album> albumPage = albumRepository.findAll(pageable);
 
         return albumPage.map(AlbumGetAllResponseDto::from);
