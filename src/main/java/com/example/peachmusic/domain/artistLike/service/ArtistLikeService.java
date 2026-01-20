@@ -2,6 +2,7 @@ package com.example.peachmusic.domain.artistLike.service;
 
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.exception.ErrorCode;
+import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
 import com.example.peachmusic.domain.artistLike.entity.ArtistLike;
@@ -23,18 +24,20 @@ public class ArtistLikeService {
 
     /**
      * 아티스트 좋아요 토글 기능
-     * JWT 적용 전 단계로, 요청 헤더에서 사용자 식별 정보를 임시로 전달받는다.
      *
-     * @param userId 요청 헤더에 전달되는 사용자 ID (JWT 적용 전까지 임시 사용)
+     * @param authUser 인증된 사용자 정보
      * @param artistId 좋아요 토글할 아티스트 ID
      * @return 토글 처리 결과(최종 좋아요 상태 및 좋아요 수)
      */
     @Transactional
-    public ArtistLikeResponseDto likeArtist(Long userId, Long artistId) {
+    public ArtistLikeResponseDto likeArtist(AuthUser authUser, Long artistId) {
+
+        // AuthUser에서 사용자 ID 추출
+        Long userId = authUser.getUserId();
 
         // 삭제되지 않은 유효한 사용자 여부 검증
         User foundUser = userRepository.findByUserIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_CERTIFICATION_REQUIRED));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 좋아요 대상 아티스트 조회 (삭제된 아티스트는 좋아요 불가)
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
