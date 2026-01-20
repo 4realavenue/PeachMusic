@@ -12,4 +12,5 @@ public interface SongGenreRepository extends JpaRepository<SongGenre, Long> {
 
     List<SongGenre> findAllBySong (Song song);
 
+    boolean existsBySong_SongIdAndGenre_GenreId(Long songId, Long genreId);
 }
