@@ -25,25 +25,16 @@ public interface ArtistAlbumRepository extends JpaRepository<ArtistAlbum, Long> 
     void deleteAllByAlbumId(@Param("albumId") Long albumId);
 
     /**
-     * 특정 아티스트가 참여(발매)한 앨범 목록을 상태별(isDeleted)로 조회
      * ArtistAlbum 매핑 테이블을 기준으로 앨범을 조회
      * N:M 구조로 인한 중복 앨범 제거를 위해 distinct 사용
-     * 앨범 활성/비활성 여부는 album.isDeleted 값으로 구분
      * 아티스트 비활성화/복구 로직에서 사용
      */
     @Query("""
         select distinct aa.album
         from ArtistAlbum aa
         where aa.artist.artistId = :artistId
-          and aa.album.isDeleted = false
+          and aa.album.isDeleted = :isDeleted
     """)
-    List<Album> findActiveAlbumsByArtistId(@Param("artistId") Long artistId);
+    List<Album> findAlbumsByArtistIdAndIsDeleted(@Param("artistId") Long artistId, @Param("isDeleted") boolean isDeleted);
 
-    @Query("""
-        select distinct aa.album
-        from ArtistAlbum aa
-        where aa.artist.artistId = :artistId
-          and aa.album.isDeleted = true
-    """)
-    List<Album> findDeletedAlbumsByArtistId(@Param("artistId") Long artistId);
 }

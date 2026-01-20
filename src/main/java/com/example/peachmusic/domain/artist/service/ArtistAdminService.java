@@ -120,7 +120,7 @@ public class ArtistAdminService {
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
 
         // 아티스트가 발매한 앨범 비활성화
-        List<Album> foundAlbumList = artistAlbumRepository.findActiveAlbumsByArtistId(artistId);
+        List<Album> foundAlbumList = artistAlbumRepository.findAlbumsByArtistIdAndIsDeleted(artistId, false);
 
         // 앨범 ID 목록 추출
         List<Long> albumIds = foundAlbumList.stream()
@@ -152,7 +152,7 @@ public class ArtistAdminService {
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
 
         // 아티스트가 발매한 앨범 활성화
-        List<Album> foundAlbumList = artistAlbumRepository.findDeletedAlbumsByArtistId(artistId);
+        List<Album> foundAlbumList = artistAlbumRepository.findAlbumsByArtistIdAndIsDeleted(artistId, true);
 
         // 앨범 ID 목록 추출
         List<Long> albumIds = foundAlbumList.stream()
