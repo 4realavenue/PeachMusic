@@ -1,11 +1,11 @@
 package com.example.peachmusic.domain.artist.model.response;
 
 import com.example.peachmusic.domain.artist.entity.Artist;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ArtistCreateResponseDto {
 
     private final Long artistId;
