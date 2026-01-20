@@ -1,8 +1,6 @@
 package com.example.peachmusic.domain.playlistSong.model.response;
 
 import com.example.peachmusic.domain.playlist.entity.Playlist;
-import com.example.peachmusic.domain.playlistSong.entity.PlaylistSong;
-import com.example.peachmusic.domain.playlistSong.model.request.PlaylistSongDeleteRequestDto;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

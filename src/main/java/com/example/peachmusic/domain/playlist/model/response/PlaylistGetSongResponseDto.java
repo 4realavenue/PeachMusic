@@ -10,7 +10,7 @@ import java.util.List;
 
 @Getter
 @RequiredArgsConstructor
-public class PlaylistGetSongResponseDto{
+public class PlaylistGetSongResponseDto {
 
     private final Long playlistId;
     private final String playlistName;

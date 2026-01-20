@@ -146,7 +146,7 @@ public class PlaylistService {
                 .orElseThrow(() -> new CustomException(ErrorCode.PLAYLIST_NOT_FOUND));
 
         // 3. 찾아온 플레이리스트의 유저 아이디가 로그인 한 유저와 일치하지 않다면 예외처리
-        if(!findPlaylist.getUser().getUserId().equals(userId)) {
+        if (!findPlaylist.getUser().getUserId().equals(userId)) {
             throw new CustomException(ErrorCode.AUTH_AUTHORIZATION_REQUIRED);
         }
 

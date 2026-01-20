@@ -9,7 +9,6 @@ import com.example.peachmusic.domain.playlistSong.model.response.PlaylistSongDel
 import com.example.peachmusic.domain.playlistSong.service.PlaylistSongService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +28,7 @@ public class PlaylistSongController {
             @PathVariable("playlistId") Long playlistId,
             @Valid @RequestBody PlaylistSongAddRequestDto requestDto,
             @AuthenticationPrincipal AuthUser authUser
-            ) {
+    ) {
 
         PlaylistSongAddResponseDto responseDto = playlistSongService.addPlaylistSong(playlistId, requestDto, authUser);
 
@@ -44,7 +43,7 @@ public class PlaylistSongController {
             @PathVariable("playlistId") Long playlistId,
             @Valid @RequestBody PlaylistSongDeleteRequestDto requestDto,
             @AuthenticationPrincipal AuthUser authUser
-            ) {
+    ) {
 
         PlaylistSongDeleteSongResponseDto responseDto = playlistSongService.deletePlaylistSong(playlistId, requestDto, authUser);
 

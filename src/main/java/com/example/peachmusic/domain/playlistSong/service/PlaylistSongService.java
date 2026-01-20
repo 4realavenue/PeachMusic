@@ -38,7 +38,7 @@ public class PlaylistSongService {
         Long userId = authUser.getUserId();
 
         // 2. 플레이리스트 찾아오기
-        Playlist findPlaylist =  playlistRepository.findById(playlistId)
+        Playlist findPlaylist = playlistRepository.findById(playlistId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PLAYLIST_NOT_FOUND));
 
         // 3. 찾아온 플레이리스트의 유저 아이디가 로그인 한 유저와 일치하지 않다면 예외처리

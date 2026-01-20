@@ -30,7 +30,7 @@ public class PlaylistController {
     public ResponseEntity<CommonResponse<PlaylistCreateResponseDto>> createPlaylist(
             @RequestBody PlaylistCreateRequestDto requestDto,
             @AuthenticationPrincipal AuthUser authUser
-            ) {
+    ) {
 
         PlaylistCreateResponseDto responseDto = playlistService.createPlaylist(requestDto, authUser);
 
