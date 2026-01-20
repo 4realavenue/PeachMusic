@@ -75,7 +75,7 @@ public class Song extends BaseEntity {
         this.vartags = vartags;
     }
 
-    public Song(String jamendoSongId, Album album, String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags, Long likeCount) {
+    public Song(String jamendoSongId, Album album, String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags) {
         this.jamendoSongId = jamendoSongId;
         this.album = album;
         this.name = name;
@@ -88,7 +88,6 @@ public class Song extends BaseEntity {
         this.speed = speed;
         this.instruments = instruments;
         this.vartags = vartags;
-        this.likeCount = likeCount;
     }
 
     public void updateSong(String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags, Album album) {

@@ -127,20 +127,12 @@ public class JamendoSongService {
                 }
 
                 // 음원 저장
-                Song song = new Song(
-                        dto.getJamendoSongId(),
-                        album,
-                        dto.getName(),
-                        dto.getDuration() != null ? dto.getDuration().longValue() : 0L,
-                        dto.getLicenseCcurl(),
-                        dto.getPosition() != null ? dto.getPosition().longValue() : 0L,
-                        dto.getAudioUrl(),
+                Song song = new Song(dto.getJamendoSongId(), album, dto.getName(),
+                        dto.getDuration() != null ? dto.getDuration().longValue() : 0L, dto.getLicenseCcurl(),
+                        dto.getPosition() != null ? dto.getPosition().longValue() : 0L, dto.getAudioUrl(),
                         musicInfo != null ? musicInfo.getVocalInstrumental() : null,
                         musicInfo != null ? musicInfo.getLang() : null,
-                        musicInfo != null ? musicInfo.getSpeed() : null,
-                        instruments,
-                        vartags,
-                        0L   // likeCount 기본값
+                        musicInfo != null ? musicInfo.getSpeed() : null, instruments, vartags
                 );
 
                 // 음원 저장
