@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -49,15 +50,16 @@ public class JamendoSongService {
      * - 이미 존재하는 음원은 제외
      * - 데이터가 없으면 생성
      */
+    @Transactional
     public void importInitJamendo(String type) {
 
         int limit = 200;
         int maxPage;
 
-        String dateBetween = "2024-01-01_2026-01-18";
+        String dateBetween = "2024-01-19_2026-01-20";
 
         if(type.equals("vocal")) {
-            maxPage = 50; // 1만건
+            maxPage = 50;
         } else if(type.equals("instrumental")) {
             maxPage = 10;
         } else {
@@ -80,7 +82,7 @@ public class JamendoSongService {
                 break;
             }
 
-            // 이번 페이지에서 내려온 음원 목록
+            // 이번 페이지에서 내려온 음원 목록 // 시간을 찍어보자
             List<JamendoSongDto> results = response.getResults();
 
             // 페이지 안의 음원들을 하나씩 반복
@@ -136,7 +138,6 @@ public class JamendoSongService {
                 // 아티스트_앨범 중간 테이블 저장(중복 방지)
                 existsArtistAndAlbum(artist, album);
 
-
                 if (tags != null && tags.getGenres() != null) {
                     for (String genreName : tags.getGenres()) {
 
@@ -151,11 +152,6 @@ public class JamendoSongService {
                 }
                 successCount++;
             }
-
-            // API 호출 보호
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException ignored) {}
         }
 
         log.info("=== Jamendo 초기 적재 완료 ===");
@@ -163,6 +159,7 @@ public class JamendoSongService {
     }
 
     @Scheduled(cron = "0 0 3 * * ?")
+    @Transactional
     public void importScheduledJamendo() {
 
         int limit = 200;
@@ -245,8 +242,7 @@ public class JamendoSongService {
                 existsArtistAndSong(artist, song);
                 // 아티스트_앨범 중간 테이블 저장(중복 방지)
                 existsArtistAndAlbum(artist, album);
-
-
+                
                 if (tags != null && tags.getGenres() != null) {
                     for (String genreName : tags.getGenres()) {
 
@@ -289,26 +285,22 @@ public class JamendoSongService {
      * 아티스트 조회 및 생성
      */
     private Artist getOrCreateArtist(String artistName) {
-        Artist artist = artistRepository.findByArtistName(artistName);
-
-        if (artist == null) {
-            artist = new Artist(artistName, 0L);
-            artistRepository.save(artist);
-        }
-        return artist;
+        return artistRepository.findByArtistName(artistName)
+                .orElseGet(() -> {
+                        Artist artist = new Artist(artistName);
+                        return artistRepository.save(artist);
+                });
     }
 
     /**
      * 앨범 조회 및 생성
      */
     private Album getOrCreateAlbum(JamendoSongDto dto) {
-        Album album = albumRepository.findByJamendoAlbumId(dto.getAlbumId());
-
-        if (album == null) {
-            album = new Album(dto.getAlbumId(), dto.getAlbumName(), dto.getAlbumReleaseDate(), dto.getAlbumImage());
-            albumRepository.save(album);
-        }
-        return album;
+        return albumRepository.findByJamendoAlbumId(dto.getAlbumId())
+                .orElseGet(() -> {
+                        Album album = new Album(dto.getAlbumId(), dto.getAlbumName(), dto.getAlbumReleaseDate(), dto.getAlbumImage());
+                        return albumRepository.save(album);
+                });
     }
 
     /**

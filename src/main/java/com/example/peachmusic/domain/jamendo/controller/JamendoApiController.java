@@ -22,5 +22,4 @@ public class JamendoApiController {
         jamendoSongService.importInitJamendo(type);
         return CommonResponse.success("초기" + type + "데이터 적재 성공");
     }
-
 }

@@ -15,6 +15,7 @@ public class JamendoApiService {
     @Value("${jamendo.api.key}")
     private String clientId;
 
+    // 병목현상이 여긴가? 확인해보기 시간 측정
     public JamendoSongResponse fetchSongs(int page, int limit, String type, String datebetween) {
         return jamendoRestClient.get()
                 .uri(uriBuilder -> {
@@ -23,7 +24,7 @@ public class JamendoApiService {
                             .queryParam("client_id", clientId)
                             .queryParam("format", "json")
                             .queryParam("include", "musicinfo")
-                            .queryParam("order", "releasedate_asc")
+                            .queryParam("order", "releasedate_desc")
                             .queryParam("limit", limit)
                             .queryParam("offset", (page - 1) * limit);
 
