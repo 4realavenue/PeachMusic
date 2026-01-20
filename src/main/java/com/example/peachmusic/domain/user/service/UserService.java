@@ -91,12 +91,8 @@ public class UserService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new CustomException(ErrorCode.AUTH_INVALID_PASSWORD);
         }
-        String token = jwtUtil.createToken(
-                user.getUserId(),
-                user.getEmail(),
-                user.getRole(),
-                user.getTokenVersion()
-        );
+        String token = jwtUtil.createToken(user.getUserId(), user.getEmail(), user.getRole(), user.getTokenVersion());
+
         return new LoginResponseDto(token);
     }
 
