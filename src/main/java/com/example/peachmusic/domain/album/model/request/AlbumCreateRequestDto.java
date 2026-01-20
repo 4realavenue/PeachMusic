@@ -3,7 +3,6 @@ package com.example.peachmusic.domain.album.model.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -12,7 +11,6 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
 public class AlbumCreateRequestDto {
 
     @NotBlank(message = "앨범 이름은 필수입니다.")

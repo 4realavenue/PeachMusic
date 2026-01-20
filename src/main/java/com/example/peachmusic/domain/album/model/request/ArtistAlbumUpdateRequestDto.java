@@ -2,7 +2,6 @@ package com.example.peachmusic.domain.album.model.request;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,7 +9,6 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
 public class ArtistAlbumUpdateRequestDto {
 
     @NotNull(message = "참여 아티스트는 필수입니다.")
