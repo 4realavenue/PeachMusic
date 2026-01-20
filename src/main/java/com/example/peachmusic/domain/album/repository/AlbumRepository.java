@@ -2,12 +2,11 @@ package com.example.peachmusic.domain.album.repository;
 
 import com.example.peachmusic.domain.album.entity.Album;
 import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-public interface AlbumRepository extends JpaRepository<Album, Long> {
+public interface AlbumRepository extends JpaRepository<Album, Long>, AlbumCustomRepository {
 
     // 활성 상태(isDeleted=false)인 앨범 조회
     Optional<Album> findByAlbumIdAndIsDeletedFalse(Long albumId);

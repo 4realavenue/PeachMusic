@@ -6,6 +6,7 @@ import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.model.response.AlbumGetDetailResponseDto;
 import com.example.peachmusic.domain.album.model.response.ArtistSummaryDto;
 import com.example.peachmusic.domain.album.model.response.SongSummaryDto;
+import com.example.peachmusic.domain.album.model.response.AlbumSearchResponse;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artistAlbum.entity.ArtistAlbum;
@@ -13,9 +14,10 @@ import com.example.peachmusic.domain.artistAlbum.repository.ArtistAlbumRepositor
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,5 +57,27 @@ public class AlbumService {
         }
 
         return AlbumGetDetailResponseDto.from(foundAlbum, artists, songs);
+    }
+
+    /**
+     * 앨범 검색 - 자세히 보기
+     * @param word 검색어
+     * @param pageable 페이징 정보 - 인기순 정렬
+     * @return 페이징된 앨범 검색 응답 DTO
+     */
+    @Transactional(readOnly = true)
+    public Page<AlbumSearchResponse> searchAlbumPage(String word, Pageable pageable) {
+        return albumRepository.findAlbumPageByWord(word, pageable);
+    }
+
+    /**
+     * 앨범 검색 - 미리보기
+     * @param word 검색어
+     * @return 앨범 검색 응답 DTO 리스트
+     */
+    @Transactional(readOnly = true)
+    public List<AlbumSearchResponse> searchAlbumList(String word) {
+        final int limit = 5;
+        return albumRepository.findAlbumListByWord(word, limit);
     }
 }
