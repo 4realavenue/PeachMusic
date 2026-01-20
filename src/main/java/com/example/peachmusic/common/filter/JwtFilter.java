@@ -1,6 +1,8 @@
 package com.example.peachmusic.common.filter;
 
 import com.example.peachmusic.common.model.AuthUser;
+import com.example.peachmusic.domain.user.entity.User;
+import com.example.peachmusic.domain.user.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -28,6 +30,7 @@ import java.io.IOException;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -43,28 +46,36 @@ public class JwtFilter extends OncePerRequestFilter {
         String jwt = jwtUtil.substringToken(bearerJwt);
 
         try {
-            // JWT 유효성 검사와 claims 추출
             Claims claims = jwtUtil.extractClaims(jwt);
-            if (claims == null) {
-                filterChain.doFilter(request, response);
+
+            Long userId = Long.parseLong(claims.getSubject());
+            Long tokenVersion = claims.get("version", Long.class);
+
+            if (tokenVersion == null) {
+                throw new BadCredentialsException("토큰 버전 정보가 없습니다.");
+            }
+
+            // DB에서 최신 버전 조회
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new BadCredentialsException("사용자를 찾을 수 없습니다."));
+
+            // 버전이 다르다면, 로그아웃된 토큰 출력
+            if (!user.getTokenVersion().equals(tokenVersion)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write("{\"message\":\"만료된 토큰입니다.\"}");
                 return;
             }
 
-            log.info("claims = {}", claims);
-
-            String subject = claims.getSubject();
-            if(subject == null){
-                throw new BadCredentialsException("JWT에 userId(sub)가 없습니다.");
-            }
-
-            Long userId = Long.parseLong(subject);
+            // 버전이 같으면 정상 인증 진행함
             String email = (String) claims.get("email");
-
             String roleStr = claims.get("userRole", String.class);
             UserRole role = (roleStr != null) ? UserRole.valueOf(roleStr) : UserRole.USER;
 
             AuthUser authuser = new AuthUser(userId, email, role);
-            Authentication authentication = new UsernamePasswordAuthenticationToken(authuser, null, authuser.getAuthoritie());
+            Authentication authentication = new UsernamePasswordAuthenticationToken(
+                    authuser, null, authuser.getAuthoritie()
+            );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 

@@ -8,6 +8,7 @@ import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.model.request.LoginRequestDto;
 import com.example.peachmusic.domain.user.model.request.UserCreateRequestDto;
 import com.example.peachmusic.domain.user.model.request.UserUpdateRequestDto;
+import com.example.peachmusic.domain.user.model.response.LoginResponseDto;
 import com.example.peachmusic.domain.user.model.response.UserCreateResponseDto;
 import com.example.peachmusic.domain.user.model.response.UserGetResponseDto;
 import com.example.peachmusic.domain.user.model.response.admin.UserUpdateResponseDto;
@@ -83,17 +84,23 @@ public class UserService {
 
     // 로그인
     @Transactional
-    public String login(@Valid LoginRequestDto request) {
-
-        String email = request.getEmail();
-        String password = request.getPassword();
-
-        User user = userRepository.findUserByEmailAndIsDeletedFalse(email)
+    public LoginResponseDto login(@Valid LoginRequestDto request) {
+        User user = userRepository.findUserByEmailAndIsDeletedFalse(request.getEmail())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        if (!passwordEncoder.matches(password, user.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new CustomException(ErrorCode.AUTH_INVALID_PASSWORD);
         }
-        return jwtUtil.createToken(user.getUserId(),user.getEmail(),user.getRole());
+        String token = jwtUtil.createToken(user.getUserId(), user.getEmail(), user.getRole(), user.getTokenVersion());
+
+        return new LoginResponseDto(token);
+    }
+
+    @Transactional
+    public void logout(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        user.increaseTokenVersion();
     }
 }
