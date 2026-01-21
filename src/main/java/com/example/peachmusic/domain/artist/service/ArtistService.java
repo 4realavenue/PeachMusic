@@ -1,7 +1,7 @@
 package com.example.peachmusic.domain.artist.service;
 
 import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.common.exception.ErrorCode;
+import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.model.response.ArtistGetDetailResponseDto;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;

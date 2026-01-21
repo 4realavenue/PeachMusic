@@ -1,6 +1,5 @@
 package com.example.peachmusic.common.model;
 
-import com.example.peachmusic.common.exception.ErrorCode;
 import lombok.Getter;
 import org.springframework.data.domain.Page;
 

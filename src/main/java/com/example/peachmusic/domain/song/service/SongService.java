@@ -1,7 +1,7 @@
 package com.example.peachmusic.domain.song.service;
 
 import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.common.exception.ErrorCode;
+import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.model.response.SongGetDetailResponseDto;
 import com.example.peachmusic.domain.song.model.response.SongSearchResponse;
