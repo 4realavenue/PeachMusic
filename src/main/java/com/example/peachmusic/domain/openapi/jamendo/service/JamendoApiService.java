@@ -1,6 +1,6 @@
-package com.example.peachmusic.domain.openApi.jamendo.service;
+package com.example.peachmusic.domain.openapi.jamendo.service;
 
-import com.example.peachmusic.domain.openApi.jamendo.dto.JamendoSongResponseDto;
+import com.example.peachmusic.domain.openapi.jamendo.dto.JamendoSongResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

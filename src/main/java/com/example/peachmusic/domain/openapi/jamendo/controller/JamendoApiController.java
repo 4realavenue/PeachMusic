@@ -1,7 +1,7 @@
-package com.example.peachmusic.domain.openApi.jamendo.controller;
+package com.example.peachmusic.domain.openapi.jamendo.controller;
 
 import com.example.peachmusic.common.model.CommonResponse;
-import com.example.peachmusic.domain.openApi.jamendo.service.JamendoSongService;
+import com.example.peachmusic.domain.openapi.jamendo.service.JamendoSongService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

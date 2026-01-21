@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.openApi.jamendo.service;
+package com.example.peachmusic.domain.openapi.jamendo.service;
 
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
@@ -10,17 +10,16 @@ import com.example.peachmusic.domain.artistSong.entity.ArtistSong;
 import com.example.peachmusic.domain.artistSong.repository.ArtistSongRepository;
 import com.example.peachmusic.domain.genre.entity.Genre;
 import com.example.peachmusic.domain.genre.repository.GenreRepository;
-import com.example.peachmusic.domain.openApi.jamendo.dto.JamendoMusicInfoDto;
-import com.example.peachmusic.domain.openApi.jamendo.dto.JamendoSongDto;
-import com.example.peachmusic.domain.openApi.jamendo.dto.JamendoSongResponseDto;
-import com.example.peachmusic.domain.openApi.jamendo.dto.JamendoTagDto;
+import com.example.peachmusic.domain.openapi.jamendo.dto.JamendoMusicInfoDto;
+import com.example.peachmusic.domain.openapi.jamendo.dto.JamendoSongDto;
+import com.example.peachmusic.domain.openapi.jamendo.dto.JamendoSongResponseDto;
+import com.example.peachmusic.domain.openapi.jamendo.dto.JamendoTagDto;
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songGenre.entity.SongGenre;
 import com.example.peachmusic.domain.songGenre.repository.SongGenreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,7 +59,6 @@ public class JamendoSongService {
     /**
      * Jamendo 음원 매일 3시 정기 적재
      */
-    @Scheduled(cron = "0 0 3 * * ?")
     @Transactional
     public void importScheduledJamendo() {
         int maxPage = 50;
