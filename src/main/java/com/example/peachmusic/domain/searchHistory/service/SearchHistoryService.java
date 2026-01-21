@@ -1,27 +1,27 @@
-package com.example.peachmusic.domain.search.service;
+package com.example.peachmusic.domain.searchHistory.service;
 
 import com.example.peachmusic.domain.album.model.response.AlbumSearchResponse;
 import com.example.peachmusic.domain.album.service.AlbumService;
 import com.example.peachmusic.domain.artist.model.response.ArtistSearchResponse;
 import com.example.peachmusic.domain.artist.service.ArtistService;
-import com.example.peachmusic.domain.search.entity.Search;
-import com.example.peachmusic.domain.search.model.SearchPopularResponse;
-import com.example.peachmusic.domain.search.model.SearchPreviewResponse;
-import com.example.peachmusic.domain.search.repository.SearchRepository;
+import com.example.peachmusic.domain.searchHistory.entity.SearchHistory;
+import com.example.peachmusic.domain.searchHistory.dto.SearchPopularResponseDto;
+import com.example.peachmusic.domain.searchHistory.dto.SearchPreviewResponseDto;
+import com.example.peachmusic.domain.searchHistory.repository.SearchHistoryRepository;
 import com.example.peachmusic.domain.song.model.response.SongSearchResponse;
 import com.example.peachmusic.domain.song.service.SongService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class SearchService {
+public class SearchHistoryService {
 
-    private final SearchRepository searchRepository;
+    private final SearchHistoryRepository historyRepository;
     private final ArtistService artistService;
     private final AlbumService albumService;
     private final SongService songService;
@@ -31,8 +31,8 @@ public class SearchService {
      * @param word 검색어
      * @return 검색 응답 DTO
      */
-    @Transactional
-    public SearchPreviewResponse searchPreview(String word) {
+    @Transactional(readOnly = true)
+    public SearchPreviewResponseDto searchPreview(String word) {
 
         List<ArtistSearchResponse> artistList = artistService.searchArtistList(word);
         List<AlbumSearchResponse> albumList = albumService.searchAlbumList(word);
@@ -40,7 +40,7 @@ public class SearchService {
 
         recordSearch(word); // 검색어 기록
 
-        return SearchPreviewResponse.of(word, artistList, albumList, songList);
+        return SearchPreviewResponseDto.of(word, artistList, albumList, songList);
     }
 
     /**
@@ -51,24 +51,21 @@ public class SearchService {
      */
     private void recordSearch(String word) {
 
-        LocalDate dateNow = LocalDate.now(); // 오늘 날짜
-        // 오늘 날짜에 키워드 검색 조회
-        Optional<Search> foundSearch = searchRepository.findByWordAndSearchDate(word, dateNow);
+        LocalDate today = LocalDate.now(); // 오늘 날짜
 
-        if (foundSearch.isPresent()) { // 존재하면 검색 횟수 증가
-            foundSearch.get().increaseCount();
-        } else { // 존재 안 하면 검색 저장
-            Search search = new Search(word, dateNow);
-            searchRepository.save(search);
-        }
+        historyRepository.findByWordAndSearchDate(word, today) // 오늘 날짜에 키워드 검색 조회
+                .ifPresentOrElse(
+                        SearchHistory::increaseCount, // 존재하면 검색 횟수 증가
+                        () -> historyRepository.save(new SearchHistory(word, today)) // 존재 안 하면 검색 저장
+                );
     }
 
     /**
      * 인기 검색어 조회
      * @return 인기 검색어 응답 DTO
      */
-    @Transactional
-    public List<SearchPopularResponse> searchPopular() {
-        return searchRepository.findPopularKeyword();
+    @Transactional(readOnly = true)
+    public List<SearchPopularResponseDto> searchPopular() {
+        return historyRepository.findPopularKeyword();
     }
 }

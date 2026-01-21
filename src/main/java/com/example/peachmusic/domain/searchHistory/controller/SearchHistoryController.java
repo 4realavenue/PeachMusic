@@ -1,9 +1,9 @@
-package com.example.peachmusic.domain.search.controller;
+package com.example.peachmusic.domain.searchHistory.controller;
 
 import com.example.peachmusic.common.model.CommonResponse;
-import com.example.peachmusic.domain.search.model.SearchPopularResponse;
-import com.example.peachmusic.domain.search.model.SearchPreviewResponse;
-import com.example.peachmusic.domain.search.service.SearchService;
+import com.example.peachmusic.domain.searchHistory.dto.SearchPopularResponseDto;
+import com.example.peachmusic.domain.searchHistory.dto.SearchPreviewResponseDto;
+import com.example.peachmusic.domain.searchHistory.service.SearchHistoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,9 +15,9 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
-public class SearchController {
+public class SearchHistoryController {
 
-    private final SearchService searchService;
+    private final SearchHistoryService searchHistoryService;
 
     /**
      * 통합 검색 - 미리보기
@@ -25,10 +25,10 @@ public class SearchController {
      * @return 아티스트/앨범/음원 미리보기 응답
      */
     @GetMapping("/search")
-    public ResponseEntity<CommonResponse<SearchPreviewResponse>> searchPreview(
+    public ResponseEntity<CommonResponse<SearchPreviewResponseDto>> searchPreview(
             @RequestParam String word
     ) {
-        SearchPreviewResponse result = searchService.searchPreview(word);
+        SearchPreviewResponseDto result = searchHistoryService.searchPreview(word);
         return ResponseEntity.ok(CommonResponse.success("검색이 완료되었습니다.", result));
     }
 
@@ -37,8 +37,8 @@ public class SearchController {
      * @return 인기 검색어 응답 DTO
      */
     @GetMapping("/search/popular")
-    public ResponseEntity<CommonResponse<List<SearchPopularResponse>>> searchPopular() {
-        List<SearchPopularResponse> result = searchService.searchPopular();
+    public ResponseEntity<CommonResponse<List<SearchPopularResponseDto>>> searchPopular() {
+        List<SearchPopularResponseDto> result = searchHistoryService.searchPopular();
         return ResponseEntity.ok(CommonResponse.success("인기 검색어가 조회되었습니다.", result));
     }
 }

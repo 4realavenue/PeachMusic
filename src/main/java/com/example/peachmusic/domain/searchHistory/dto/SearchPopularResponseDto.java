@@ -1,11 +1,11 @@
-package com.example.peachmusic.domain.search.model;
+package com.example.peachmusic.domain.searchHistory.dto;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class SearchPopularResponse {
+public class SearchPopularResponseDto {
 
     private final int rank;
     private final String keyword;
