@@ -52,7 +52,7 @@ public class UserAdminService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         if (!user.isDeleted()) {
-            throw new CustomException(ErrorCode.USER_EXIST_ACTIVATIONUSER);
+            throw new CustomException(ErrorCode.USER_EXIST_ACTIVATION_USER);
         }
         user.restore();
     }
