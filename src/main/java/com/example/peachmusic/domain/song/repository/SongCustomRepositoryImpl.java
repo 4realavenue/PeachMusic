@@ -1,7 +1,7 @@
 package com.example.peachmusic.domain.song.repository;
 
 import com.example.peachmusic.common.enums.UserRole;
-import com.example.peachmusic.domain.song.model.response.SongSearchResponse;
+import com.example.peachmusic.domain.song.dto.response.SongSearchResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -11,7 +11,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.StringUtils;
+
 import java.util.List;
+
 import static com.example.peachmusic.common.enums.UserRole.USER;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
 import static com.example.peachmusic.domain.artistSong.entity.QArtistSong.artistSong;
@@ -27,7 +29,8 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
 
     /**
      * 검색 - 자세히 보기
-     * @param word 검색어
+     *
+     * @param word     검색어
      * @param pageable 페이징 정보
      * @return 페이징 처리된 음원 검색 결과
      */
@@ -52,7 +55,8 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
 
     /**
      * 검색 - 미리보기
-     * @param word 검색어
+     *
+     * @param word  검색어
      * @param limit 검색 개수
      * @return 음원 검색 미리보기
      */
@@ -78,7 +82,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
      * 검색 조건
      */
     private BooleanExpression searchCondition(String word, UserRole role) {
-        if (role.equals(USER)){
+        if (role.equals(USER)) {
             BooleanExpression keywordCondition = songNameContains(word).or(artistNameContains(word));
             return keywordCondition.and(isActive());
         }
