@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.jamendo.model;
+package com.example.peachmusic.domain.openApi.jamendo.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

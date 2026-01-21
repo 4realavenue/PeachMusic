@@ -1,6 +1,6 @@
-package com.example.peachmusic.domain.jamendo.service;
+package com.example.peachmusic.domain.openApi.jamendo.service;
 
-import com.example.peachmusic.domain.jamendo.model.JamendoSongResponse;
+import com.example.peachmusic.domain.openApi.jamendo.dto.JamendoSongResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,10 +17,10 @@ public class JamendoApiService {
     @Value("${jamendo.api.key}")
     private String clientId;
 
-    public JamendoSongResponse fetchSongs(int page, int limit, String datebetween) {
+    public JamendoSongResponseDto fetchSongs(int page, int limit, String datebetween) {
         long start = System.nanoTime();
 
-        JamendoSongResponse response = jamendoRestClient.get()
+        JamendoSongResponseDto response = jamendoRestClient.get()
                 .uri(uriBuilder -> {
                     uriBuilder
                             .path("/tracks")
@@ -38,7 +38,7 @@ public class JamendoApiService {
                             return uriBuilder.build();
                 })
                 .retrieve()
-                .body(JamendoSongResponse.class);
+                .body(JamendoSongResponseDto.class);
 
         long end = System.nanoTime();
         long elapsedMs = (end - start) / 1_000_000;

@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.jamendo.model;
+package com.example.peachmusic.domain.openApi.jamendo.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class JamendoSongResponse {
+public class JamendoSongResponseDto {
     @JsonProperty("results")
     private List<JamendoSongDto> results;
 }

@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.jamendo.service;
+package com.example.peachmusic.domain.openApi.jamendo.service;
 
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
@@ -10,10 +10,10 @@ import com.example.peachmusic.domain.artistSong.entity.ArtistSong;
 import com.example.peachmusic.domain.artistSong.repository.ArtistSongRepository;
 import com.example.peachmusic.domain.genre.entity.Genre;
 import com.example.peachmusic.domain.genre.repository.GenreRepository;
-import com.example.peachmusic.domain.jamendo.model.JamendoMusicInfoDto;
-import com.example.peachmusic.domain.jamendo.model.JamendoSongDto;
-import com.example.peachmusic.domain.jamendo.model.JamendoSongResponse;
-import com.example.peachmusic.domain.jamendo.model.JamendoTagDto;
+import com.example.peachmusic.domain.openApi.jamendo.dto.JamendoMusicInfoDto;
+import com.example.peachmusic.domain.openApi.jamendo.dto.JamendoSongDto;
+import com.example.peachmusic.domain.openApi.jamendo.dto.JamendoSongResponseDto;
+import com.example.peachmusic.domain.openApi.jamendo.dto.JamendoTagDto;
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songGenre.entity.SongGenre;
@@ -83,7 +83,7 @@ public class JamendoSongService {
             log.info("Jamendo 적재 중... page={}", page);
 
             // api 호출 결과 -> response안에 result가 들어있음.
-            JamendoSongResponse response = jamendoApiService.fetchSongs(page, limit, dateBetween);
+            JamendoSongResponseDto response = jamendoApiService.fetchSongs(page, limit, dateBetween);
 
             // 이번 페이지에서 내려온 음원 목록 // 시간을 찍어보자
             List<JamendoSongDto> results = response.getResults();
