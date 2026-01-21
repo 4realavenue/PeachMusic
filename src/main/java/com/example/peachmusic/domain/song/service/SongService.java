@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
+import static com.example.peachmusic.common.enums.UserRole.USER;
+
 @Service
 @RequiredArgsConstructor
 public class SongService {
@@ -51,7 +53,7 @@ public class SongService {
      */
     @Transactional(readOnly = true)
     public Page<SongSearchResponse> searchSongPage(String word, Pageable pageable) {
-        return songRepository.findSongPageByWord(word, pageable);
+        return songRepository.findSongPageByWord(word, pageable, USER);
     }
 
     /**

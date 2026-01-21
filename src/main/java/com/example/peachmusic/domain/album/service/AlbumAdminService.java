@@ -19,10 +19,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import static com.example.peachmusic.common.enums.UserRole.ADMIN;
 
 @Service
 @RequiredArgsConstructor
@@ -93,12 +93,8 @@ public class AlbumAdminService {
      * @return 앨범 목록 페이징 조회 결과
      */
     @Transactional(readOnly = true)
-    public Page<AlbumGetAllResponseDto> getAlbumList(Pageable pageable) {
-
-        // 삭제 여부와 관계없이 앨범 전체 목록 조회
-        Page<Album> albumPage = albumRepository.findAll(pageable);
-
-        return albumPage.map(AlbumGetAllResponseDto::from);
+    public Page<AlbumSearchResponse> getAlbumList(String word, Pageable pageable) {
+        return albumRepository.findAlbumPageByWord(word, pageable, ADMIN);
     }
 
     /**

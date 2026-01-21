@@ -5,7 +5,7 @@ import com.example.peachmusic.common.model.PageResponse;
 import com.example.peachmusic.domain.artist.model.request.ArtistCreateRequestDto;
 import com.example.peachmusic.domain.artist.model.request.ArtistUpdateRequestDto;
 import com.example.peachmusic.domain.artist.model.response.ArtistCreateResponseDto;
-import com.example.peachmusic.domain.artist.model.response.ArtistGetAllResponseDto;
+import com.example.peachmusic.domain.artist.model.response.ArtistSearchResponse;
 import com.example.peachmusic.domain.artist.model.response.ArtistUpdateResponseDto;
 import com.example.peachmusic.domain.artist.service.ArtistAdminService;
 import jakarta.validation.Valid;
@@ -47,10 +47,11 @@ public class ArtistAdminController {
      * @return 아티스트 목록 페이징 조회 결과
      */
     @GetMapping("/admin/artists")
-    public ResponseEntity<PageResponse<ArtistGetAllResponseDto>> getArtistList(
+    public ResponseEntity<PageResponse<ArtistSearchResponse>> getArtistList(
+            @RequestParam(required = false) String word,
             @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        Page<ArtistGetAllResponseDto> responseDtoPage = artistAdminService.getArtistList(pageable);
+        Page<ArtistSearchResponse> responseDtoPage = artistAdminService.getArtistList(word, pageable);
 
         return ResponseEntity.ok(PageResponse.success("아티스트 목록 조회 성공", responseDtoPage));
     }

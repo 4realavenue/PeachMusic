@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import static com.example.peachmusic.common.enums.UserRole.USER;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +43,7 @@ public class ArtistService {
      */
     @Transactional(readOnly = true)
     public Page<ArtistSearchResponse> searchArtistPage(String word, Pageable pageable) {
-        return artistRepository.findArtistPageByWord(word, pageable);
+        return artistRepository.findArtistPageByWord(word, pageable, USER);
     }
 
     /**

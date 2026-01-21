@@ -7,7 +7,7 @@ import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.model.request.ArtistCreateRequestDto;
 import com.example.peachmusic.domain.artist.model.request.ArtistUpdateRequestDto;
 import com.example.peachmusic.domain.artist.model.response.ArtistCreateResponseDto;
-import com.example.peachmusic.domain.artist.model.response.ArtistGetAllResponseDto;
+import com.example.peachmusic.domain.artist.model.response.ArtistSearchResponse;
 import com.example.peachmusic.domain.artist.model.response.ArtistUpdateResponseDto;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
 import com.example.peachmusic.domain.artistAlbum.repository.ArtistAlbumRepository;
@@ -18,9 +18,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.Optional;
+import static com.example.peachmusic.common.enums.UserRole.ADMIN;
 
 @Service
 @RequiredArgsConstructor
@@ -68,12 +68,8 @@ public class ArtistAdminService {
      * @return 아티스트 목록 페이징 조회 결과
      */
     @Transactional(readOnly = true)
-    public Page<ArtistGetAllResponseDto> getArtistList(Pageable pageable) {
-
-        // 삭제 여부와 관계없이 아티스트 전체 목록 조회
-        Page<Artist> artistPage = artistRepository.findAll(pageable);
-
-        return artistPage.map(ArtistGetAllResponseDto::from);
+    public Page<ArtistSearchResponse> getArtistList(String word, Pageable pageable) {
+        return artistRepository.findArtistPageByWord(word, pageable, ADMIN);
     }
 
     /**

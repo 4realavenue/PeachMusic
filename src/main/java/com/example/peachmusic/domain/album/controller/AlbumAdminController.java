@@ -5,10 +5,7 @@ import com.example.peachmusic.common.model.PageResponse;
 import com.example.peachmusic.domain.album.model.request.AlbumCreateRequestDto;
 import com.example.peachmusic.domain.album.model.request.AlbumUpdateRequestDto;
 import com.example.peachmusic.domain.album.model.request.ArtistAlbumUpdateRequestDto;
-import com.example.peachmusic.domain.album.model.response.AlbumCreateResponseDto;
-import com.example.peachmusic.domain.album.model.response.AlbumGetAllResponseDto;
-import com.example.peachmusic.domain.album.model.response.AlbumUpdateResponseDto;
-import com.example.peachmusic.domain.album.model.response.ArtistAlbumUpdateResponseDto;
+import com.example.peachmusic.domain.album.model.response.*;
 import com.example.peachmusic.domain.album.service.AlbumAdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,10 +46,11 @@ public class AlbumAdminController {
      * @return 앨범 목록 페이징 조회 결과
      */
     @GetMapping("/admin/albums")
-    public ResponseEntity<PageResponse<AlbumGetAllResponseDto>> getAlbumList(
+    public ResponseEntity<PageResponse<AlbumSearchResponse>> getAlbumList(
+            @RequestParam(required = false) String word,
             @PageableDefault(page = 0, size = 10, sort = "albumReleaseDate", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        Page<AlbumGetAllResponseDto> responseDtoPage = albumAdminService.getAlbumList(pageable);
+        Page<AlbumSearchResponse> responseDtoPage = albumAdminService.getAlbumList(word, pageable);
 
         return ResponseEntity.ok(PageResponse.success("앨범 목록 조회 성공", responseDtoPage));
     }
