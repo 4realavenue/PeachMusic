@@ -19,11 +19,11 @@ public class AlbumLike {
     private Long albumLikeId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @Column(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @Column(name = "album_id")
+    @JoinColumn(name = "album_id", nullable = false)
     private Album album;
 
     public AlbumLike(User user, Album album) {

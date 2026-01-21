@@ -19,6 +19,9 @@ public class Album extends BaseEntity {
     @Column(name = "album_id")
     private Long albumId;
 
+    @Column(name = "jamendo_album_id", unique = true)
+    private String jamendoAlbumId;
+
     @Column(name = "album_name", nullable = false)
     private String albumName;
 
@@ -38,5 +41,42 @@ public class Album extends BaseEntity {
         this.albumName = albumName;
         this.albumReleaseDate = albumReleaseDate;
         this.albumImage = albumImage;
+    }
+
+    public Album(String jamendoAlbumId, String albumName, LocalDate albumReleaseDate, String albumImage) {
+        this.jamendoAlbumId = jamendoAlbumId;
+        this.albumName = albumName;
+        this.albumReleaseDate = albumReleaseDate;
+        this.albumImage = albumImage;
+    }
+
+    public void updateAlbumName(String albumName) {
+        this.albumName = albumName;
+    }
+
+    public void updateAlbumReleaseDate(LocalDate albumReleaseDate) {
+        this.albumReleaseDate = albumReleaseDate;
+    }
+
+    public void updateAlbumImage(String albumImage) {
+        this.albumImage = albumImage;
+    }
+
+    public void delete() {
+        this.isDeleted = true;
+    }
+
+    public void restore() {
+        this.isDeleted = false;
+    }
+
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decreaseLikeCount() {
+        if (this.likeCount > 0) {
+            this.likeCount--;
+        }
     }
 }

@@ -19,11 +19,11 @@ public class SongGenre {
     private Long songGenreId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @Column(name = "song_id")
+    @JoinColumn(name = "song_id", nullable = false)
     private Song song;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @Column(name = "genre_id")
+    @JoinColumn(name = "genre_id", nullable = false)
     private Genre genre;
 
     public SongGenre(Song song, Genre genre) {

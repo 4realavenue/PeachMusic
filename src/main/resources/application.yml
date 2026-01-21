@@ -7,8 +7,17 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
     defer-datasource-initialization: true
+
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY}
+
+jamendo:
+  api:
+    url: ${JAMENDO_API_BASE_URL}
+    key: ${JAMENDO_CLIENT_ID}

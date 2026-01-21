@@ -1,9 +1,20 @@
 package com.example.peachmusic.domain.playlist.controller;
 
+import com.example.peachmusic.common.model.AuthUser;
+import com.example.peachmusic.common.model.CommonResponse;
+import com.example.peachmusic.domain.playlist.model.request.PlaylistCreateRequestDto;
+import com.example.peachmusic.domain.playlist.model.request.PlaylistUpdateRequestDto;
+import com.example.peachmusic.domain.playlist.model.response.PlaylistCreateResponseDto;
+import com.example.peachmusic.domain.playlist.model.response.PlaylistGetListResponseDto;
+import com.example.peachmusic.domain.playlist.model.response.PlaylistGetSongResponseDto;
+import com.example.peachmusic.domain.playlist.model.response.PlaylistUpdateResponseDto;
 import com.example.peachmusic.domain.playlist.service.PlaylistService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -11,4 +22,76 @@ import org.springframework.web.bind.annotation.RestController;
 public class PlaylistController {
 
     private final PlaylistService playlistService;
+
+    /**
+     * 플레이리스트 생성
+     */
+    @PostMapping("/playlists")
+    public ResponseEntity<CommonResponse<PlaylistCreateResponseDto>> createPlaylist(
+            @RequestBody PlaylistCreateRequestDto requestDto,
+            @AuthenticationPrincipal AuthUser authUser
+    ) {
+
+        PlaylistCreateResponseDto responseDto = playlistService.createPlaylist(requestDto, authUser);
+
+        return ResponseEntity.ok(CommonResponse.success("플레이리스트가 생성 되었습니다.", responseDto));
+    }
+
+    /**
+     * 플레이리스트 목록 조회 API
+     */
+    @GetMapping("/playlists")
+    public ResponseEntity<CommonResponse<List<PlaylistGetListResponseDto>>> getPlaylistAll(
+            @AuthenticationPrincipal AuthUser authUser
+    ) {
+
+        List<PlaylistGetListResponseDto> responseDtoList = playlistService.getPlaylistAll(authUser);
+
+        return ResponseEntity.ok(CommonResponse.success("플레이리스트가 조회 되었습니다", responseDtoList));
+    }
+
+    /**
+     * 플레이리스트 음원 조회
+     */
+    @GetMapping("/playlists/{playlistId}")
+    public ResponseEntity<CommonResponse<PlaylistGetSongResponseDto>> getPlaylistSongList(
+            @PathVariable("playlistId") Long playlistId,
+            @AuthenticationPrincipal AuthUser authUser
+    ) {
+
+        PlaylistGetSongResponseDto responseDto = playlistService.getPlaylistSongList(playlistId, authUser);
+
+        return ResponseEntity.ok(CommonResponse.success("플레이리스트 조회에 성공했습니다.", responseDto));
+    }
+
+    /**
+     * 플레이리스트 정보 수정 API
+     */
+    @PutMapping("/playlists/{playlistId}")
+    public ResponseEntity<CommonResponse<PlaylistUpdateResponseDto>> updatePlaylist(
+            @PathVariable("playlistId") Long playlistId,
+            @RequestBody PlaylistUpdateRequestDto requestDto,
+            @AuthenticationPrincipal AuthUser authUser
+    ) {
+
+        PlaylistUpdateResponseDto responseDto = playlistService.updatePlaylist(playlistId, requestDto, authUser);
+
+        return ResponseEntity.ok(CommonResponse.success("플레이리스트 이름이 수정 되었습니다.", responseDto));
+    }
+
+    /**
+     * 플레이리스트 삭제 API
+     */
+    @DeleteMapping("/playlists/{playlistId}")
+    public ResponseEntity<CommonResponse> deletePlaylist(
+            @PathVariable("playlistId") Long playlistId,
+            @AuthenticationPrincipal AuthUser authUser
+    ) {
+
+        playlistService.deletePlaylist(playlistId, authUser);
+
+        return ResponseEntity.ok(CommonResponse.success("플레이리스트가 삭제 되었습니다.", null));
+    }
+
+
 }

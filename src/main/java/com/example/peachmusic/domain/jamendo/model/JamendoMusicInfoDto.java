@@ -1,0 +1,21 @@
+package com.example.peachmusic.domain.jamendo.model;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class JamendoMusicInfoDto {
+    @JsonProperty("vocalinstrumental")
+    private String vocalInstrumental;
+
+    @JsonProperty("lang")
+    private String lang;
+
+    @JsonProperty("speed")
+    private String speed;
+
+    @JsonProperty("tags")
+    private JamendoTagDto tags;
+}
