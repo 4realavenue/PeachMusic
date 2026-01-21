@@ -24,9 +24,10 @@ public class UserAdminController {
     // 전체조회
     @GetMapping("/admin/users")
     public ResponseEntity<PageResponse<UserAdminGetResponseDto>> getUsers(
+            @RequestParam(required = false) String word,
             @PageableDefault(size = 10, page = 0, sort = "userId") Pageable pageable
     ) {
-        Page<UserAdminGetResponseDto> response = useradminService.getAllUser(pageable);
+        Page<UserAdminGetResponseDto> response = useradminService.getAllUser(word, pageable);
 
         return ResponseEntity.ok(PageResponse.success("전체 유저 조회 성공", response));
     }

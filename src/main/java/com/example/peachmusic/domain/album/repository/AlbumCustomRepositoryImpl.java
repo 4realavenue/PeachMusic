@@ -1,5 +1,6 @@
 package com.example.peachmusic.domain.album.repository;
 
+import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.domain.album.model.response.AlbumSearchResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.StringUtils;
 import java.util.List;
+import static com.example.peachmusic.common.enums.UserRole.USER;
 import static com.example.peachmusic.domain.album.entity.QAlbum.album;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
 import static com.example.peachmusic.domain.artistAlbum.entity.QArtistAlbum.artistAlbum;
@@ -30,9 +32,9 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
      * @return 페이징 처리된 앨범 검색 결과
      */
     @Override
-    public Page<AlbumSearchResponse> findAlbumPageByWord(String word, Pageable pageable) {
+    public Page<AlbumSearchResponse> findAlbumPageByWord(String word, Pageable pageable, UserRole role) {
 
-        List<AlbumSearchResponse> content = baseQuery(word)
+        List<AlbumSearchResponse> content = baseQuery(word, role)
                 .offset(pageable.getOffset()) // 시작 위치
                 .limit(pageable.getPageSize()) // 개수
                 .fetch();
@@ -42,7 +44,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
                 .from(album)
                 .join(artistAlbum).on(artistAlbum.album.eq(album))
                 .join(artist).on(artistAlbum.artist.eq(artist))
-                .where(SearchCondition(word))
+                .where(searchCondition(word, role))
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total == null ? 0 : total);
@@ -56,39 +58,51 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
      */
     @Override
     public List<AlbumSearchResponse> findAlbumListByWord(String word, int limit) {
-        return baseQuery(word).limit(limit).fetch();
+        return baseQuery(word, USER).limit(limit).fetch();
     }
 
     /**
      * 기본 쿼리
      */
-    private JPAQuery<AlbumSearchResponse> baseQuery(String word) {
+    private JPAQuery<AlbumSearchResponse> baseQuery(String word, UserRole role) {
 
         return queryFactory
                 .selectDistinct(Projections.constructor(AlbumSearchResponse.class, album.albumId, album.albumName, artist.artistName, album.albumReleaseDate, album.albumImage, album.likeCount))
                 .from(album)
                 .join(artistAlbum).on(artistAlbum.album.eq(album))
                 .join(artist).on(artistAlbum.artist.eq(artist))
-                .where(SearchCondition(word)); // 검색어 포함 조건
+                .where(searchCondition(word, role)); // 검색어 포함 조건
     }
 
     /**
      * 검색 조건
      */
-    private BooleanExpression SearchCondition(String word) {
-        return albumOrArtistContains(word).and(isActive());
+    private BooleanExpression searchCondition(String word, UserRole role) {
+        if (role.equals(USER)) {
+            BooleanExpression keywordCondition = albumNameContains(word).or(artistNameContains(word));
+            return keywordCondition.and(isActive());
+        }
+        return albumNameContains(word);
     }
 
     /**
      * 검색 조건 1
-     * - 검색어가 앨범 이름 또는 아티스트 이름에 포함된 경우
+     * - 검색어가 앨범 이름에 포함된 경우
      */
-    private BooleanExpression albumOrArtistContains(String word) {
-        return StringUtils.hasText(word) ? album.albumName.contains(word).or(artist.artistName.startsWith(word)) : null;
+    private BooleanExpression albumNameContains(String word) {
+        return StringUtils.hasText(word) ? album.albumName.contains(word) : null;
     }
 
     /**
      * 검색 조건 2
+     * - 검색어가 아티스트 이름에 포함된 경우
+     */
+    private BooleanExpression artistNameContains(String word) {
+        return StringUtils.hasText(word) ? artist.artistName.startsWith(word) : null;
+    }
+
+    /**
+     * 검색 조건 3
      * - 앨범이 삭제된 상태가 아닌 경우
      */
     private BooleanExpression isActive() {

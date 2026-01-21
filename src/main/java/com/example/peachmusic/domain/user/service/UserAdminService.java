@@ -21,14 +21,11 @@ public class UserAdminService {
 
     // 전체 조회
     @Transactional(readOnly = true)
-    public Page<UserAdminGetResponseDto> getAllUser(Pageable pageable) {
+    public Page<UserAdminGetResponseDto> getAllUser(String word, Pageable pageable) {
 
-        Page<User> users = userRepository.findAll(pageable);
+        Page<User> users = userRepository.findALLByWord(word, pageable);
 
-        Page<UserAdminGetResponseDto> response = users.map(user ->
-                UserAdminGetResponseDto.from(user)
-        );
-        return response;
+        return users.map(UserAdminGetResponseDto::from);
     }
 
     // 유저 삭제

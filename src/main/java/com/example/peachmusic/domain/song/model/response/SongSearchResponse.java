@@ -11,4 +11,5 @@ public class SongSearchResponse {
     private final String name;
     private final String artistName;
     private final Long likeCount;
+    private final String albumImage;
 }

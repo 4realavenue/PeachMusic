@@ -1,5 +1,6 @@
 package com.example.peachmusic.domain.artist.repository;
 
+import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.domain.artist.model.response.ArtistSearchResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.util.StringUtils;
 import java.util.List;
+import static com.example.peachmusic.common.enums.UserRole.USER;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
 
 public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
@@ -28,9 +30,9 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
      * @return 페이징 처리된 아티스트 검색 결과
      */
     @Override
-    public Page<ArtistSearchResponse> findArtistPageByWord(String word, Pageable pageable) {
+    public Page<ArtistSearchResponse> findArtistPageByWord(String word, Pageable pageable, UserRole role) {
 
-        List<ArtistSearchResponse> content = baseQuery(word)
+        List<ArtistSearchResponse> content = baseQuery(word, role)
                 .offset(pageable.getOffset()) // 시작 위치
                 .limit(pageable.getPageSize()) // 개수
                 .fetch();
@@ -38,7 +40,7 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
         Long total = queryFactory
                 .select(artist.count())
                 .from(artist)
-                .where(SearchCondition(word))
+                .where(searchCondition(word, role))
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total == null ? 0 : total);
@@ -52,25 +54,28 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
      */
     @Override
     public List<ArtistSearchResponse> findArtistListByWord(String word, int limit) {
-        return baseQuery(word).limit(limit).fetch();
+        return baseQuery(word, USER).limit(limit).fetch();
     }
 
     /**
      * 기본 쿼리
      */
-    private JPAQuery<ArtistSearchResponse> baseQuery(String word) {
+    private JPAQuery<ArtistSearchResponse> baseQuery(String word, UserRole role) {
 
         return queryFactory
                 .select(Projections.constructor(ArtistSearchResponse.class, artist.artistId, artist.artistName, artist.likeCount))
                 .from(artist)
-                .where(SearchCondition(word));
+                .where(searchCondition(word, role));
     }
 
     /**
      * 검색 조건
      */
-    private BooleanExpression SearchCondition(String word) {
-        return artistNameEquals(word).and(isActive());
+    private BooleanExpression searchCondition(String word, UserRole role) {
+        if (role.equals(USER)) {
+            return artistNameEquals(word).and(isActive());
+        }
+        return artistNameEquals(word);
     }
 
     /**

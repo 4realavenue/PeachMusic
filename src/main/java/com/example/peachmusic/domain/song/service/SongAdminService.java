@@ -10,8 +10,8 @@ import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.model.request.AdminSongCreateRequestDto;
 import com.example.peachmusic.domain.song.model.request.AdminSongUpdateRequestDto;
 import com.example.peachmusic.domain.song.model.response.AdminSongCreateResponseDto;
-import com.example.peachmusic.domain.song.model.response.AdminSongGetAllResponseDto;
 import com.example.peachmusic.domain.song.model.response.AdminSongUpdateResponseDto;
+import com.example.peachmusic.domain.song.model.response.SongSearchResponse;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songGenre.entity.SongGenre;
 import com.example.peachmusic.domain.songGenre.repository.SongGenreRepository;
@@ -20,8 +20,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
+import static com.example.peachmusic.common.enums.UserRole.ADMIN;
 
 @Service
 @RequiredArgsConstructor
@@ -75,19 +75,8 @@ public class SongAdminService {
      * 음원 전체 조회
      */
     @Transactional(readOnly = true)
-    public Page<AdminSongGetAllResponseDto> getSongAll(Pageable pageable) {
-
-        // 1. isDeleted가 false인 모든 음악을 레포지토리 통해 DB에서 음원을 담을 수 있는 페이지에 담아서 가져옴
-        Page<Song> findSongPage = songRepository.findAll(pageable);
-
-        // 2. 만약 가져왔는데 비어있다면 빈 데이터 반환
-        if (findSongPage.isEmpty()) {
-            return null;
-        }
-
-        // 3. 찾아온 음원 페이지를 변환해서 응답dto의 메서드 실행 시 반환
-        return findSongPage.map(AdminSongGetAllResponseDto::from);
-
+    public Page<SongSearchResponse> getSongAll(String word, Pageable pageable) {
+        return songRepository.findSongPageByWord(word, pageable, ADMIN);
     }
 
     /**
