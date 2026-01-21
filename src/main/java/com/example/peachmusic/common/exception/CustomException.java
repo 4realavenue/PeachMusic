@@ -1,5 +1,6 @@
 package com.example.peachmusic.common.exception;
 
+import com.example.peachmusic.common.enums.ErrorCode;
 import lombok.Getter;
 
 @Getter

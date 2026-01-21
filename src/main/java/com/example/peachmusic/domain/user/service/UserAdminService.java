@@ -2,7 +2,7 @@ package com.example.peachmusic.domain.user.service;
 
 import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.common.exception.ErrorCode;
+import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.model.response.admin.UserAdminGetResponseDto;
 import com.example.peachmusic.domain.user.repository.UserRepository;
@@ -52,7 +52,7 @@ public class UserAdminService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         if (!user.isDeleted()) {
-            throw new CustomException(ErrorCode.USER_EXIST_ACTIVATIONUSER);
+            throw new CustomException(ErrorCode.USER_EXIST_ACTIVATION_USER);
         }
         user.restore();
     }
@@ -66,7 +66,7 @@ public class UserAdminService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         // 이미 같은 권한이면 변경 불필요
         if (user.getRole() == newRole) {
-            throw new CustomException(ErrorCode.USER_EEXIST_ROLE);
+            throw new CustomException(ErrorCode.USER_EXIST_ROLE);
         }
         // 권한 변경
         user.setRole(newRole);

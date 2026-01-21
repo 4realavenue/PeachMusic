@@ -1,11 +1,13 @@
 package com.example.peachmusic.domain.jamendo.service;
 
-import com.example.peachmusic.domain.jamendo.dto.JamendoSongResponse;
+import com.example.peachmusic.domain.jamendo.model.JamendoSongResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class JamendoApiService {
@@ -15,22 +17,19 @@ public class JamendoApiService {
     @Value("${jamendo.api.key}")
     private String clientId;
 
-    // 병목현상이 여긴가? 확인해보기 시간 측정
-    public JamendoSongResponse fetchSongs(int page, int limit, String type, String datebetween) {
-        return jamendoRestClient.get()
+    public JamendoSongResponse fetchSongs(int page, int limit, String datebetween) {
+        long start = System.nanoTime();
+
+        JamendoSongResponse response = jamendoRestClient.get()
                 .uri(uriBuilder -> {
                     uriBuilder
                             .path("/tracks")
                             .queryParam("client_id", clientId)
                             .queryParam("format", "json")
                             .queryParam("include", "musicinfo")
-                            .queryParam("order", "releasedate_desc")
+                            .queryParam("order", "id_desc")
                             .queryParam("limit", limit)
                             .queryParam("offset", (page - 1) * limit);
-
-                            if(type != null){
-                                uriBuilder.queryParam("vocalinstrumental", type);
-                            }
 
                             if(datebetween != null) {
                                 uriBuilder.queryParam("datebetween", datebetween);
@@ -40,5 +39,12 @@ public class JamendoApiService {
                 })
                 .retrieve()
                 .body(JamendoSongResponse.class);
+
+        long end = System.nanoTime();
+        long elapsedMs = (end - start) / 1_000_000;
+
+        log.info("[Jamendo API] fetchSongs page={}, limit={} → {} ms", page, limit, elapsedMs);
+
+        return response;
     }
 }
