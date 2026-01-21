@@ -4,6 +4,7 @@ import com.example.peachmusic.common.model.CommonResponse;
 import com.example.peachmusic.domain.searchHistory.dto.SearchPopularResponseDto;
 import com.example.peachmusic.domain.searchHistory.dto.SearchPreviewResponseDto;
 import com.example.peachmusic.domain.searchHistory.service.SearchHistoryService;
+import com.example.peachmusic.domain.searchHistory.service.SearchService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +19,7 @@ import java.util.List;
 public class SearchHistoryController {
 
     private final SearchHistoryService searchHistoryService;
+    private final SearchService searchService;
 
     /**
      * 통합 검색 - 미리보기
@@ -28,7 +30,7 @@ public class SearchHistoryController {
     public ResponseEntity<CommonResponse<SearchPreviewResponseDto>> searchPreview(
             @RequestParam String word
     ) {
-        SearchPreviewResponseDto result = searchHistoryService.searchPreview(word);
+        SearchPreviewResponseDto result = searchService.searchPreview(word);
         return ResponseEntity.ok(CommonResponse.success("검색이 완료되었습니다.", result));
     }
 
