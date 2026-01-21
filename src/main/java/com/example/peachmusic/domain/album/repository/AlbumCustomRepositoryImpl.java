@@ -82,7 +82,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
             BooleanExpression keywordCondition = albumNameContains(word).or(artistNameContains(word));
             return keywordCondition.and(isActive());
         }
-        return artistNameContains(word);
+        return albumNameContains(word);
     }
 
     /**

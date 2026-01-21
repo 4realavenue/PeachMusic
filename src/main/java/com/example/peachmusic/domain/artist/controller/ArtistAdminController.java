@@ -49,7 +49,7 @@ public class ArtistAdminController {
     @GetMapping("/admin/artists")
     public ResponseEntity<PageResponse<ArtistSearchResponse>> getArtistList(
             @RequestParam(required = false) String word,
-            @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(page = 0, size = 10, sort = "artistId", direction = Sort.Direction.DESC) Pageable pageable) {
 
         Page<ArtistSearchResponse> responseDtoPage = artistAdminService.getArtistList(word, pageable);
 
