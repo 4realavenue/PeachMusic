@@ -19,4 +19,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
             WHERE u.nickname = :word
             """)
     Page<User> findALLByWord(String word, Pageable pageable);
+
+    boolean existsByNickname(String nickname);
 }

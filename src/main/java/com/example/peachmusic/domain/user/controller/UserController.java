@@ -2,13 +2,13 @@ package com.example.peachmusic.domain.user.controller;
 
 import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.CommonResponse;
-import com.example.peachmusic.domain.user.model.request.LoginRequestDto;
-import com.example.peachmusic.domain.user.model.request.UserCreateRequestDto;
-import com.example.peachmusic.domain.user.model.request.UserUpdateRequestDto;
-import com.example.peachmusic.domain.user.model.response.UserCreateResponseDto;
-import com.example.peachmusic.domain.user.model.response.UserGetResponseDto;
-import com.example.peachmusic.domain.user.model.response.LoginResponseDto;
-import com.example.peachmusic.domain.user.model.response.admin.UserUpdateResponseDto;
+import com.example.peachmusic.domain.user.dto.request.LoginRequestDto;
+import com.example.peachmusic.domain.user.dto.request.UserCreateRequestDto;
+import com.example.peachmusic.domain.user.dto.request.UserUpdateRequestDto;
+import com.example.peachmusic.domain.user.dto.response.UserCreateResponseDto;
+import com.example.peachmusic.domain.user.dto.response.UserGetResponseDto;
+import com.example.peachmusic.domain.user.dto.response.LoginResponseDto;
+import com.example.peachmusic.domain.user.dto.response.admin.UserUpdateResponseDto;
 import com.example.peachmusic.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +16,7 @@ import org.springframework.beans.factory.aspectj.ConfigurableObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -86,6 +87,8 @@ public class UserController {
             @AuthenticationPrincipal AuthUser authUser
     ) {
         userService.logout(authUser.getUserId());
+
+        SecurityContextHolder.clearContext();
 
         return ResponseEntity.ok(CommonResponse.success("로그아웃 완료"));
     }

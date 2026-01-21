@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.user.model.response.admin;
+package com.example.peachmusic.domain.user.dto.response;
 
 import com.example.peachmusic.domain.user.entity.User;
 import lombok.Getter;
@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @RequiredArgsConstructor
-public class UserUpdateResponseDto {
+public class UserGetResponseDto {
 
     private final Long userId;
     private final String name;
@@ -17,9 +17,8 @@ public class UserUpdateResponseDto {
     private final LocalDateTime createdAt;
     private final LocalDateTime modifiedAt;
 
-    public static UserUpdateResponseDto from(User user) {
-        return new UserUpdateResponseDto(user.getUserId(), user.getName(), user.getNickname(), user.getEmail(), user.getCreatedAt(), user.getModifiedAt()
+    public static UserGetResponseDto from(User user) {
+        return new UserGetResponseDto(user.getUserId(), user.getName(), user.getNickname(), user.getEmail(), user.getCreatedAt(), user.getModifiedAt()
         );
     }
-
 }

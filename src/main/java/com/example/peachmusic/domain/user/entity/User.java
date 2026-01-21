@@ -53,6 +53,7 @@ public class User extends BaseEntity {
         this.password = password;
         this.role = UserRole.USER;  // ← 명시적으로 기본값 지정
     }
+
     public void setRole(UserRole role) {
         this.role = role != null ? role : UserRole.USER;  // null 들어와도 USER로 방어
     }
