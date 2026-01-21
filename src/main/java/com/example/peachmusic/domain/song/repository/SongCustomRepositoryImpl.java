@@ -44,7 +44,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
                 .from(song)
                 .join(artistSong).on(artistSong.song.eq(song))
                 .join(artist).on(artistSong.artist.eq(artist))
-                .where(SearchCondition(word, role))
+                .where(searchCondition(word, role))
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total == null ? 0 : total);
@@ -71,13 +71,13 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
                 .from(song)
                 .join(artistSong).on(artistSong.song.eq(song))
                 .join(artist).on(artistSong.artist.eq(artist))
-                .where(SearchCondition(word, role));
+                .where(searchCondition(word, role));
     }
 
     /**
      * 검색 조건
      */
-    private BooleanExpression SearchCondition(String word, UserRole role) {
+    private BooleanExpression searchCondition(String word, UserRole role) {
         if (role.equals(USER)){
             BooleanExpression keywordCondition = songNameContains(word).or(artistNameContains(word));
             return keywordCondition.and(isActive());

@@ -44,7 +44,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
                 .from(album)
                 .join(artistAlbum).on(artistAlbum.album.eq(album))
                 .join(artist).on(artistAlbum.artist.eq(artist))
-                .where(SearchCondition(word, role))
+                .where(searchCondition(word, role))
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total == null ? 0 : total);
@@ -71,13 +71,13 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
                 .from(album)
                 .join(artistAlbum).on(artistAlbum.album.eq(album))
                 .join(artist).on(artistAlbum.artist.eq(artist))
-                .where(SearchCondition(word, role)); // 검색어 포함 조건
+                .where(searchCondition(word, role)); // 검색어 포함 조건
     }
 
     /**
      * 검색 조건
      */
-    private BooleanExpression SearchCondition(String word, UserRole role) {
+    private BooleanExpression searchCondition(String word, UserRole role) {
         if (role.equals(USER)) {
             BooleanExpression keywordCondition = albumNameContains(word).or(artistNameContains(word));
             return keywordCondition.and(isActive());

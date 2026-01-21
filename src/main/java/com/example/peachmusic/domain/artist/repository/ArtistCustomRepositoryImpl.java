@@ -40,7 +40,7 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
         Long total = queryFactory
                 .select(artist.count())
                 .from(artist)
-                .where(SearchCondition(word, role))
+                .where(searchCondition(word, role))
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total == null ? 0 : total);
@@ -65,13 +65,13 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
         return queryFactory
                 .select(Projections.constructor(ArtistSearchResponse.class, artist.artistId, artist.artistName, artist.likeCount))
                 .from(artist)
-                .where(SearchCondition(word, role));
+                .where(searchCondition(word, role));
     }
 
     /**
      * 검색 조건
      */
-    private BooleanExpression SearchCondition(String word, UserRole role) {
+    private BooleanExpression searchCondition(String word, UserRole role) {
         if (role.equals(USER)) {
             return artistNameEquals(word).and(isActive());
         }
