@@ -1,7 +1,7 @@
 package com.example.peachmusic.domain.user.service;
 
 import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.common.exception.ErrorCode;
+import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.filter.JwtUtil;
 import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.domain.user.entity.User;

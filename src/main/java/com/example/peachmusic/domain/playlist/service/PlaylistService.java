@@ -1,7 +1,7 @@
 package com.example.peachmusic.domain.playlist.service;
 
 import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.common.exception.ErrorCode;
+import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.domain.playlist.entity.Playlist;
 import com.example.peachmusic.domain.playlist.model.request.PlaylistCreateRequestDto;
