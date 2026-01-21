@@ -48,7 +48,7 @@ public class AlbumAdminController {
     @GetMapping("/admin/albums")
     public ResponseEntity<PageResponse<AlbumSearchResponse>> getAlbumList(
             @RequestParam(required = false) String word,
-            @PageableDefault(page = 0, size = 10, sort = "albumId", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(page = 0, size = 10, sort = "albumId", direction = Sort.Direction.ASC) Pageable pageable) {
 
         Page<AlbumSearchResponse> responseDtoPage = albumAdminService.getAlbumList(word, pageable);
 
