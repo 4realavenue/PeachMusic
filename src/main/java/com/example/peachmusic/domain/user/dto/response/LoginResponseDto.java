@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.user.model.response;
+package com.example.peachmusic.domain.user.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

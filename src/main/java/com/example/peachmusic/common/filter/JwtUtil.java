@@ -19,26 +19,25 @@ import java.util.Date;
 public class JwtUtil {
 
     private static final String TOKEN_PREFIX = "Bearer ";
-    private static final Long TOKEN_TIME = 60 * 60 * 1000L; // 60분
+    private static final Long TOKEN_TIME = 60 * 60 * 1000L;
 
     @Value("${jwt.secret.key}")
-    private String secretKey; // 야물 키
-    private Key key; // 키
-    private final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256; // 알고리즘
+    private String secretKey;
+    private Key key;
+    private final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
 
-    @PostConstruct // 체크한다.
+    @PostConstruct
     public void init() {
-        byte[] bytes = Base64.getDecoder().decode(secretKey); // Base64인지 체크하겠다.
+        byte[] bytes = Base64.getDecoder().decode(secretKey);
         key = Keys.hmacShaKeyFor(bytes);
     }
 
-    public String substringToken(String tokenValue) throws ServerException { // 토큰에 Bearer 떼서 토큰 키만 받겠다.
-        if (StringUtils.hasText(tokenValue) && tokenValue.startsWith(TOKEN_PREFIX)) { // 토큰값이 tokenValue 또는 TOKEN_PREFIX ("bearer ")을 잘라내서 받겠다..
-            return tokenValue.substring(7); // ("bearer " 7자 날림)
+    public String substringToken(String tokenValue) throws ServerException {
+        if (StringUtils.hasText(tokenValue) && tokenValue.startsWith(TOKEN_PREFIX)) {
+            return tokenValue.substring(7);
         }
         throw new ServerException("Not Found Token");
     }
-    // 토큰 복호화 위 클레임즈값을 전부 추출한다 [ email이랑 UserRole 추출하겠다. ] 값 꺼내 쓰겠다.
     public Claims extractClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
@@ -54,12 +53,12 @@ public class JwtUtil {
         return TOKEN_PREFIX +
                 Jwts.builder()
                         .setSubject(String.valueOf(userId))
-                        .claim("email", email) // 토큰에 닉네임 넣겠다 (토큰 커스텀)
-                        .claim("userRole", role != null ? role.name() : UserRole.USER.name())// 토큰에 유저롤 넣겠다 (토큰 커스텀)
-                        .claim("version", tokenVersion)  // 버전 정보 추가
-                        .setExpiration(new Date(date.getTime() + TOKEN_TIME))// 현재일자 + 만료시간 (1시간) ex) 오후 2시 -> 2시 + 1시간 = 3시 만료
-                        .setIssuedAt(date)// 발급일 알려줌
-                        .signWith(key, signatureAlgorithm) // 암호화 알고리즘
+                        .claim("email", email)
+                        .claim("userRole", role != null ? role.name() : UserRole.USER.name())
+                        .claim("version", tokenVersion)
+                        .setExpiration(new Date(date.getTime() + TOKEN_TIME))
+                        .setIssuedAt(date)
+                        .signWith(key, signatureAlgorithm)
                         .compact();
     }
 }
