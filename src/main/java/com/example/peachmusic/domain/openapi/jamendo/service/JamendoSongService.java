@@ -38,6 +38,7 @@ public class JamendoSongService {
     private final AlbumRepository albumRepository;
     private final GenreRepository genreRepository;
 
+
     /**
      * Jamendo 음원 초기 적재
      */
@@ -99,8 +100,7 @@ public class JamendoSongService {
             }
 
             // DB에 이미 존재하는 jamendo_song_id 한 번에 조회
-            Set<Long> existingSongIds =
-                    songRepository.findExistingJamendoSongIds(pageSongIds);
+            Set<Long> existingSongIds = songRepository.findExistingJamendoSongIds(pageSongIds);
 
             List<Song> songs = new ArrayList<>();
             List<ArtistSongRow> artistSongRows = new ArrayList<>();
@@ -151,10 +151,8 @@ public class JamendoSongService {
                 // 음원 batch insert 대상에 추가
                 // 실제 DB insert는 페이지 처리 끝난 뒤 한 번에 수행됨
                 songs.add(song);
-
                 // 아티스트-음원 관계 추가
                 artistSongRows.add(new ArtistSongRow(artist.getArtistId(), jamendoSongId));
-
                 // 아티스트-앨범 관계 추가
                 artistAlbumRows.add(new ArtistAlbumRow(artist.getArtistId(), album.getAlbumId()));
 
@@ -193,11 +191,8 @@ public class JamendoSongService {
      * 장르 조회 및 생성
      */
     private Genre getOrCreateGenre(String genreName) {
-        Genre genre = genreRepository.findByGenreName(genreName);
-        if (genre == null) {
-            genre = genreRepository.save(new Genre(genreName));
-        }
-        return genre;
+        return genreRepository.findByGenreName(genreName)
+                .orElseGet(() -> genreRepository.save(new Genre(genreName)));
     }
 
     /**
@@ -213,10 +208,7 @@ public class JamendoSongService {
      */
     private Album getOrCreateAlbum(JamendoSongDto dto) {
         return albumRepository.findByJamendoAlbumId(dto.getAlbumId())
-                .orElseGet(() ->
-                        albumRepository.save(
-                                new Album(dto.getAlbumId(), dto.getAlbumName(), dto.getAlbumReleaseDate(), dto.getAlbumImage())
-                        ));
+                .orElseGet(() -> albumRepository.save(new Album(dto.getAlbumId(), dto.getAlbumName(), dto.getAlbumReleaseDate(), dto.getAlbumImage())));
     }
 
     /**
