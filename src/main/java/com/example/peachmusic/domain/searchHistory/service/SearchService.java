@@ -1,8 +1,8 @@
 package com.example.peachmusic.domain.searchHistory.service;
 
-import com.example.peachmusic.domain.album.model.response.AlbumSearchResponse;
+import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
 import com.example.peachmusic.domain.album.service.AlbumService;
-import com.example.peachmusic.domain.artist.model.response.ArtistSearchResponse;
+import com.example.peachmusic.domain.artist.model.response.ArtistSearchResponseDto;
 import com.example.peachmusic.domain.artist.service.ArtistService;
 import com.example.peachmusic.domain.searchHistory.dto.SearchPreviewResponseDto;
 import com.example.peachmusic.domain.song.model.response.SongSearchResponse;
@@ -29,8 +29,8 @@ public class SearchService {
     @Transactional(readOnly = true)
     public SearchPreviewResponseDto searchPreview(String word) {
 
-        List<ArtistSearchResponse> artistList = artistService.searchArtistList(word);
-        List<AlbumSearchResponse> albumList = albumService.searchAlbumList(word);
+        List<ArtistSearchResponseDto> artistList = artistService.searchArtistList(word);
+        List<AlbumSearchResponseDto> albumList = albumService.searchAlbumList(word);
         List<SongSearchResponse> songList = songService.searchSongList(word);
 
         searchHistoryService.recordSearch(word); // 검색어 기록
