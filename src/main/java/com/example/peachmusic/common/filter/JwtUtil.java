@@ -38,7 +38,6 @@ public class JwtUtil {
         }
         throw new ServerException("Not Found Token");
     }
-    // 토큰 복호화 위 클레임즈값을 전부 추출한다
     public Claims extractClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)

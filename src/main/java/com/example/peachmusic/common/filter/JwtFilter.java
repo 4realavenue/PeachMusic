@@ -59,9 +59,7 @@ public class JwtFilter extends OncePerRequestFilter {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-            // 버전 비교
             if (!user.getTokenVersion().equals(tokenVersion)) {
-                // 인증 정보 제거
                 SecurityContextHolder.clearContext();
 
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -70,7 +68,6 @@ public class JwtFilter extends OncePerRequestFilter {
                 return;
             }
 
-            // 정상 → 인증 객체 생성
             String email = claims.get("email", String.class);
             String roleStr = claims.get("userRole", String.class);
             UserRole role = roleStr != null ? UserRole.valueOf(roleStr) : UserRole.USER;

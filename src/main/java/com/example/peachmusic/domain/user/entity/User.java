@@ -2,17 +2,19 @@ package com.example.peachmusic.domain.user.entity;
 
 import com.example.peachmusic.common.entity.BaseEntity;
 import com.example.peachmusic.common.enums.UserRole;
+import com.example.peachmusic.domain.user.dto.request.UserUpdateRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 
+import static org.apache.logging.log4j.util.Strings.isNotBlank;
+
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "users")
-@AllArgsConstructor
-@Builder(toBuilder = true)
 public class User extends BaseEntity {
+
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,7 +41,7 @@ public class User extends BaseEntity {
     private boolean isDeleted = false;
 
     @Column(name = "token_version", nullable = false)
-    private Long tokenVersion = 0L;  // 기본값 0
+    private Long tokenVersion = 0L;
 
     public void increaseTokenVersion() {
         this.tokenVersion++;
@@ -50,13 +52,21 @@ public class User extends BaseEntity {
         this.nickname = nickname;
         this.email = email;
         this.password = password;
-        this.role = UserRole.USER;  // ← 명시적으로 기본값 지정
+        this.role = UserRole.USER;
     }
 
+    public void update(UserUpdateRequestDto request) {
+        if (isNotBlank(request.getName())) {
+            this.name = request.getName().trim();
+        }
+        if (isNotBlank(request.getNickname())) {
+            this.nickname = request.getNickname().trim();
+        }
+    }
+    private static boolean isNotBlank(String str) {return str != null && !str.trim().isEmpty();}
     public void setRole(UserRole role) {
-        this.role = role != null ? role : UserRole.USER;  // null 들어와도 USER로 방어
+        this.role = role != null ? role : UserRole.USER;
     }
-
     public void delete() {
         this.isDeleted = true;
     }

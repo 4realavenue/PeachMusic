@@ -27,7 +27,6 @@ public class UserController {
     private final UserService userService;
     private final ConfigurableObject configurableObject;
 
-    // 생성
     @PostMapping("/auth/signup")
     public ResponseEntity<CommonResponse<UserCreateResponseDto>> createUser(
             @Valid @RequestBody UserCreateRequestDto request
@@ -38,7 +37,6 @@ public class UserController {
     }
 
 
-    // 단일 조회
     @GetMapping("/users")
     public ResponseEntity<CommonResponse<UserGetResponseDto>>  getUser(
             @AuthenticationPrincipal AuthUser authUser
@@ -50,7 +48,6 @@ public class UserController {
 
     }
 
-    // 정보 수정
     @PutMapping("/users")
     public ResponseEntity<CommonResponse<UserUpdateResponseDto>> updateUser(
             @Valid @RequestBody UserUpdateRequestDto request,
@@ -61,7 +58,6 @@ public class UserController {
         return ResponseEntity.ok(CommonResponse.success("유저 정보 수정 성공",result));
     }
 
-    // 삭제
     @DeleteMapping("/users")
     public ResponseEntity deleteUser(
             @AuthenticationPrincipal AuthUser authUser
@@ -71,7 +67,6 @@ public class UserController {
         return ResponseEntity.ok(CommonResponse.success("유저 비활성화 성공"));
     }
 
-    // 로그인
     @PostMapping("/auth/login")
     public ResponseEntity<CommonResponse<LoginResponseDto>> login(
             @Valid @RequestBody LoginRequestDto request
@@ -81,7 +76,6 @@ public class UserController {
         return ResponseEntity.ok(CommonResponse.success("로그인 성공",responseDto));
     }
 
-    // 로그아웃
     @DeleteMapping("/auth/logout")
     public ResponseEntity<CommonResponse<Void>> logout(
             @AuthenticationPrincipal AuthUser authUser

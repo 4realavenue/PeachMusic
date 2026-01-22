@@ -22,7 +22,6 @@ public class UserAdminController {
 
     private final UserAdminService useradminService;
 
-    // 전체조회
     @GetMapping("/admin/users")
     public ResponseEntity<PageResponse<UserAdminGetResponseDto>> getUsers(
             @RequestParam(required = false) String word,
@@ -33,7 +32,6 @@ public class UserAdminController {
         return ResponseEntity.ok(PageResponse.success("전체 유저 조회 성공", response));
     }
 
-    // 유저 삭제
     @DeleteMapping("/admin/users/{userId}/delete")
     public ResponseEntity deleteUser(
             @PathVariable Long userId
@@ -43,7 +41,6 @@ public class UserAdminController {
         return ResponseEntity.ok(CommonResponse.success("계정 삭제 성공"));
     }
 
-    // 유저 복구
     @PatchMapping("/admin/users/{userId}/restore")
     public ResponseEntity updateUser(
             @PathVariable Long userId

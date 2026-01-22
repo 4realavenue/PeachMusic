@@ -33,7 +33,6 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    // 생성
     @Transactional
     public UserCreateResponseDto createUser(@Valid UserCreateRequestDto request) {
 
@@ -46,9 +45,8 @@ public class UserService {
         return UserCreateResponseDto.from(user);
     }
 
-    // 조회
     @Transactional(readOnly = true)
-    public UserGetResponseDto getUser(AuthUser authUser) {  // ← userId를 파라미터로 받음
+    public UserGetResponseDto getUser(AuthUser authUser) {
 
         User user = userRepository.findById(authUser.getUserId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -56,33 +54,24 @@ public class UserService {
         return UserGetResponseDto.from(user);
     }
 
-    // 유저 수정
     @Transactional
     public UserUpdateResponseDto update(@Valid UserUpdateRequestDto request, AuthUser authUser) {
 
-//      1. 기존 유저 조회
         User user = userRepository.findById(authUser.getUserId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-//      2. 복사본 생성
-        User updated = user.toBuilder()
-                .name(isNotBlank(request.getName()) ? request.getName().trim() : user.getName())
-                .nickname(isNotBlank(request.getNickname()) ? request.getNickname().trim() : user.getNickname())
-                .build();
-
-//      3. 닉네임이 변경되었을 때, 중복 체크
         if (isNotBlank(request.getNickname()) && !request.getNickname().trim().equals(user.getNickname())) {
-            if (userRepository.existsByNickname(request.getNickname())) {
+            if (userRepository.existsByNickname(request.getNickname().trim())) {
                 throw new CustomException(ErrorCode.USER_EXIST_NICKNAME);
             }
         }
 
-        userRepository.save(updated);
+        user.update(request);
 
-        return UserUpdateResponseDto.from(updated);
+
+        return UserUpdateResponseDto.from(user);
     }
 
-    // 유저 삭제
     @Transactional
     public void deleteUser(AuthUser authUser) {
 
@@ -92,7 +81,6 @@ public class UserService {
         findUser.delete();
     }
 
-    // 로그인
     @Transactional
     public LoginResponseDto login(@Valid LoginRequestDto request) {
         User user = userRepository.findUserByEmailAndIsDeletedFalse(request.getEmail())
