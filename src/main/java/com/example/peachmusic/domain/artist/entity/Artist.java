@@ -26,8 +26,16 @@ public class Artist extends BaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
+    @Column(name = "jamendo_artist_id", unique = true)
+    private Long jamendoArtistId;
+
     public Artist(String artistName) {
         this.artistName = artistName;
+    }
+
+    public Artist(String artistName, Long jamendoArtistId) {
+        this.artistName = artistName;
+        this.jamendoArtistId = jamendoArtistId;
     }
 
     public void updateArtistName(String artistName) {

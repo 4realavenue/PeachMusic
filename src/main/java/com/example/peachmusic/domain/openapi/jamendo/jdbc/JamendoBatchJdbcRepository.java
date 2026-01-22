@@ -23,7 +23,7 @@ public class JamendoBatchJdbcRepository {
         if (songs.isEmpty()) return;
 
         String sql = """
-            INSERT IGNORE INTO songs
+            INSERT INTO songs
             (jamendo_song_id, album_id, name, duration, license_ccurl,
              position, audio, vocalinstrumental, lang, speed,
              instruments, vartags, like_count)
@@ -60,7 +60,7 @@ public class JamendoBatchJdbcRepository {
         if (rows.isEmpty()) return;
 
         String sql = """
-            INSERT IGNORE INTO artist_songs (artist_id, song_id)
+            INSERT INTO artist_songs (artist_id, song_id)
             VALUES (?, ?)
         """;
 
@@ -84,7 +84,7 @@ public class JamendoBatchJdbcRepository {
         if (rows.isEmpty()) return;
 
         String sql = """
-            INSERT IGNORE INTO artist_albums (artist_id, album_id)
+            INSERT INTO artist_albums (artist_id, album_id)
             VALUES (?, ?)
         """;
 
@@ -108,7 +108,7 @@ public class JamendoBatchJdbcRepository {
         if (rows.isEmpty()) return;
 
         String sql = """
-            INSERT IGNORE INTO song_genres (song_id, genre_id)
+            INSERT INTO song_genres (song_id, genre_id)
             VALUES (?, ?)
         """;
 

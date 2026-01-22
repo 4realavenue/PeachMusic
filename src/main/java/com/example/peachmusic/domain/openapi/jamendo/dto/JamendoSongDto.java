@@ -31,13 +31,13 @@ public class JamendoSongDto {
     private String audioUrl;
 
     @JsonProperty("artist_id")
-    private String artistId;
+    private Long artistId;
 
     @JsonProperty("artist_name")
     private String artistName;
 
     @JsonProperty("album_id")
-    private String albumId;
+    private Long albumId;
 
     @JsonProperty("album_name")
     private String albumName;
