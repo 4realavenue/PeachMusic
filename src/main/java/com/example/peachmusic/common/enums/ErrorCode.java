@@ -19,10 +19,10 @@ public enum ErrorCode {
     ALBUM_UPDATE_NO_CHANGES(HttpStatus.BAD_REQUEST, "수정할 값이 없습니다."),
     ALBUM_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "앨범 이름은 필수입니다."),
     AUTH_EMAIL_CERTIFICATION_FAILED(HttpStatus.BAD_REQUEST, "이메일 인증에 실패 했습니다."),
+    AUTH_TOKEN_REQUIRED(HttpStatus.BAD_REQUEST, "토큰에 버전 정보가 없습니다."),
 
     // 401
     AUTH_CERTIFICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "로그인이 필요한 서비스 입니다."),
-
 
     // 403
     AUTH_AUTHORIZATION_REQUIRED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
