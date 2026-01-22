@@ -43,7 +43,7 @@ public class SongAdminController {
     @GetMapping("/songs")
     public ResponseEntity<PageResponse<SongSearchResponse>> getSongAll(
             @RequestParam(required = false) String word,
-            @PageableDefault(size = 20, sort = "songId", direction = Sort.Direction.ASC) Pageable pageable
+            @PageableDefault(size = 10, sort = "songId", direction = Sort.Direction.ASC) Pageable pageable
     ) {
 
         Page<SongSearchResponse> responseDtoPage = songAdminService.getSongAll(word, pageable);
