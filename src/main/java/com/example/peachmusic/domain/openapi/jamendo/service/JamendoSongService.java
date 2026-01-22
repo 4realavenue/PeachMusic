@@ -138,33 +138,27 @@ public class JamendoSongService {
                     vartags = joinList(tags.getMoods());
                 }
 
-                // 음원 엔티티 생성 (JPA save X, batch insert 용)
-                Song song = new Song(
-                        jamendoSongId,
-                        album,
-                        dto.getName(),
-                        dto.getDuration() != null ? dto.getDuration() : 0L,
-                        dto.getLicenseCcurl(),
-                        dto.getPosition() != null ? dto.getPosition() : 0L,
-                        dto.getAudioUrl(),
+                // 음원 엔티티 생성 (JPA save X, insert 용)
+                Song song = new Song(jamendoSongId, album, dto.getName(),
+                        dto.getDuration() != null ? dto.getDuration() : 0L, dto.getLicenseCcurl(),
+                        dto.getPosition() != null ? dto.getPosition() : 0L, dto.getAudioUrl(),
                         musicInfo != null ? musicInfo.getVocalInstrumental() : null,
                         musicInfo != null ? musicInfo.getLang() : null,
                         musicInfo != null ? musicInfo.getSpeed() : null,
-                        instruments,
-                        vartags
+                        instruments, vartags
                 );
 
                 // 음원 batch insert 대상에 추가
                 // 실제 DB insert는 페이지 처리 끝난 뒤 한 번에 수행됨
                 songs.add(song);
 
-                // 아티스트-음원 관계 batch 대상에 추가
+                // 아티스트-음원 관계 추가
                 artistSongRows.add(new ArtistSongRow(artist.getArtistId(), jamendoSongId));
 
-                // 아티스트-앨범 관계 batch 대상에 추가
+                // 아티스트-앨범 관계 추가
                 artistAlbumRows.add(new ArtistAlbumRow(artist.getArtistId(), album.getAlbumId()));
 
-                // 장르 관계가 있으면 song_genres batch 대상에 추가
+                // 장르 관계가 있으면 song_genres 추가
                 if (tags != null && tags.getGenres() != null) {
                     for (String genreName : tags.getGenres()) {
                         Genre genre = getOrCreateGenre(genreName);
@@ -221,12 +215,7 @@ public class JamendoSongService {
         return albumRepository.findByJamendoAlbumId(dto.getAlbumId())
                 .orElseGet(() ->
                         albumRepository.save(
-                                new Album(
-                                        dto.getAlbumId(),
-                                        dto.getAlbumName(),
-                                        dto.getAlbumReleaseDate(),
-                                        dto.getAlbumImage()
-                                )
+                                new Album(dto.getAlbumId(), dto.getAlbumName(), dto.getAlbumReleaseDate(), dto.getAlbumImage())
                         ));
     }
 
