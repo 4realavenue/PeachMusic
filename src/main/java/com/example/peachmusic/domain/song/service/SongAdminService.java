@@ -107,22 +107,17 @@ public class SongAdminService {
         Album findAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(requestDto.getAlbumId())
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 
-
         String newAudio = requestDto.getAudio();
-        if (!newAudio.equals(findSong.getAudio())) {
-            if (songRepository.existsByAudioAndSongIdNot(newAudio, songId)) {
-                throw new CustomException(ErrorCode.SONG_EXIST_SONG_URL);
-            }
+        if (songRepository.existsByAudioAndSongIdNot(newAudio, songId)) {
+            throw new CustomException(ErrorCode.SONG_EXIST_SONG_URL);
         }
 
         Long newPosition = requestDto.getPosition();
-        if (newPosition != findSong.getPosition()) {
-            if (songRepository.existsSongByAlbumAndPosition(findAlbum, requestDto.getPosition())) {
-                throw new CustomException(ErrorCode.ALBUM_EXIST_SONG_POSITION);
-            }
+        if (songRepository.existsSongByAlbumAndPosition(findAlbum, requestDto.getPosition())) {
+            throw new CustomException(ErrorCode.ALBUM_EXIST_SONG_POSITION);
         }
 
-        findSong.updateSong(requestDto.getName(), requestDto.getDuration(), requestDto.getLicenseCcurl(), requestDto.getPosition(), requestDto.getAudio(), requestDto.getVocalinstrumental(), requestDto.getLang(), requestDto.getSpeed(), requestDto.getInstruments(), requestDto.getVartags(), findAlbum);
+        findSong.updateSong(requestDto, newAudio, newPosition, findAlbum);
 
         songGenreRepository.deleteAllBySong(findSong);
         songGenreRepository.flush();

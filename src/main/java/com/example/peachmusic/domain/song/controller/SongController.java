@@ -1,5 +1,6 @@
 package com.example.peachmusic.domain.song.controller;
 
+import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.CommonResponse;
 import com.example.peachmusic.common.model.PageResponse;
 import com.example.peachmusic.domain.song.dto.response.SongGetDetailResponseDto;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -25,10 +27,12 @@ public class SongController {
      */
     @GetMapping("/songs/{songId}")
     public ResponseEntity<CommonResponse<SongGetDetailResponseDto>> getSong(
-            @PathVariable("songId") Long songId
+            @PathVariable("songId") Long songId,
+            @AuthenticationPrincipal AuthUser authUser
     ) {
+        authUser = (authUser != null) ? authUser : null;
 
-        SongGetDetailResponseDto responseDto = songService.getSong(songId);
+        SongGetDetailResponseDto responseDto = songService.getSong(songId, authUser);
 
         return ResponseEntity.ok(CommonResponse.success("음원 조회에 성공 했습니다.", responseDto));
     }

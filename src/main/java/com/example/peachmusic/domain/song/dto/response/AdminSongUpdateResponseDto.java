@@ -17,6 +17,7 @@ public class AdminSongUpdateResponseDto {
 
     private final Long songId;
     private final String name;
+    private final String audio;
     private final Long duration;
     private final String licenseCcurl;
     private final String vocalinstrumental;
@@ -27,6 +28,6 @@ public class AdminSongUpdateResponseDto {
     private final String vartags;
 
     public static AdminSongUpdateResponseDto from(Song song, List<String> genreNameList, Album album) {
-        return new AdminSongUpdateResponseDto(album.getAlbumId(), album.getAlbumName(), song.getPosition(), song.getSongId(), song.getName(), song.getDuration(), song.getLicenseCcurl(), song.getVocalinstrumental(), song.getLang(), song.getSpeed(), genreNameList, song.getInstruments(), song.getVartags());
+        return new AdminSongUpdateResponseDto(album.getAlbumId(), album.getAlbumName(), song.getPosition(), song.getSongId(), song.getName(), song.getAudio(), song.getDuration(), song.getLicenseCcurl(), song.getVocalinstrumental(), song.getLang(), song.getSpeed(), genreNameList, song.getInstruments(), song.getVartags());
     }
 }

@@ -17,6 +17,7 @@ public class SongGetDetailResponseDto {
 
     private final Long songId;
     private final String name;
+    private final String audio;
     private final Long duration;
     private final String licenseCcurl;
     private final String vocalinstrumental;
@@ -26,7 +27,10 @@ public class SongGetDetailResponseDto {
     private final String instrumentals;
     private final String vartags;
 
-    public static SongGetDetailResponseDto from(Song song, List<String> genreNameList, Album album) {
-        return new SongGetDetailResponseDto(album.getAlbumId(), album.getAlbumName(), song.getPosition(), song.getSongId(), song.getName(), song.getDuration(), song.getLicenseCcurl(), song.getVocalinstrumental(), song.getLang(), song.getSpeed(), genreNameList, song.getInstruments(), song.getVartags());
+    private final Long likeCount;
+    private final boolean liked;
+
+    public static SongGetDetailResponseDto from(Song song, List<String> genreNameList, Album album, boolean liked) {
+        return new SongGetDetailResponseDto(album.getAlbumId(), album.getAlbumName(), song.getPosition(), song.getSongId(), song.getName(), song.getAudio(), song.getDuration(), song.getLicenseCcurl(), song.getVocalinstrumental(), song.getLang(), song.getSpeed(), genreNameList, song.getInstruments(), song.getVartags(), song.getLikeCount(), liked);
     }
 }

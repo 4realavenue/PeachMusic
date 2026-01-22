@@ -2,6 +2,7 @@ package com.example.peachmusic.domain.song.service;
 
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.exception.CustomException;
+import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.song.dto.response.SongGetDetailResponseDto;
@@ -10,7 +11,11 @@ import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songGenre.entity.SongGenre;
 import com.example.peachmusic.domain.songGenre.repository.SongGenreRepository;
+import com.example.peachmusic.domain.songLike.repository.SongLikeRepository;
+import com.example.peachmusic.domain.user.entity.User;
+import com.example.peachmusic.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,6 +25,7 @@ import java.util.List;
 
 import static com.example.peachmusic.common.enums.UserRole.USER;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SongService {
@@ -27,15 +33,34 @@ public class SongService {
     private final SongRepository songRepository;
     private final SongGenreRepository songGenreRepository;
     private final AlbumRepository albumRepository;
+    private final UserRepository userRepository;
+    private final SongLikeRepository songLikeRepository;
 
     /**
      * 음원 단건 조회
      */
     @Transactional(readOnly = true)
-    public SongGetDetailResponseDto getSong(Long songId) {
+    public SongGetDetailResponseDto getSong(Long songId, AuthUser authUser) {
 
         Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
+
+        boolean liked = false;
+
+        if (authUser != null) {
+            Long userId = authUser.getUserId();
+
+            log.info("authUserId {}", authUser.getUserId());
+
+            User findUser = userRepository.findByUserIdAndIsDeletedFalse(userId)
+                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+            if (songLikeRepository.existsSongLikeByUserAndSong(findUser, findSong)) {
+                liked = true;
+            } else {
+                liked = false;
+            }
+        }
 
         Long findAlbumId = songRepository.findSongs_AlbumIdBySongId(findSong);
 
@@ -48,7 +73,7 @@ public class SongService {
                 .map(songGenre -> songGenre.getGenre().getGenreName())
                 .toList();
 
-        return SongGetDetailResponseDto.from(findSong, genreNameList, findAlbum);
+        return SongGetDetailResponseDto.from(findSong, genreNameList, findAlbum, liked);
 
     }
 
