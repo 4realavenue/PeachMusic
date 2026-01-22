@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.user.model.request;
+package com.example.peachmusic.domain.user.dto.request;
 
 import com.example.peachmusic.common.enums.UserRole;
 import jakarta.validation.constraints.NotBlank;
