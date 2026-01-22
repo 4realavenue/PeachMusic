@@ -63,7 +63,7 @@ public class User extends BaseEntity {
             this.nickname = request.getNickname().trim();
         }
     }
-    private static boolean isNotBlank(String str) {return str != null && !str.trim().isEmpty();}
+    private static boolean isNotBlank(String str) {return str != null && !str.trim().isBlank();}
     public void setRole(UserRole role) {
         this.role = role != null ? role : UserRole.USER;
     }
