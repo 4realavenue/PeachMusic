@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class JamendoSongDto {
     @JsonProperty("id")
-    private String jamendoSongId;
+    private Long jamendoSongId;
 
     @JsonProperty("name")
     private String name;

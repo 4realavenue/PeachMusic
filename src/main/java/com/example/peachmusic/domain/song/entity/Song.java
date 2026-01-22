@@ -23,7 +23,7 @@ public class Song extends BaseEntity {
     private Album album;
 
     @Column(name = "jamendo_song_id", unique = true)
-    private String jamendoSongId;
+    private Long jamendoSongId;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -75,7 +75,7 @@ public class Song extends BaseEntity {
         this.vartags = vartags;
     }
 
-    public Song(String jamendoSongId, Album album, String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags) {
+    public Song(Long jamendoSongId, Album album, String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags) {
         this.jamendoSongId = jamendoSongId;
         this.album = album;
         this.name = name;
