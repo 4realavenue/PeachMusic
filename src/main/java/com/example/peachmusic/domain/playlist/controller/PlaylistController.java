@@ -90,7 +90,7 @@ public class PlaylistController {
 
         playlistService.deletePlaylist(playlistId, authUser);
 
-        return ResponseEntity.ok(CommonResponse.success("플레이리스트가 삭제 되었습니다.", null));
+        return ResponseEntity.ok(CommonResponse.success("플레이리스트가 삭제 되었습니다."));
     }
 
 

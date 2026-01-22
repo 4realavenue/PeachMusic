@@ -2,13 +2,15 @@ package com.example.peachmusic.domain.playlist.model.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class PlaylistUpdateRequestDto {
 
-    @NotBlank
-    private final String playlistName;
+    @NotBlank(message = "플레이리스트 이름은 필수 입력 사항 입니다.")
+    private String playlistName;
+
+    private String playlistImage;
 
 }

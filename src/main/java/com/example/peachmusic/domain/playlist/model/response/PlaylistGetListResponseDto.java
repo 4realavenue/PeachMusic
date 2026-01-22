@@ -12,11 +12,12 @@ public class PlaylistGetListResponseDto {
 
     private final Long playlistId;
     private final String playlistName;
+    private final String playlistImage;
     private final LocalDateTime createdAt;
     private final LocalDateTime modifiedAt;
 
     public static PlaylistGetListResponseDto from(Playlist playlist) {
-        return new PlaylistGetListResponseDto(playlist.getPlaylistId(), playlist.getPlaylistName(), playlist.getCreatedAt(), playlist.getModifiedAt());
+        return new PlaylistGetListResponseDto(playlist.getPlaylistId(), playlist.getPlaylistName(), playlist.getPlaylistImage(), playlist.getCreatedAt(), playlist.getModifiedAt());
     }
 }
 

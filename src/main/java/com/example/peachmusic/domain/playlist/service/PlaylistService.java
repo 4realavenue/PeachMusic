@@ -1,7 +1,7 @@
 package com.example.peachmusic.domain.playlist.service;
 
-import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
+import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.domain.playlist.entity.Playlist;
 import com.example.peachmusic.domain.playlist.model.request.PlaylistCreateRequestDto;
@@ -43,7 +43,7 @@ public class PlaylistService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 3. 새로운 플레이리스트 생성
-        Playlist playlist = new Playlist(findUser, requestDto.getPlaylistName());
+        Playlist playlist = new Playlist(findUser, requestDto.getPlaylistName(), requestDto.getPlaylistImage());
 
         // 4. 생성 한 플레이리스트 저장
         playlistRepository.save(playlist);
@@ -98,7 +98,7 @@ public class PlaylistService {
 
         // 5. 음원들 리스트를 순회하면서 응답dto의 내부 클래스인 응답 데이터 dto의 from 메서드를 실행 시키고
         //    응답 데이터 dto 리스트에 담아줌
-        List<PlaylistGetSongResponseDto.PlaylistSongResponseDto> playlistSongDtoList = findPlaylistSong.stream().map(PlaylistGetSongResponseDto.PlaylistSongResponseDto::from).toList();
+        List<PlaylistGetSongResponseDto.SongResponseDto> playlistSongDtoList = findPlaylistSong.stream().map(PlaylistGetSongResponseDto.SongResponseDto::from).toList();
 
         // 6. 응답dto의 메서드 from 메서드 실행 후 반환
         return PlaylistGetSongResponseDto.from(findPlaylist, playlistSongDtoList);

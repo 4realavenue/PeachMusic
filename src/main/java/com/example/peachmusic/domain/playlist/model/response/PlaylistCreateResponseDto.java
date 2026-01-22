@@ -13,10 +13,11 @@ public class PlaylistCreateResponseDto {
     private final Long playlistId;
     private final Long userId;
     private final String playlistName;
+    private final String playlistImage;
     private final LocalDateTime createdAt;
     private final LocalDateTime modifiedAt;
 
     public static PlaylistCreateResponseDto from(Playlist playlist) {
-        return new PlaylistCreateResponseDto(playlist.getPlaylistId(), playlist.getUser().getUserId(), playlist.getPlaylistName(), playlist.getCreatedAt(), playlist.getModifiedAt());
+        return new PlaylistCreateResponseDto(playlist.getPlaylistId(), playlist.getUser().getUserId(), playlist.getPlaylistName(), playlist.getPlaylistImage(), playlist.getCreatedAt(), playlist.getModifiedAt());
     }
 }

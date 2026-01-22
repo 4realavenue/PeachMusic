@@ -2,10 +2,10 @@ package com.example.peachmusic.domain.playlistSong.controller;
 
 import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.CommonResponse;
-import com.example.peachmusic.domain.playlistSong.model.request.PlaylistSongAddRequestDto;
-import com.example.peachmusic.domain.playlistSong.model.request.PlaylistSongDeleteRequestDto;
-import com.example.peachmusic.domain.playlistSong.model.response.PlaylistSongAddResponseDto;
-import com.example.peachmusic.domain.playlistSong.model.response.PlaylistSongDeleteSongResponseDto;
+import com.example.peachmusic.domain.playlistSong.dto.request.PlaylistSongAddRequestDto;
+import com.example.peachmusic.domain.playlistSong.dto.request.PlaylistSongDeleteRequestDto;
+import com.example.peachmusic.domain.playlistSong.dto.response.PlaylistSongAddResponseDto;
+import com.example.peachmusic.domain.playlistSong.dto.response.PlaylistSongDeleteSongResponseDto;
 import com.example.peachmusic.domain.playlistSong.service.PlaylistSongService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

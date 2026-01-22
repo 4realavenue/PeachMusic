@@ -12,9 +12,10 @@ public class PlaylistUpdateResponseDto {
 
     private final Long playlistId;
     private final String playlistName;
+    private final String playlistImage;
     private final LocalDateTime modifiedAt;
 
     public static PlaylistUpdateResponseDto from(Playlist playlist) {
-        return new PlaylistUpdateResponseDto(playlist.getPlaylistId(), playlist.getPlaylistName(), playlist.getModifiedAt());
+        return new PlaylistUpdateResponseDto(playlist.getPlaylistId(), playlist.getPlaylistName(), playlist.getPlaylistImage(), playlist.getModifiedAt());
     }
 }

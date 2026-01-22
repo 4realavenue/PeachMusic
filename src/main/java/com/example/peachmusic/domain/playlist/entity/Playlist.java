@@ -25,9 +25,13 @@ public class Playlist extends BaseEntity {
     @Column(name = "playlist_name", nullable = false)
     private String playlistName;
 
-    public Playlist(User user, String playlistName) {
+    @Column(name = "playlist_image")
+    private String playlistImage;
+
+    public Playlist(User user, String playlistName, String playlistImage) {
         this.user = user;
         this.playlistName = playlistName;
+        this.playlistImage = playlistImage;
     }
 
     public void updatePlaylist(String newName) {

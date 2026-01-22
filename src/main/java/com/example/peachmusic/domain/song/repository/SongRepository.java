@@ -5,8 +5,10 @@ import com.example.peachmusic.domain.song.entity.Song;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import java.util.Optional;
+import org.springframework.data.jpa.repository.Query;
+
 import java.util.List;
+import java.util.Optional;
 
 public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRepository {
 
@@ -29,4 +31,13 @@ public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRep
     List<Song> findAllByAlbum_AlbumIdInAndIsDeletedTrue(List<Long> albumIds);
 
     boolean existsByJamendoSongId(String jamendoSongId);
+
+
+    @Query("""
+            select s.songId from Song s
+            where s.songId in (:songIdList)
+            
+            """)
+    List<Long> findSongIdListBySongIdList(List<Long> songIdList);
+
 }

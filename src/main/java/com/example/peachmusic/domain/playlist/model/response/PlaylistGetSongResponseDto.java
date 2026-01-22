@@ -14,17 +14,18 @@ public class PlaylistGetSongResponseDto {
 
     private final Long playlistId;
     private final String playlistName;
+    private final String playlistImage;
     private final LocalDateTime createdAt;
     private final LocalDateTime modifiedAt;
-    private final List<PlaylistSongResponseDto> songs;
+    private final List<SongResponseDto> songs;
 
-    public static PlaylistGetSongResponseDto from(Playlist playlist, List<PlaylistSongResponseDto> playlistSongs) {
-        return new PlaylistGetSongResponseDto(playlist.getPlaylistId(), playlist.getPlaylistName(), playlist.getCreatedAt(), playlist.getModifiedAt(), playlistSongs);
+    public static PlaylistGetSongResponseDto from(Playlist playlist, List<SongResponseDto> playlistSongs) {
+        return new PlaylistGetSongResponseDto(playlist.getPlaylistId(), playlist.getPlaylistName(), playlist.getPlaylistImage(), playlist.getCreatedAt(), playlist.getModifiedAt(), playlistSongs);
     }
 
     @Getter
     @RequiredArgsConstructor
-    public static class PlaylistSongResponseDto {
+    public static class SongResponseDto {
 
         private final Long playlistSongId;
         private final Long songId;
@@ -32,8 +33,8 @@ public class PlaylistGetSongResponseDto {
         private final Long duration;
         private final Long likeCount;
 
-        public static PlaylistSongResponseDto from(PlaylistSong playlistSong) {
-            return new PlaylistSongResponseDto(playlistSong.getPlaylistSongId(), playlistSong.getSong().getSongId(), playlistSong.getSong().getName(), playlistSong.getSong().getDuration(), playlistSong.getSong().getLikeCount());
+        public static SongResponseDto from(PlaylistSong playlistSong) {
+            return new SongResponseDto(playlistSong.getPlaylistSongId(), playlistSong.getSong().getSongId(), playlistSong.getSong().getName(), playlistSong.getSong().getDuration(), playlistSong.getSong().getLikeCount());
         }
     }
 }
