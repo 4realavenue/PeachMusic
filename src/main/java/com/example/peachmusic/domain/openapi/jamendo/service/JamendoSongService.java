@@ -38,7 +38,6 @@ public class JamendoSongService {
     private final AlbumRepository albumRepository;
     private final GenreRepository genreRepository;
 
-
     /**
      * Jamendo 음원 초기 적재
      */
@@ -65,42 +64,27 @@ public class JamendoSongService {
      * Jamendo 적재 핵심 로직
      */
     public void duplicationJamendo(int maxPage, String dateBetween) {
+        int limit = 200;        // Jamendo API 한 페이지당 조회 개수
+        int successCount = 0;   // 전체 신규 적재된 음원 수
+        int skipCount = 0;      // 전체 중복(스킵) 음원 수
 
-        int limit = 200;
-        int successCount = 0;
-        int skipCount = 0;
-
+        // Jamendo API 페이지 단위로 반복
         for (int page = 1; page <= maxPage; page++) {
+            int insertedInPage = 0; // 현재 페이지에서 신규 적재된 음원 수
+            int skipInPage = 0;     // 현재 페이지에서 중복으로 스킵된 음원 수
 
             log.info("Jamendo 적재 중... page={}", page);
 
-            // Jamendo API 호출
-            JamendoSongResponseDto response =
-                    jamendoApiService.fetchSongs(page, limit, dateBetween);
-
-            // 이번 페이지에서 내려온 음원 목록
+            JamendoSongResponseDto response = jamendoApiService.fetchSongs(page, limit, dateBetween);
             List<JamendoSongDto> results = response.getResults();
 
-            // 내려온 데이터가 없으면 종료
             if (results == null || results.isEmpty()) {
                 log.info("Api 응답 결과 : 데이터 없음. 적재 종료");
                 break;
             }
 
-            int insertedInPage = 0;
-            int skipInPage = 0;
-
-            // 이번 페이지에 내려온 jamendo_song_id 전부 수집
-            Set<Long> pageSongIds = new HashSet<>(results.size() * 2);
-            for (JamendoSongDto dto : results) {
-                Long songId = dto.getJamendoSongId();
-                if (songId != null) {
-                    pageSongIds.add(songId);
-                }
-            }
-
-            // DB에 이미 존재하는 jamendo_song_id 한 번에 조회
-            Set<Long> existingSongIds = songRepository.findExistingJamendoSongIds(pageSongIds);
+            Set<Long> pageSongList = collectPageSongIdList(results);
+            Set<Long> existingSongIds = songRepository.findJamendoSongIdList(pageSongList);
 
             List<Song> songs = new ArrayList<>();
             List<ArtistSongRow> artistSongRows = new ArrayList<>();
@@ -112,57 +96,22 @@ public class JamendoSongService {
 
                 Long jamendoSongId = dto.getJamendoSongId();
 
-                // 이미 존재하는 음원이면 skip
                 if (jamendoSongId == null || existingSongIds.contains(jamendoSongId)) {
                     skipCount++;
                     skipInPage++;
                     continue;
                 }
 
-                // 아티스트 조회 또는 생성
                 Artist artist = getOrCreateArtist(dto.getArtistName());
-
-                // 앨범 조회 또는 생성
                 Album album = getOrCreateAlbum(dto);
-
-                // musicInfo가 없는 경우도 존재
                 JamendoMusicInfoDto musicInfo = dto.getMusicInfo();
                 JamendoTagDto tags = (musicInfo != null) ? musicInfo.getTags() : null;
-
-                String instruments = null;
-                String vartags = null;
-
-                // tags가 있을 때만 악기 / 분위기 문자열 생성
-                if (tags != null) {
-                    instruments = joinList(tags.getInstruments());
-                    vartags = joinList(tags.getMoods());
-                }
-
-                // 음원 엔티티 생성 (JPA save X, insert 용)
-                Song song = new Song(jamendoSongId, album, dto.getName(),
-                        dto.getDuration() != null ? dto.getDuration() : 0L, dto.getLicenseCcurl(),
-                        dto.getPosition() != null ? dto.getPosition() : 0L, dto.getAudioUrl(),
-                        musicInfo != null ? musicInfo.getVocalInstrumental() : null,
-                        musicInfo != null ? musicInfo.getLang() : null,
-                        musicInfo != null ? musicInfo.getSpeed() : null,
-                        instruments, vartags
-                );
-
-                // 음원 batch insert 대상에 추가
-                // 실제 DB insert는 페이지 처리 끝난 뒤 한 번에 수행됨
+                Song song = createSong(musicInfo, tags, dto, album);
+                
                 songs.add(song);
-                // 아티스트-음원 관계 추가
                 artistSongRows.add(new ArtistSongRow(artist.getArtistId(), jamendoSongId));
-                // 아티스트-앨범 관계 추가
                 artistAlbumRows.add(new ArtistAlbumRow(artist.getArtistId(), album.getAlbumId()));
-
-                // 장르 관계가 있으면 song_genres 추가
-                if (tags != null && tags.getGenres() != null) {
-                    for (String genreName : tags.getGenres()) {
-                        Genre genre = getOrCreateGenre(genreName);
-                        songGenreRows.add(new SongGenreRow(jamendoSongId, genre.getGenreId()));
-                    }
-                }
+                addSongGenres(jamendoSongId, tags, songGenreRows);
 
                 successCount++;
                 insertedInPage++;
@@ -182,9 +131,53 @@ public class JamendoSongService {
                 break;
             }
         }
-
         log.info("=== Jamendo 적재 완료 ===");
         log.info("성공: {}, 중복: {}", successCount, skipCount);
+    }
+
+    /**
+     * 음악 - 장르 수집
+     */
+    private void addSongGenres(Long jamendoSongId, JamendoTagDto tags, List<SongGenreRow> songGenreRows) {
+        // 장르 관계가 있으면 song_genres 추가
+        if(tags == null || tags.getGenres() == null) {
+            return;
+        }
+        for (String genreName : tags.getGenres()) {
+            Genre genre = getOrCreateGenre(genreName);
+            songGenreRows.add(new SongGenreRow(jamendoSongId, genre.getGenreId()));
+        }
+    }
+
+    /**
+     * 페이지 내의 jamendo_song_id 수집 메서드
+     */
+    private Set<Long> collectPageSongIdList(List<JamendoSongDto> results) {
+        Set<Long> songIdList = new HashSet<>(results.size() * 2);
+        for(JamendoSongDto dto : results) {
+            if(dto.getJamendoSongId() != null) {
+                songIdList.add(dto.getJamendoSongId());
+            }
+        }
+        return songIdList;
+    }
+
+    /**
+     * 음악 엔티티 생성 전용 메서드(DTO -> Song 변환 담당)
+     */
+    private Song createSong(JamendoMusicInfoDto musicInfo, JamendoTagDto tags, JamendoSongDto dto, Album album) {
+        String instruments = (tags != null) ? joinList(tags.getInstruments()) : null;
+        String vartags = (tags != null) ? joinList(tags.getMoods()) : null;
+
+        // 음원 엔티티 생성 (JPA save X, insert 용)
+        return new Song(dto.getJamendoSongId(), album, dto.getName(),
+                dto.getDuration() != null ? dto.getDuration() : 0L, dto.getLicenseCcurl(),
+                dto.getPosition() != null ? dto.getPosition() : 0L, dto.getAudioUrl(),
+                musicInfo != null ? musicInfo.getVocalInstrumental() : null,
+                musicInfo != null ? musicInfo.getLang() : null,
+                musicInfo != null ? musicInfo.getSpeed() : null,
+                instruments, vartags
+        );
     }
 
     /**
