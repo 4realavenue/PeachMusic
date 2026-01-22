@@ -2,12 +2,12 @@ package com.example.peachmusic.domain.playlist.controller;
 
 import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.CommonResponse;
-import com.example.peachmusic.domain.playlist.model.request.PlaylistCreateRequestDto;
-import com.example.peachmusic.domain.playlist.model.request.PlaylistUpdateRequestDto;
-import com.example.peachmusic.domain.playlist.model.response.PlaylistCreateResponseDto;
-import com.example.peachmusic.domain.playlist.model.response.PlaylistGetListResponseDto;
-import com.example.peachmusic.domain.playlist.model.response.PlaylistGetSongResponseDto;
-import com.example.peachmusic.domain.playlist.model.response.PlaylistUpdateResponseDto;
+import com.example.peachmusic.domain.playlist.dto.request.PlaylistCreateRequestDto;
+import com.example.peachmusic.domain.playlist.dto.request.PlaylistUpdateRequestDto;
+import com.example.peachmusic.domain.playlist.dto.response.PlaylistCreateResponseDto;
+import com.example.peachmusic.domain.playlist.dto.response.PlaylistGetListResponseDto;
+import com.example.peachmusic.domain.playlist.dto.response.PlaylistGetSongResponseDto;
+import com.example.peachmusic.domain.playlist.dto.response.PlaylistUpdateResponseDto;
 import com.example.peachmusic.domain.playlist.service.PlaylistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
