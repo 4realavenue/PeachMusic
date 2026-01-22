@@ -48,7 +48,7 @@ public class UserController {
 
     }
 
-    @PutMapping("/users")
+    @PatchMapping("/users")
     public ResponseEntity<CommonResponse<UserUpdateResponseDto>> updateUser(
             @Valid @RequestBody UserUpdateRequestDto request,
             @AuthenticationPrincipal AuthUser authUser
