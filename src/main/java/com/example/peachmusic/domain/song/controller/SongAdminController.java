@@ -54,7 +54,7 @@ public class SongAdminController {
     /**
      * 음원 정보 수정 API
      */
-    @PutMapping("/songs/{songId}")
+    @PatchMapping("/songs/{songId}")
     public ResponseEntity<CommonResponse<AdminSongUpdateResponseDto>> updateSong(
             @PathVariable("songId") Long songId,
             @Valid @RequestBody AdminSongUpdateRequestDto requestDto
