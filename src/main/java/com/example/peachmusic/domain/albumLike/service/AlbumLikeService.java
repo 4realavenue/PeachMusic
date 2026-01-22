@@ -6,7 +6,7 @@ import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.albumLike.entity.AlbumLike;
-import com.example.peachmusic.domain.albumLike.model.response.AlbumLikeResponseDto;
+import com.example.peachmusic.domain.albumLike.dto.response.AlbumLikeResponseDto;
 import com.example.peachmusic.domain.albumLike.repository.AlbumLikeRepository;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.repository.UserRepository;
@@ -59,6 +59,6 @@ public class AlbumLikeService {
         // 처리 후 최종 좋아요 상태
         boolean liked = !alreadyLiked;
 
-        return AlbumLikeResponseDto.of(foundAlbum.getAlbumId(), liked, foundAlbum.getLikeCount());
+        return AlbumLikeResponseDto.of(foundAlbum.getAlbumId(), foundAlbum.getAlbumName(), liked, foundAlbum.getLikeCount());
     }
 }
