@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.album.model.response;
+package com.example.peachmusic.domain.album.dto.response;
 
 import com.example.peachmusic.domain.album.entity.Album;
 import lombok.Getter;
@@ -18,9 +18,10 @@ public class AlbumGetDetailResponseDto {
     private final List<ArtistSummaryDto> artistList;
     private final List<SongSummaryDto> songList;
     private final Long likeCount;
+    private final boolean isLiked;
 
-    public static AlbumGetDetailResponseDto from(Album album, List<ArtistSummaryDto> artistList, List<SongSummaryDto> songList) {
+    public static AlbumGetDetailResponseDto from(Album album, List<ArtistSummaryDto> artistList, List<SongSummaryDto> songList, boolean isLiked) {
         return new AlbumGetDetailResponseDto(
-                album.getAlbumId(), album.getAlbumName(), album.getAlbumReleaseDate(), album.getAlbumImage(), artistList, songList, album.getLikeCount());
+                album.getAlbumId(), album.getAlbumName(), album.getAlbumReleaseDate(), album.getAlbumImage(), artistList, songList, album.getLikeCount(), isLiked);
     }
 }

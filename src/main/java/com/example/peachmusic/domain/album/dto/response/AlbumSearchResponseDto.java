@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.album.model.response;
+package com.example.peachmusic.domain.album.dto.response;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -6,7 +6,7 @@ import java.time.LocalDate;
 
 @Getter
 @RequiredArgsConstructor
-public class AlbumSearchResponse {
+public class AlbumSearchResponseDto {
 
     private final Long albumId;
     private final String albumName;

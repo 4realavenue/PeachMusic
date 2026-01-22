@@ -11,4 +11,6 @@ public interface AlbumLikeRepository extends JpaRepository<AlbumLike, Long> {
     boolean existsByAlbum_AlbumIdAndUser_UserId(Long albumId, Long userId);
 
     void deleteByAlbum_AlbumIdAndUser_UserId(Long albumId, Long userId);
+
+    boolean existsByUser_UserIdAndAlbum_AlbumId(Long userId, Long albumId);
 }
