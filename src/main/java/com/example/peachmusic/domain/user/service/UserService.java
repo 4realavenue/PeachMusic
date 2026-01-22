@@ -23,6 +23,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.apache.logging.log4j.util.Strings.isNotBlank;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -64,12 +66,12 @@ public class UserService {
 
 //      2. 복사본 생성
         User updated = user.toBuilder()
-                .name(request.getName() != null ? request.getName() : user.getName())
-                .nickname(request.getNickname() != null ? request.getNickname() : user.getNickname())
+                .name(isNotBlank(request.getName()) ? request.getName().trim() : user.getName())
+                .nickname(isNotBlank(request.getNickname()) ? request.getNickname().trim() : user.getNickname())
                 .build();
 
 //      3. 닉네임이 변경되었을 때, 중복 체크
-        if (request.getNickname() != null && !request.getNickname().equals(user.getNickname())) {
+        if (isNotBlank(request.getNickname()) && !request.getNickname().trim().equals(user.getNickname())) {
             if (userRepository.existsByNickname(request.getNickname())) {
                 throw new CustomException(ErrorCode.USER_EXIST_NICKNAME);
             }
