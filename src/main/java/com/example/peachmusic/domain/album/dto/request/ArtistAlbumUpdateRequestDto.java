@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.album.model.request;
+package com.example.peachmusic.domain.album.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
