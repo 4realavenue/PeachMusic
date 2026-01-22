@@ -80,11 +80,11 @@ public class AlbumAdminService {
         artistAlbumRepository.saveAll(artistAlbumList);
 
         // ArtistAlbum 기준으로 응답 DTO를 조립
-        List<ArtistSummaryDto> artists = artistAlbumList.stream()
+        List<ArtistSummaryDto> dtoList = artistAlbumList.stream()
                 .map(artist -> ArtistSummaryDto.from(artist.getArtist()))
                 .toList();
 
-        return AlbumCreateResponseDto.from(savedAlbum, artists);
+        return AlbumCreateResponseDto.from(savedAlbum, dtoList);
     }
 
     /**
@@ -109,11 +109,7 @@ public class AlbumAdminService {
         Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 
-        boolean updateName = requestDto.getAlbumName() != null;
-        boolean updateDate = requestDto.getAlbumReleaseDate() != null;
-        boolean updateImage = requestDto.getAlbumImage() != null;
-
-        if (!updateName && !updateDate && !updateImage) {
+        if (!hasUpdateFields(requestDto)) {
             throw new CustomException(ErrorCode.ALBUM_UPDATE_NO_CHANGES);
         }
 
@@ -141,6 +137,10 @@ public class AlbumAdminService {
                 .toList();
 
         return AlbumUpdateResponseDto.from(foundAlbum, artistList);
+    }
+
+    private boolean hasUpdateFields(AlbumUpdateRequestDto requestDto) {
+        return requestDto.getAlbumName() != null || requestDto.getAlbumReleaseDate() != null || requestDto.getAlbumImage() != null;
     }
 
     /**
@@ -176,11 +176,11 @@ public class AlbumAdminService {
         artistAlbumRepository.saveAll(artistAlbumList);
 
         // ArtistAlbum 기준으로 응답 DTO를 조립
-        List<ArtistSummaryDto> artists = artistAlbumList.stream()
+        List<ArtistSummaryDto> dtoList = artistAlbumList.stream()
                 .map(artist -> ArtistSummaryDto.from(artist.getArtist()))
                 .toList();
 
-        return ArtistAlbumUpdateResponseDto.from(foundAlbum, artists);
+        return ArtistAlbumUpdateResponseDto.from(foundAlbum, dtoList);
     }
 
     /**
