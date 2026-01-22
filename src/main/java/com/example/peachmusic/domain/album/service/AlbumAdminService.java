@@ -42,13 +42,13 @@ public class AlbumAdminService {
     @Transactional
     public AlbumCreateResponseDto createAlbum(AlbumCreateRequestDto requestDto) {
 
-        // 요청된 아티스트 ID 중복 제거
-        List<Long> artistIds = requestDto.getArtistIds().stream().distinct().toList();
 
-        List<Artist> artistList = artistRepository.findAllById(artistIds);
+        List<Long> artistIdList = requestDto.getArtistIdList().stream().distinct().toList();
+
+        List<Artist> artistList = artistRepository.findAllById(artistIdList);
 
         // 요청한 아티스트 ID 중 존재하지 않는 항목이 있는지 검증
-        if (artistList.size() != artistIds.size()) {
+        if (artistList.size() != artistIdList.size()) {
             throw new CustomException(ErrorCode.ARTIST_NOT_FOUND);
         }
 
@@ -79,7 +79,6 @@ public class AlbumAdminService {
                 .toList();
         artistAlbumRepository.saveAll(artistAlbumList);
 
-        // ArtistAlbum 기준으로 응답 DTO를 조립
         List<ArtistSummaryDto> dtoList = artistAlbumList.stream()
                 .map(artist -> ArtistSummaryDto.from(artist.getArtist()))
                 .toList();
@@ -140,7 +139,9 @@ public class AlbumAdminService {
     }
 
     private boolean hasUpdateFields(AlbumUpdateRequestDto requestDto) {
-        return requestDto.getAlbumName() != null || requestDto.getAlbumReleaseDate() != null || requestDto.getAlbumImage() != null;
+        return (requestDto.getAlbumName() != null && !requestDto.getAlbumName().isBlank())
+                || requestDto.getAlbumReleaseDate() != null
+                || (requestDto.getAlbumImage() != null && !requestDto.getAlbumImage().isBlank());
     }
 
     /**
@@ -152,17 +153,15 @@ public class AlbumAdminService {
     @Transactional
     public ArtistAlbumUpdateResponseDto updateAlbumArtistList(Long albumId, ArtistAlbumUpdateRequestDto requestDto) {
 
-        // 수정 대상 앨범 조회 (삭제된 앨범은 수정 불가)
         Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 
-        // 요청된 아티스트 ID 중복 제거
-        List<Long> artistIds = requestDto.getArtistIds().stream().distinct().toList();
 
-        List<Artist> artistList = artistRepository.findAllByArtistIdInAndIsDeletedFalse(artistIds);
+        List<Long> artistIdList = requestDto.getArtistIdList().stream().distinct().toList();
 
-        // 요청한 아티스트 ID 중 존재하지 않는 항목이 있는지 검증
-        if (artistList.size() != artistIds.size()) {
+        List<Artist> artistList = artistRepository.findAllByArtistIdInAndIsDeletedFalse(artistIdList);
+
+        if (artistList.size() != artistIdList.size()) {
             throw new CustomException(ErrorCode.ARTIST_NOT_FOUND);
         }
 
@@ -175,7 +174,6 @@ public class AlbumAdminService {
 
         artistAlbumRepository.saveAll(artistAlbumList);
 
-        // ArtistAlbum 기준으로 응답 DTO를 조립
         List<ArtistSummaryDto> dtoList = artistAlbumList.stream()
                 .map(artist -> ArtistSummaryDto.from(artist.getArtist()))
                 .toList();
@@ -190,16 +188,13 @@ public class AlbumAdminService {
     @Transactional
     public void deleteAlbum(Long albumId) {
 
-        // 비활성화 대상 앨범 조회 (이미 비활성화된 앨범은 제외)
         Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_DETAIL_NOT_FOUND));
 
-        // 앨범에 포함된 음원 비활성화
         List<Song> foundSongList = songRepository.findAllByAlbum_AlbumIdAndIsDeletedFalse(albumId);
 
         foundSongList.forEach(Song::deleteSong);
 
-        // 앨범 비활성화
         foundAlbum.delete();
     }
 
@@ -210,16 +205,13 @@ public class AlbumAdminService {
     @Transactional
     public void restoreAlbum(Long albumId) {
 
-        // 활성화 대상 앨범 조회 (삭제된 앨범만 복구 가능)
         Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedTrue(albumId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_DETAIL_NOT_FOUND));
 
-        // 앨범에 포함된 음원 활성화
         List<Song> foundSongList = songRepository.findAllByAlbum_AlbumIdAndIsDeletedTrue(albumId);
 
         foundSongList.forEach(Song::restoreSong);
 
-        // 앨범 활성화
         foundAlbum.restore();
     }
 }

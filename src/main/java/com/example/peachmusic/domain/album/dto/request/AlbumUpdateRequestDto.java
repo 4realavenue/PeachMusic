@@ -16,6 +16,6 @@ public class AlbumUpdateRequestDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate albumReleaseDate;
 
-    @URL
+    @URL(message = "URL 형식으로 맞춰서 입력해 주세요.")
     private String albumImage;
 }

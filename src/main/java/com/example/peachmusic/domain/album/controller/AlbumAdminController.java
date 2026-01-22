@@ -36,7 +36,7 @@ public class AlbumAdminController {
 
         AlbumCreateResponseDto responseDto = albumAdminService.createAlbum(requestDto);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("앨범 생성 성공", responseDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("앨범이 생성되었습니다.", responseDto));
     }
 
     /**
@@ -52,7 +52,7 @@ public class AlbumAdminController {
 
         Page<AlbumSearchResponseDto> responseDtoPage = albumAdminService.getAlbumList(word, pageable);
 
-        return ResponseEntity.ok(PageResponse.success("앨범 목록 조회 성공", responseDtoPage));
+        return ResponseEntity.ok(PageResponse.success("앨범 목록 조회에 성공했습니다.", responseDtoPage));
     }
 
     /**
@@ -69,7 +69,7 @@ public class AlbumAdminController {
 
         AlbumUpdateResponseDto responseDto = albumAdminService.updateAlbumInfo(albumId, requestDto);
 
-        return ResponseEntity.ok(CommonResponse.success("앨범 기본 정보 수정 완료", responseDto));
+        return ResponseEntity.ok(CommonResponse.success("앨범 기본 정보가 수정되었습니다.", responseDto));
     }
 
     /**
@@ -86,7 +86,7 @@ public class AlbumAdminController {
 
         ArtistAlbumUpdateResponseDto responseDto = albumAdminService.updateAlbumArtistList(albumId, requestDto);
 
-        return ResponseEntity.ok(CommonResponse.success("참여 아티스트 목록 갱신 완료", responseDto));
+        return ResponseEntity.ok(CommonResponse.success("참여 아티스트 목록이 갱신되었습니다.", responseDto));
     }
 
     /**
@@ -101,7 +101,7 @@ public class AlbumAdminController {
 
         albumAdminService.deleteAlbum(albumId);
 
-        return ResponseEntity.ok(CommonResponse.success("앨범 비활성화 성공", null));
+        return ResponseEntity.ok(CommonResponse.success("앨범이 비활성화 되었습니다."));
     }
 
     /**
@@ -116,6 +116,6 @@ public class AlbumAdminController {
 
         albumAdminService.restoreAlbum(albumId);
 
-        return ResponseEntity.ok(CommonResponse.success("앨범 활성화 성공", null));
+        return ResponseEntity.ok(CommonResponse.success("앨범이 활성화 되었습니다."));
     }
 }

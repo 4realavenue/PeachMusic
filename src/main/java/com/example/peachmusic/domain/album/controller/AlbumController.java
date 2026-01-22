@@ -38,7 +38,7 @@ public class AlbumController {
 
         AlbumGetDetailResponseDto responseDto = albumService.getAlbumDetail(authUser, albumId);
 
-        return ResponseEntity.ok(CommonResponse.success("앨범 조회 성공", responseDto));
+        return ResponseEntity.ok(CommonResponse.success("앨범 조회에 성공했습니다.", responseDto));
     }
 
     /**

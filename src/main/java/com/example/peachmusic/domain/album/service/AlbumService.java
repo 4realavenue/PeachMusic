@@ -53,22 +53,20 @@ public class AlbumService {
             isLiked = albumLikeRepository.existsByUser_UserIdAndAlbum_AlbumId(userId, albumId);
         }
 
-        // 참여 아티스트 조회 -> DTO 변환
         List<ArtistAlbum> artistAlbumList = artistAlbumRepository.findAllByAlbum_AlbumIdAndArtist_IsDeletedFalse(albumId);
-        List<ArtistSummaryDto> artists = new ArrayList<>();
+        List<ArtistSummaryDto> artistSummaryDtoList = new ArrayList<>();
         for (ArtistAlbum artistAlbum : artistAlbumList) {
             Artist artist = artistAlbum.getArtist();
-            artists.add(new ArtistSummaryDto(artist.getArtistId(), artist.getArtistName()));
+            artistSummaryDtoList.add(new ArtistSummaryDto(artist.getArtistId(), artist.getArtistName()));
         }
 
-        // 앨범 음원 조회 -> DTO 변환
         List<Song> songList = songRepository.findAllByAlbum_AlbumIdAndIsDeletedFalse(albumId);
-        List<SongSummaryDto> songs = new ArrayList<>();
+        List<SongSummaryDto> songSummaryDtoList = new ArrayList<>();
         for (Song song : songList) {
-            songs.add(new SongSummaryDto(song.getPosition(), song.getSongId(), song.getName(), song.getDuration(), song.getLikeCount()));
+            songSummaryDtoList.add(new SongSummaryDto(song.getPosition(), song.getSongId(), song.getName(), song.getDuration(), song.getLikeCount()));
         }
 
-        return AlbumGetDetailResponseDto.from(foundAlbum, artists, songs, isLiked);
+        return AlbumGetDetailResponseDto.from(foundAlbum, artistSummaryDtoList, songSummaryDtoList, isLiked);
     }
 
     /**
