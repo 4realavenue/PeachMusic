@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.search.entity;
+package com.example.peachmusic.domain.searchHistory.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -9,13 +9,13 @@ import java.time.LocalDate;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "searches")
-public class Search {
+@Table(name = "search_histories")
+public class SearchHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "search_id")
-    private Long searchId;
+    @Column(name = "history_id")
+    private Long historyId;
 
     @Column(name = "word", nullable = false)
     private String word; // 검색어
@@ -26,7 +26,7 @@ public class Search {
     @Column(name = "count", nullable = false)
     private Long count = 1L; // 검색 횟수
 
-    public Search(String word, LocalDate searchDate) {
+    public SearchHistory(String word, LocalDate searchDate) {
         this.word = word;
         this.searchDate = searchDate;
     }
