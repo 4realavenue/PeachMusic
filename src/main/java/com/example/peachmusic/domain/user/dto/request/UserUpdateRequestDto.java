@@ -1,7 +1,6 @@
-package com.example.peachmusic.domain.user.model.request;
+package com.example.peachmusic.domain.user.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 

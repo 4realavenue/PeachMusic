@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.user.model.response.admin;
+package com.example.peachmusic.domain.user.dto.response.admin;
 
 
 import com.example.peachmusic.domain.user.entity.User;
