@@ -67,7 +67,7 @@ public class PlaylistController {
     /**
      * 플레이리스트 정보 수정 API
      */
-    @PutMapping("/playlists/{playlistId}")
+    @PatchMapping("/playlists/{playlistId}")
     public ResponseEntity<CommonResponse<PlaylistUpdateResponseDto>> updatePlaylist(
             @PathVariable("playlistId") Long playlistId,
             @RequestBody PlaylistUpdateRequestDto requestDto,
