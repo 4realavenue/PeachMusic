@@ -125,7 +125,7 @@ public class PlaylistService {
 
         // 4. 찾아온 플레이리스트의 updatePlaylist 메서드 실행
         //    RequestBody로 받아온 playlistName으로 갈아 끼우기
-        findPlaylist.updatePlaylist(requestDto.getPlaylistName());
+        findPlaylist.updatePlaylist(requestDto);
 
         // 5. 응답dto의 from 메서드 실행 후 반환
         return PlaylistUpdateResponseDto.from(findPlaylist);
