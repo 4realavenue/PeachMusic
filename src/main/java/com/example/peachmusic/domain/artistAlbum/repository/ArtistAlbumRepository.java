@@ -1,6 +1,7 @@
 package com.example.peachmusic.domain.artistAlbum.repository;
 
 import com.example.peachmusic.domain.album.entity.Album;
+import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artistAlbum.entity.ArtistAlbum;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -38,4 +39,11 @@ public interface ArtistAlbumRepository extends JpaRepository<ArtistAlbum, Long> 
     List<Album> findAlbumsByArtistIdAndIsDeleted(@Param("artistId") Long artistId, @Param("isDeleted") boolean isDeleted);
 
     boolean existsByArtist_ArtistIdAndAlbum_AlbumId(Long artistId, Long albumId);
+
+    @Query("""
+select aa.artist from ArtistAlbum aa
+where aa.album.albumId = :albumId
+""")
+    List<Artist> findArtistAlbum_Artist_ArtistIdByArtistAlbum_Album_AlbumId(Long albumId);
+
 }

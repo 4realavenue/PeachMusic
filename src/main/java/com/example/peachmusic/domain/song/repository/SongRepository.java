@@ -45,6 +45,7 @@ public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRep
 
     @Query("""
             select s.album.albumId from Song s
+            where s = :song
             """)
     Long findSongs_AlbumIdBySongId(Song song);
 }

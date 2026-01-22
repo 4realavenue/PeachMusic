@@ -4,6 +4,11 @@ import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
+import com.example.peachmusic.domain.artist.entity.Artist;
+import com.example.peachmusic.domain.artist.repository.ArtistRepository;
+import com.example.peachmusic.domain.artistAlbum.repository.ArtistAlbumRepository;
+import com.example.peachmusic.domain.artistSong.entity.ArtistSong;
+import com.example.peachmusic.domain.artistSong.repository.ArtistSongRepository;
 import com.example.peachmusic.domain.genre.entity.Genre;
 import com.example.peachmusic.domain.genre.repository.GenreRepository;
 import com.example.peachmusic.domain.song.dto.request.AdminSongCreateRequestDto;
@@ -33,6 +38,9 @@ public class SongAdminService {
     private final AlbumRepository albumRepository;
     private final GenreRepository genreRepository;
     private final SongGenreRepository songGenreRepository;
+    private final ArtistSongRepository artistSongRepository;
+    private final ArtistAlbumRepository artistAlbumRepository;
+    private final ArtistRepository artistRepository;
 
     /**
      * 음원 생성
@@ -62,6 +70,14 @@ public class SongAdminService {
                 .toList();
 
         songGenreRepository.saveAll(songGenreList);
+
+        List<Artist> findArtistList = artistAlbumRepository.findArtistAlbum_Artist_ArtistIdByArtistAlbum_Album_AlbumId(findAlbum.getAlbumId());
+
+        List<ArtistSong> artistSongList = findArtistList.stream()
+                .map(artistSong -> new ArtistSong(artistSong, saveSong))
+                .toList();
+
+        artistSongRepository.saveAll(artistSongList);
 
         List<String> genreNameList = genreList.stream()
                 .map(Genre::getGenreName)
