@@ -58,33 +58,26 @@ public class UserService {
     @Transactional
     public UserUpdateResponseDto update(@Valid UserUpdateRequestDto request, AuthUser authUser) {
 
-//        1. 유저정보 담기
+//      1. 기존 유저 조회
         User user = userRepository.findById(authUser.getUserId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-//        2. 닉네임 변경
-        if (request.getNickname() != null) {
-            String newNickname = request.getNickname().trim();
+//      2. 복사본 생성
+        User updated = user.toBuilder()
+                .name(request.getName() != null ? request.getName() : user.getName())
+                .nickname(request.getNickname() != null ? request.getNickname() : user.getNickname())
+                .build();
 
-            // 변경할 닉네임이 기존의 닉네임과 다를경우 중복 확인
-            if (!newNickname.equals(user.getNickname())) {
-                if (userRepository.existsByNickname(newNickname)) {
-                    throw new CustomException(ErrorCode.USER_EXIST_NICKNAME);
-                }
-                user.setNickname(newNickname);
+//      3. 닉네임이 변경되었을 때, 중복 체크
+        if (request.getNickname() != null && !request.getNickname().equals(user.getNickname())) {
+            if (userRepository.existsByNickname(request.getNickname())) {
+                throw new CustomException(ErrorCode.USER_EXIST_NICKNAME);
             }
         }
 
-        // 2. 이름 변경
-        if (request.getName() != null) {
-            user.setName(request.getName().trim());
-        }
+        userRepository.save(updated);
 
-        // 3.둘다 null 이면 예외처리
-        if (request.getName() == null && request.getNickname() == null) {
-            throw new CustomException(ErrorCode.AUTH_NAME_NICKNAME_REQUIRED);
-        }
-        return UserUpdateResponseDto.from(user);
+        return UserUpdateResponseDto.from(updated);
     }
 
     // 유저 삭제

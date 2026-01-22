@@ -3,16 +3,15 @@ package com.example.peachmusic.domain.user.entity;
 import com.example.peachmusic.common.entity.BaseEntity;
 import com.example.peachmusic.common.enums.UserRole;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "users")
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class User extends BaseEntity {
 
     @Id
@@ -57,10 +56,7 @@ public class User extends BaseEntity {
     public void setRole(UserRole role) {
         this.role = role != null ? role : UserRole.USER;  // null 들어와도 USER로 방어
     }
-    public void UpdateUser(String name, String nickname) {
-        this.name = name;
-        this.nickname = nickname;
-    }
+
     public void delete() {
         this.isDeleted = true;
     }
