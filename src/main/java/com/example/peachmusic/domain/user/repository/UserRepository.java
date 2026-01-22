@@ -16,7 +16,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("""
             SELECT u FROM User u
-            WHERE u.nickname = :word
+            WHERE :word IS NULL OR u.nickname = :word
             """)
     Page<User> findALLByWord(String word, Pageable pageable);
 }
