@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import static com.example.peachmusic.common.enums.UserRole.ADMIN;
 
@@ -82,7 +81,7 @@ public class AlbumAdminService {
 
         // ArtistAlbum 기준으로 응답 DTO를 조립
         List<ArtistSummaryDto> artists = artistAlbumList.stream()
-                .map(aa -> ArtistSummaryDto.from(aa.getArtist()))
+                .map(artist -> ArtistSummaryDto.from(artist.getArtist()))
                 .toList();
 
         return AlbumCreateResponseDto.from(savedAlbum, artists);
@@ -118,37 +117,27 @@ public class AlbumAdminService {
             throw new CustomException(ErrorCode.ALBUM_UPDATE_NO_CHANGES);
         }
 
-        Optional.ofNullable(requestDto.getAlbumName())
-                .ifPresent(name -> {
-                    if (name.isBlank()) {
-                        throw new CustomException(ErrorCode.ALBUM_NAME_REQUIRED);
-                    }
-                    foundAlbum.updateAlbumName(name.trim());
-                });
+        String image = requestDto.getAlbumImage();
 
-        Optional.ofNullable(requestDto.getAlbumReleaseDate())
-                .ifPresent(foundAlbum::updateAlbumReleaseDate);
+        // 이미지 유니크 검증 먼저 수행
+        if (image != null && !image.isBlank()) {
+            String trimmed = image.trim();
+            if (albumRepository.existsByAlbumImageAndIsDeletedFalseAndAlbumIdNot(trimmed, albumId)) {
+                throw new CustomException(ErrorCode.ALBUM_EXIST_IMAGE);
+            }
+        }
 
-        Optional.ofNullable(requestDto.getAlbumImage())
-                .ifPresent(image -> {
-                    if (image.isBlank()) {
-                        throw new CustomException(ErrorCode.ALBUM_IMAGE_REQUIRED);
-                    }
-                    String trimmed = image.trim();
-
-                    if (albumRepository.existsByAlbumImageAndIsDeletedFalseAndAlbumIdNot(trimmed, albumId)) {
-                        throw new CustomException(ErrorCode.ALBUM_EXIST_IMAGE);
-                    }
-                    foundAlbum.updateAlbumImage(trimmed);
-                });
+        foundAlbum.updateAlbumName(requestDto.getAlbumName());
+        foundAlbum.updateAlbumReleaseDate(requestDto.getAlbumReleaseDate());
+        foundAlbum.updateAlbumImage(requestDto.getAlbumImage());
 
         if (albumRepository.existsByAlbumNameAndAlbumReleaseDateAndIsDeletedFalseAndAlbumIdNot(
-                    foundAlbum.getAlbumName(), foundAlbum.getAlbumReleaseDate(), albumId)) {
-                throw new CustomException(ErrorCode.ALBUM_EXIST_NAME_RELEASE_DATE);
+                   foundAlbum.getAlbumName(), foundAlbum.getAlbumReleaseDate(), albumId)) {
+               throw new CustomException(ErrorCode.ALBUM_EXIST_NAME_RELEASE_DATE);
         }
 
         List<ArtistSummaryDto> artistList = artistAlbumRepository.findAllByAlbum_AlbumId(albumId).stream()
-                .map(aa -> new ArtistSummaryDto(aa.getArtist().getArtistId(), aa.getArtist().getArtistName()))
+                .map(artist -> new ArtistSummaryDto(artist.getArtist().getArtistId(), artist.getArtist().getArtistName()))
                 .toList();
 
         return AlbumUpdateResponseDto.from(foundAlbum, artistList);
@@ -188,7 +177,7 @@ public class AlbumAdminService {
 
         // ArtistAlbum 기준으로 응답 DTO를 조립
         List<ArtistSummaryDto> artists = artistAlbumList.stream()
-                .map(aa -> ArtistSummaryDto.from(aa.getArtist()))
+                .map(artist -> ArtistSummaryDto.from(artist.getArtist()))
                 .toList();
 
         return ArtistAlbumUpdateResponseDto.from(foundAlbum, artists);

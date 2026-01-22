@@ -51,15 +51,15 @@ public class Album extends BaseEntity {
     }
 
     public void updateAlbumName(String albumName) {
-        this.albumName = albumName;
+        this.albumName = (albumName == null || albumName.isBlank()) ? this.albumName : albumName.trim();
     }
 
     public void updateAlbumReleaseDate(LocalDate albumReleaseDate) {
-        this.albumReleaseDate = albumReleaseDate;
+        this.albumReleaseDate = (albumReleaseDate == null) ? this.albumReleaseDate : albumReleaseDate;
     }
 
     public void updateAlbumImage(String albumImage) {
-        this.albumImage = albumImage;
+        this.albumImage = (albumImage == null || albumImage.isBlank()) ? this.albumImage : albumImage.trim();
     }
 
     public void delete() {

@@ -43,17 +43,18 @@ public class AlbumService {
     @Transactional(readOnly = true)
     public AlbumGetDetailResponseDto getAlbumDetail(AuthUser authUser, Long albumId) {
 
-        // AuthUser에서 사용자 ID 추출
-        Long userId = authUser.getUserId();
-
-        // 조회 대상 앨범 조회 (삭제된 앨범은 조회 불가)
         Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_DETAIL_NOT_FOUND));
 
-        boolean isLiked = albumLikeRepository.existsByUser_UserIdAndAlbum_AlbumId(userId, albumId);
+        boolean isLiked = false;
+
+        if (authUser != null) {
+            Long userId = authUser.getUserId();
+            isLiked = albumLikeRepository.existsByUser_UserIdAndAlbum_AlbumId(userId, albumId);
+        }
 
         // 참여 아티스트 조회 -> DTO 변환
-        List<ArtistAlbum> artistAlbumList = artistAlbumRepository.findAllByAlbum_AlbumId(albumId);
+        List<ArtistAlbum> artistAlbumList = artistAlbumRepository.findAllByAlbum_AlbumIdAndArtist_IsDeletedFalse(albumId);
         List<ArtistSummaryDto> artists = new ArrayList<>();
         for (ArtistAlbum artistAlbum : artistAlbumList) {
             Artist artist = artistAlbum.getArtist();
