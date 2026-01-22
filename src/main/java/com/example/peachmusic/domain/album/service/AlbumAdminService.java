@@ -122,9 +122,7 @@ public class AlbumAdminService {
             }
         }
 
-        foundAlbum.updateAlbumName(requestDto.getAlbumName());
-        foundAlbum.updateAlbumReleaseDate(requestDto.getAlbumReleaseDate());
-        foundAlbum.updateAlbumImage(requestDto.getAlbumImage());
+        foundAlbum.updateAlbumInfo(requestDto);
 
         if (albumRepository.existsByAlbumNameAndAlbumReleaseDateAndIsDeletedFalseAndAlbumIdNot(
                    foundAlbum.getAlbumName(), foundAlbum.getAlbumReleaseDate(), albumId)) {

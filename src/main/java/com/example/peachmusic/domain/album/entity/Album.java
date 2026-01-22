@@ -1,6 +1,7 @@
 package com.example.peachmusic.domain.album.entity;
 
 import com.example.peachmusic.common.entity.BaseEntity;
+import com.example.peachmusic.domain.album.dto.request.AlbumUpdateRequestDto;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -50,16 +51,18 @@ public class Album extends BaseEntity {
         this.albumImage = albumImage;
     }
 
-    public void updateAlbumName(String albumName) {
-        this.albumName = (albumName == null || albumName.isBlank()) ? this.albumName : albumName.trim();
-    }
+    public void updateAlbumInfo(AlbumUpdateRequestDto requestDto) {
+        this.albumName = (requestDto.getAlbumName() == null || requestDto.getAlbumName().isBlank())
+                ? this.albumName
+                : requestDto.getAlbumName().trim();
 
-    public void updateAlbumReleaseDate(LocalDate albumReleaseDate) {
-        this.albumReleaseDate = (albumReleaseDate == null) ? this.albumReleaseDate : albumReleaseDate;
-    }
+        this.albumReleaseDate = (requestDto.getAlbumReleaseDate() == null)
+                ? this.albumReleaseDate
+                : requestDto.getAlbumReleaseDate();
 
-    public void updateAlbumImage(String albumImage) {
-        this.albumImage = (albumImage == null || albumImage.isBlank()) ? this.albumImage : albumImage.trim();
+        this.albumImage = (requestDto.getAlbumImage() == null || requestDto.getAlbumImage().isBlank())
+                ? this.albumImage
+                : requestDto.getAlbumImage().trim();
     }
 
     public void delete() {
