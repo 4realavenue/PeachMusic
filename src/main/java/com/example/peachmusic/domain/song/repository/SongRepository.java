@@ -34,8 +34,6 @@ public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRep
     // (비활성) 여러 앨범 음원 조회
     List<Song> findAllByAlbum_AlbumIdInAndIsDeletedTrue(List<Long> albumIds);
 
-    boolean existsByJamendoSongId(String jamendoSongId);
-
     @Query("""
             select s.songId from Song s
             where s.songId in (:songIdList)
@@ -51,5 +49,5 @@ public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRep
     Long findSongs_AlbumIdBySongId(Song song);
 
     @Query("select s.jamendoSongId from Song s where s.jamendoSongId is not null")
-    Set<Long> findSongIdSet();
+    Set<Long> findJamendoSongIdList();
 }

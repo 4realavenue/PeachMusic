@@ -1,32 +1,20 @@
 package com.example.peachmusic.domain.openapi.jamendo.service;
 
-import com.example.peachmusic.domain.album.entity.Album;
-import com.example.peachmusic.domain.album.repository.AlbumRepository;
-import com.example.peachmusic.domain.artist.entity.Artist;
-import com.example.peachmusic.domain.artist.repository.ArtistRepository;
-import com.example.peachmusic.domain.artistAlbum.repository.ArtistAlbumRepository;
-import com.example.peachmusic.domain.artistSong.entity.ArtistSong;
-import com.example.peachmusic.domain.artistAlbum.entity.ArtistAlbum;
-import com.example.peachmusic.domain.artistSong.repository.ArtistSongRepository;
-import com.example.peachmusic.domain.genre.entity.Genre;
-import com.example.peachmusic.domain.genre.repository.GenreRepository;
 import com.example.peachmusic.domain.openapi.jamendo.dto.JamendoMusicInfoDto;
 import com.example.peachmusic.domain.openapi.jamendo.dto.JamendoSongDto;
 import com.example.peachmusic.domain.openapi.jamendo.dto.JamendoSongResponseDto;
 import com.example.peachmusic.domain.openapi.jamendo.dto.JamendoTagDto;
-import com.example.peachmusic.domain.song.entity.Song;
+import com.example.peachmusic.domain.openapi.jamendo.jdbc.JamendoBatchJdbcRepository;
+import com.example.peachmusic.domain.openapi.jamendo.jdbc.row.*;
 import com.example.peachmusic.domain.song.repository.SongRepository;
-import com.example.peachmusic.domain.songGenre.entity.SongGenre;
-import com.example.peachmusic.domain.songGenre.repository.SongGenreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -34,21 +22,16 @@ import java.util.stream.Collectors;
 public class JamendoSongService {
 
     private final JamendoApiService jamendoApiService;
+    private final JamendoBatchJdbcRepository batchJdbcRepository;
 
     private final SongRepository songRepository;
-    private final ArtistRepository artistRepository;
-    private final AlbumRepository albumRepository;
-    private final GenreRepository genreRepository;
-    private final ArtistSongRepository artistSongRepository;
-    private final ArtistAlbumRepository artistAlbumRepository;
-    private final SongGenreRepository songGenreRepository;
 
     /**
      * Jamendo 음원 초기 적재
      */
     @Transactional
     public void importInitJamendo(LocalDate startDate, LocalDate endDate) {
-        int maxPage = 50;
+        int maxPage = 1000;
         String dateBetween = startDate + "_" + endDate;
         duplicationJamendo(maxPage, dateBetween);
     }
@@ -58,7 +41,7 @@ public class JamendoSongService {
      */
     @Transactional
     public void importScheduledJamendo() {
-        int maxPage = 50;
+        int maxPage = 1000;
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         LocalDate yesterday = today.minusDays(1);
         String dateBetween = yesterday + "_" + today;
@@ -73,33 +56,7 @@ public class JamendoSongService {
         int successCount = 0;   // 전체 신규 적재된 음원 수
         int skipCount = 0;      // 전체 중복(스킵) 음원 수
 
-        Set<Long> existingSongIdSet = songRepository.findSongIdSet();
-        List<Artist> existingArtistList = artistRepository.findArtistList();
-        Map<Long, Artist> artistMap = existingArtistList.stream()
-                .collect(Collectors.toMap(
-                        Artist::getJamendoArtistId,
-                        Function.identity()
-                ));
-        List<Album> existingAlbumList = albumRepository.findAlbumList();
-        Map<Long, Album> albumMap = existingAlbumList.stream()
-                .collect(Collectors.toMap(
-                        Album::getJamendoAlbumId,
-                        Function.identity()
-                ));
-        List<Genre> existingGenreList = genreRepository.findAll();
-        Map<String, Genre> genreMap = existingGenreList.stream()
-                .collect(Collectors.toMap(
-                        Genre::getGenreName,
-                        Function.identity()
-                ));
-
-        Set<Artist> artistSet = new HashSet<>();
-        Set<Album> albumSet = new HashSet<>();
-        Set<Genre> genreSet = new HashSet<>();
-        Set<Song> songSet = new HashSet<>();
-        Set<ArtistSong> artistSongSet = new HashSet<>();
-        Set<ArtistAlbum> artistAlbumSet = new HashSet<>();
-        Set<SongGenre> songGenreSet = new HashSet<>();
+        Set<Long> existingJamendoSongIdList = new HashSet<>(songRepository.findJamendoSongIdList());
 
         // Jamendo API 페이지 단위로 반복
         for (int page = 1; page <= maxPage; page++) {
@@ -115,46 +72,61 @@ public class JamendoSongService {
                 log.info("Api 응답 결과 : 데이터 없음. 적재 종료");
                 break;
             }
+            List<ArtistRow> artistRowList = new ArrayList<>(); // 부모 테이블
+            List<AlbumRow> albumRowList = new ArrayList<>();
+            List<GenreRow> genreRowList = new ArrayList<>();
+
+            List<SongRow> songList = new ArrayList<>();
+            List<ArtistSongRow> artistSongRowList = new ArrayList<>();
+            List<ArtistAlbumRow> artistAlbumRowList = new ArrayList<>();
+            List<SongGenreRow> songGenreRowList = new ArrayList<>();
 
             // 페이지 단위로 음원 처리
             for (JamendoSongDto dto : results) {
-                Long jamendoSongId = dto.getJamendoSongId();
-                Long jamendoArtistId = dto.getArtistId();
-                Long jamendoAlbumId = dto.getAlbumId();
 
-                // 이미 저장된 음원이면 저장 안함
-                if (jamendoSongId == null || existingSongIdSet.contains(jamendoSongId)) {
+                Long jamendoSongId = dto.getJamendoSongId();
+                if (jamendoSongId == null || dto.getJamendoAlbumId() == null) {
                     skipCount++;
                     skipInPage++;
                     continue;
                 }
-                existingSongIdSet.add(jamendoSongId);
 
-                // 저장된 아티스트 또는 생성한 아티스트
-                Artist artist = artistMap.computeIfAbsent(jamendoArtistId, id -> new Artist(dto.getArtistName(), jamendoArtistId));
+                existingJamendoSongIdList.add(jamendoSongId);
 
-                // 저장된 앨범 또는 생성한 앨범
-                Album album = albumMap.computeIfAbsent(jamendoAlbumId, id -> new Album(jamendoAlbumId, dto.getAlbumName(), dto.getAlbumReleaseDate(), dto.getAlbumImage()));
+                Long jamendoArtistId = dto.getJamendoArtistId();
+                Long jamendoAlbumId = dto.getJamendoAlbumId();
 
-                JamendoMusicInfoDto musicInfo = dto.getMusicInfo();
+                artistRowList.add(new ArtistRow(jamendoArtistId, dto.getJamendoArtistName()));
+                albumRowList.add(new AlbumRow(jamendoAlbumId, dto.getJamendoAlbumName(), dto.getJamendoAlbumReleaseDate(), dto.getJamendoAlbumImage()));
+
+                JamendoMusicInfoDto musicInfo = dto.getJamendoMusicInfo();
                 JamendoTagDto tags = (musicInfo != null) ? musicInfo.getTags() : null;
-                Song song = createSong(musicInfo, tags, dto, album);
 
-                if (!existingArtistList.contains(artist)) {
-                    artistSet.add(artist);
+                songList.add(toSongRowList(dto, musicInfo, tags));
+
+                artistSongRowList.add(new ArtistSongRow(jamendoArtistId, jamendoSongId));
+                artistAlbumRowList.add(new ArtistAlbumRow(jamendoArtistId, jamendoAlbumId));
+
+                if (tags != null && tags.getGenres() != null) {
+                    for (String genre : tags.getGenres()) {
+                        if (genre == null || genre.isBlank()) continue;
+                        genreRowList.add(new GenreRow(genre));
+                        songGenreRowList.add(new SongGenreRow(jamendoSongId, genre));
+                    }
                 }
-                if (!existingAlbumList.contains(album)) {
-                    albumSet.add(album);
-                }
-
-                songSet.add(song);
-                artistSongSet.add(new ArtistSong(artist, song));
-                artistAlbumSet.add(new ArtistAlbum(artist, album));
-                addSongGenres(song, tags, genreSet, songGenreSet, genreMap);
-
                 successCount++;
                 insertedInPage++;
             }
+
+            batchJdbcRepository.insertArtists(artistRowList);
+            batchJdbcRepository.insertAlbums(albumRowList);
+            batchJdbcRepository.insertGenres(genreRowList);
+
+            // 이번 페이지에서 수집한 데이터들을 JDBC insert로 한 번에 저장
+            batchJdbcRepository.insertSongs(songList);
+            batchJdbcRepository.insertArtistSongs(artistSongRowList);
+            batchJdbcRepository.insertArtistAlbums(artistAlbumRowList);
+            batchJdbcRepository.insertSongGenres(songGenreRowList);
 
             log.info("page={} 결과 → 신규 {}, 중복 {}", page, insertedInPage, skipInPage);
 
@@ -164,50 +136,27 @@ public class JamendoSongService {
                 break;
             }
         }
-
-        artistRepository.saveAll(artistSet);
-        albumRepository.saveAll(albumSet);
-        songRepository.saveAll(songSet);
-        genreRepository.saveAll(genreSet);
-        artistSongRepository.saveAll(artistSongSet);
-        artistAlbumRepository.saveAll(artistAlbumSet);
-        songGenreRepository.saveAll(songGenreSet);
-
         log.info("=== Jamendo 적재 완료 ===");
         log.info("성공: {}, 중복: {}", successCount, skipCount);
     }
 
     /**
-     * 음악 - 장르 수집
-     */
-    private void addSongGenres(Song song, JamendoTagDto tags, Set<Genre> genreList, Set<SongGenre> songGenreList, Map<String, Genre> genreMap) {
-        // 장르 관계가 있으면 song_genres 추가
-        if(tags == null || tags.getGenres() == null) {
-            return;
-        }
-
-        for (String genreName : tags.getGenres()) {
-            Genre genre = genreMap.computeIfAbsent(genreName, Genre::new);
-            genreList.add(genre); // getOrCreateGenre(genreName);
-            songGenreList.add(new SongGenre(song, genre));
-        }
-    }
-
-    /**
      * 음악 엔티티 생성 전용 메서드(DTO -> Song 변환 담당)
      */
-    private Song createSong(JamendoMusicInfoDto musicInfo, JamendoTagDto tags, JamendoSongDto dto, Album album) {
-        String instruments = (tags != null) ? joinList(tags.getInstruments()) : null;
-        String vartags = (tags != null) ? joinList(tags.getMoods()) : null;
-
-        // 음원 엔티티 생성 (JPA save X, insert 용)
-        return new Song(dto.getJamendoSongId(), album, dto.getName(),
-                dto.getDuration() != null ? dto.getDuration() : 0L, dto.getLicenseCcurl(),
-                dto.getPosition() != null ? dto.getPosition() : 0L, dto.getAudioUrl(),
-                musicInfo != null ? musicInfo.getVocalInstrumental() : null,
-                musicInfo != null ? musicInfo.getLang() : null,
-                musicInfo != null ? musicInfo.getSpeed() : null,
-                instruments, vartags
+    private SongRow toSongRowList(JamendoSongDto dto, JamendoMusicInfoDto info, JamendoTagDto tags) {
+        return new SongRow(
+                dto.getJamendoSongId(),
+                dto.getJamendoAlbumId(),
+                dto.getJamendoSongName(),
+                dto.getJamendoDuration() != null ? dto.getJamendoDuration() : 0L,
+                dto.getJamendoLicenseCcurl(),
+                dto.getJamendoPosition() != null ? dto.getJamendoPosition() : 0L,
+                dto.getJamendoAudioUrl(),
+                info != null ? info.getVocalInstrumental() : null,
+                info != null ? info.getLang() : null,
+                info != null ? info.getSpeed() : null,
+                tags != null ? joinList(tags.getInstruments()) : null,
+                tags != null ? joinList(tags.getMoods()) : null
         );
     }
 

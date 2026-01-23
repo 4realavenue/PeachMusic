@@ -1,6 +1,6 @@
 package com.example.peachmusic.domain.openapi.jamendo.jdbc.row;
 
-public record ArtistAlbumRow(
+public record ArtistRow(
         Long jamendoArtistId,
-        Long jamendoAlbumId
+        String artistName
 ) {}
