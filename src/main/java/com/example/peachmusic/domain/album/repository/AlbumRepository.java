@@ -20,4 +20,9 @@ public interface AlbumRepository extends JpaRepository<Album, Long>, AlbumCustom
     Optional<Album> findByAlbumIdAndIsDeletedTrue(Long albumId);
 
     Optional<Album> findByJamendoAlbumId(String albumId);
+
+
+    boolean existsByAlbumImageAndIsDeletedFalse(String albumImage);
+
+    boolean existsByAlbumImageAndIsDeletedFalseAndAlbumIdNot(String trimmed, Long albumId);
 }

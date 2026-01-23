@@ -2,12 +2,14 @@ package com.example.peachmusic.domain.album.service;
 
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
+import com.example.peachmusic.common.model.AuthUser;
+import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
 import com.example.peachmusic.domain.album.entity.Album;
-import com.example.peachmusic.domain.album.model.response.AlbumGetDetailResponseDto;
-import com.example.peachmusic.domain.album.model.response.ArtistSummaryDto;
-import com.example.peachmusic.domain.album.model.response.SongSummaryDto;
-import com.example.peachmusic.domain.album.model.response.AlbumSearchResponse;
+import com.example.peachmusic.domain.album.dto.response.AlbumGetDetailResponseDto;
+import com.example.peachmusic.domain.album.dto.response.ArtistSummaryDto;
+import com.example.peachmusic.domain.album.dto.response.SongSummaryDto;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
+import com.example.peachmusic.domain.albumLike.repository.AlbumLikeRepository;
 import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artistAlbum.entity.ArtistAlbum;
 import com.example.peachmusic.domain.artistAlbum.repository.ArtistAlbumRepository;
@@ -29,35 +31,42 @@ public class AlbumService {
     private final AlbumRepository albumRepository;
     private final ArtistAlbumRepository artistAlbumRepository;
     private final SongRepository songRepository;
+    private final AlbumLikeRepository albumLikeRepository;
 
     /**
      * 앨범 단건 조회 기능
-     * @param albumId 조회할 앨범 ID
+     *
+     * @param authUser 인증된 사용자 정보
+     * @param albumId  조회할 앨범 ID
      * @return 조회한 앨범 정보
      */
     @Transactional(readOnly = true)
-    public AlbumGetDetailResponseDto getAlbumDetail(Long albumId) {
+    public AlbumGetDetailResponseDto getAlbumDetail(AuthUser authUser, Long albumId) {
 
-        // 조회 대상 앨범 조회 (삭제된 앨범은 조회 불가)
         Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_DETAIL_NOT_FOUND));
 
-        // 참여 아티스트 조회 -> DTO 변환
-        List<ArtistAlbum> artistAlbumList = artistAlbumRepository.findAllByAlbum_AlbumId(albumId);
-        List<ArtistSummaryDto> artists = new ArrayList<>();
+        boolean isLiked = false;
+
+        if (authUser != null) {
+            Long userId = authUser.getUserId();
+            isLiked = albumLikeRepository.existsByUser_UserIdAndAlbum_AlbumId(userId, albumId);
+        }
+
+        List<ArtistAlbum> artistAlbumList = artistAlbumRepository.findAllByAlbum_AlbumIdAndArtist_IsDeletedFalse(albumId);
+        List<ArtistSummaryDto> artistSummaryDtoList = new ArrayList<>();
         for (ArtistAlbum artistAlbum : artistAlbumList) {
             Artist artist = artistAlbum.getArtist();
-            artists.add(new ArtistSummaryDto(artist.getArtistId(), artist.getArtistName()));
+            artistSummaryDtoList.add(new ArtistSummaryDto(artist.getArtistId(), artist.getArtistName()));
         }
 
-        // 앨범 음원 조회 -> DTO 변환
         List<Song> songList = songRepository.findAllByAlbum_AlbumIdAndIsDeletedFalse(albumId);
-        List<SongSummaryDto> songs = new ArrayList<>();
+        List<SongSummaryDto> songSummaryDtoList = new ArrayList<>();
         for (Song song : songList) {
-            songs.add(new SongSummaryDto(song.getSongId(), song.getName(), song.getDuration(), song.getPosition()));
+            songSummaryDtoList.add(new SongSummaryDto(song.getPosition(), song.getSongId(), song.getName(), song.getDuration(), song.getLikeCount()));
         }
 
-        return AlbumGetDetailResponseDto.from(foundAlbum, artists, songs);
+        return AlbumGetDetailResponseDto.from(foundAlbum, artistSummaryDtoList, songSummaryDtoList, isLiked);
     }
 
     /**
@@ -67,7 +76,7 @@ public class AlbumService {
      * @return 페이징된 앨범 검색 응답 DTO
      */
     @Transactional(readOnly = true)
-    public Page<AlbumSearchResponse> searchAlbumPage(String word, Pageable pageable) {
+    public Page<AlbumSearchResponseDto> searchAlbumPage(String word, Pageable pageable) {
         return albumRepository.findAlbumPageByWord(word, pageable, USER);
     }
 
@@ -77,7 +86,7 @@ public class AlbumService {
      * @return 앨범 검색 응답 DTO 리스트
      */
     @Transactional(readOnly = true)
-    public List<AlbumSearchResponse> searchAlbumList(String word) {
+    public List<AlbumSearchResponseDto> searchAlbumList(String word) {
         final int limit = 5;
         return albumRepository.findAlbumListByWord(word, limit);
     }

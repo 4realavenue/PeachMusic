@@ -18,6 +18,8 @@ public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRep
 
     boolean existsSongByAlbumAndPosition(Album album, Long position);
 
+    boolean existsSongByAudio(String audioUrl);
+
     // (활성) 앨범 음원 목록 조회
     List<Song> findAllByAlbum_AlbumIdAndIsDeletedFalse(Long albumId);
 
@@ -32,12 +34,17 @@ public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRep
 
     boolean existsByJamendoSongId(String jamendoSongId);
 
-
     @Query("""
             select s.songId from Song s
             where s.songId in (:songIdList)
-            
             """)
     List<Long> findSongIdListBySongIdList(List<Long> songIdList);
 
+    boolean existsByAudioAndSongIdNot(String audio, Long songId);
+
+    @Query("""
+            select s.album.albumId from Song s
+            where s = :song
+            """)
+    Long findSongs_AlbumIdBySongId(Song song);
 }
