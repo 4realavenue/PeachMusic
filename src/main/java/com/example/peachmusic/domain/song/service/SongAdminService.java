@@ -71,7 +71,7 @@ public class SongAdminService {
 
         songGenreRepository.saveAll(songGenreList);
 
-        List<Artist> findArtistList = artistAlbumRepository.findArtistAlbum_Artist_ArtistIdByArtistAlbum_Album_AlbumId(findAlbum.getAlbumId());
+        List<Artist> findArtistList = artistAlbumRepository.findArtist_ArtistIdByArtistAlbum_Album_AlbumId(findAlbum.getAlbumId());
 
         List<ArtistSong> artistSongList = findArtistList.stream()
                 .map(artistSong -> new ArtistSong(artistSong, saveSong))

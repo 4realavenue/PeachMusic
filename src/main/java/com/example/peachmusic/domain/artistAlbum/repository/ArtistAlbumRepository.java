@@ -44,6 +44,6 @@ public interface ArtistAlbumRepository extends JpaRepository<ArtistAlbum, Long> 
             select aa.artist from ArtistAlbum aa
             where aa.album.albumId = :albumId
             """)
-    List<Artist> findArtistAlbum_Artist_ArtistIdByArtistAlbum_Album_AlbumId(Long albumId);
+    List<Artist> findArtist_ArtistIdByArtistAlbum_Album_AlbumId(Long albumId);
 
 }
