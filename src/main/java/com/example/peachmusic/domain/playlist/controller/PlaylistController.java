@@ -6,7 +6,6 @@ import com.example.peachmusic.domain.playlist.dto.request.PlaylistCreateRequestD
 import com.example.peachmusic.domain.playlist.dto.request.PlaylistUpdateRequestDto;
 import com.example.peachmusic.domain.playlist.dto.response.PlaylistCreateResponseDto;
 import com.example.peachmusic.domain.playlist.dto.response.PlaylistGetListResponseDto;
-import com.example.peachmusic.domain.playlist.dto.response.PlaylistGetSongResponseDto;
 import com.example.peachmusic.domain.playlist.dto.response.PlaylistUpdateResponseDto;
 import com.example.peachmusic.domain.playlist.service.PlaylistService;
 import lombok.RequiredArgsConstructor;
@@ -48,20 +47,6 @@ public class PlaylistController {
         List<PlaylistGetListResponseDto> responseDtoList = playlistService.getPlaylistAll(authUser);
 
         return ResponseEntity.ok(CommonResponse.success("플레이리스트가 조회 되었습니다", responseDtoList));
-    }
-
-    /**
-     * 플레이리스트 음원 조회
-     */
-    @GetMapping("/playlists/{playlistId}")
-    public ResponseEntity<CommonResponse<PlaylistGetSongResponseDto>> getPlaylistSongList(
-            @PathVariable("playlistId") Long playlistId,
-            @AuthenticationPrincipal AuthUser authUser
-    ) {
-
-        PlaylistGetSongResponseDto responseDto = playlistService.getPlaylistSongList(playlistId, authUser);
-
-        return ResponseEntity.ok(CommonResponse.success("플레이리스트 조회에 성공했습니다.", responseDto));
     }
 
     /**

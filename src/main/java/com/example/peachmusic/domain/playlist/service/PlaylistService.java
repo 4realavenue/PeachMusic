@@ -3,15 +3,13 @@ package com.example.peachmusic.domain.playlist.service;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.AuthUser;
-import com.example.peachmusic.domain.playlist.entity.Playlist;
 import com.example.peachmusic.domain.playlist.dto.request.PlaylistCreateRequestDto;
 import com.example.peachmusic.domain.playlist.dto.request.PlaylistUpdateRequestDto;
 import com.example.peachmusic.domain.playlist.dto.response.PlaylistCreateResponseDto;
 import com.example.peachmusic.domain.playlist.dto.response.PlaylistGetListResponseDto;
-import com.example.peachmusic.domain.playlist.dto.response.PlaylistGetSongResponseDto;
 import com.example.peachmusic.domain.playlist.dto.response.PlaylistUpdateResponseDto;
+import com.example.peachmusic.domain.playlist.entity.Playlist;
 import com.example.peachmusic.domain.playlist.repository.PlaylistRepository;
-import com.example.peachmusic.domain.playlistSong.entity.PlaylistSong;
 import com.example.peachmusic.domain.playlistSong.repository.PlaylistSongRepository;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.repository.UserRepository;
@@ -62,29 +60,6 @@ public class PlaylistService {
         List<Playlist> findPlaylistList = playlistRepository.findAllByUser(findUser);
 
         return findPlaylistList.stream().map(PlaylistGetListResponseDto::from).toList();
-
-    }
-
-    /**
-     * 플레이리스트 음원 조회
-     */
-    @Transactional(readOnly = true)
-    public PlaylistGetSongResponseDto getPlaylistSongList(Long playlistId, AuthUser authUser) {
-
-        Long userId = authUser.getUserId();
-
-        Playlist findPlaylist = playlistRepository.findById(playlistId)
-                .orElseThrow(() -> new CustomException(ErrorCode.PLAYLIST_NOT_FOUND));
-
-        if (!findPlaylist.getUser().getUserId().equals(userId)) {
-            throw new CustomException(ErrorCode.AUTH_AUTHORIZATION_REQUIRED);
-        }
-
-        List<PlaylistSong> findPlaylistSong = playlistSongRepository.findAllByPlaylist(findPlaylist);
-
-        List<PlaylistGetSongResponseDto.SongResponseDto> playlistSongDtoList = findPlaylistSong.stream().map(PlaylistGetSongResponseDto.SongResponseDto::from).toList();
-
-        return PlaylistGetSongResponseDto.from(findPlaylist, playlistSongDtoList);
 
     }
 

@@ -3,6 +3,7 @@ package com.example.peachmusic.domain.playlistSong.service;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.AuthUser;
+import com.example.peachmusic.domain.playlist.dto.response.PlaylistGetSongResponseDto;
 import com.example.peachmusic.domain.playlist.entity.Playlist;
 import com.example.peachmusic.domain.playlist.repository.PlaylistRepository;
 import com.example.peachmusic.domain.playlistSong.dto.request.PlaylistSongAddRequestDto;
@@ -26,13 +27,37 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class PlaylistSongService {
 
-    /**
-     * 플레이리스트 음원 추가
-     */
+
     private final PlaylistSongRepository playlistSongRepository;
     private final PlaylistRepository playlistRepository;
     private final SongRepository songRepository;
 
+    /**
+     * 플레이리스트 음원 조회
+     */
+    @Transactional(readOnly = true)
+    public PlaylistGetSongResponseDto getPlaylistSongList(Long playlistId, AuthUser authUser) {
+
+        Long userId = authUser.getUserId();
+
+        Playlist findPlaylist = playlistRepository.findById(playlistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PLAYLIST_NOT_FOUND));
+
+        if (!findPlaylist.getUser().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.AUTH_AUTHORIZATION_REQUIRED);
+        }
+
+        List<PlaylistSong> findPlaylistSong = playlistSongRepository.findAllByPlaylist(findPlaylist);
+
+        List<PlaylistGetSongResponseDto.SongResponseDto> playlistSongDtoList = findPlaylistSong.stream().map(PlaylistGetSongResponseDto.SongResponseDto::from).toList();
+
+        return PlaylistGetSongResponseDto.from(findPlaylist, playlistSongDtoList);
+
+    }
+
+    /**
+     * 플레이리스트 음원 추가
+     */
     @Transactional
     public PlaylistSongAddResponseDto addPlaylistSong(Long playlistId, PlaylistSongAddRequestDto requestDto, AuthUser authUser) {
 
@@ -49,10 +74,7 @@ public class PlaylistSongService {
             throw new CustomException(ErrorCode.PLAYLIST_ADD_SONG_REQUIRED);
         }
 
-        List<Long> distinctRequestSongIdList = requestDto.getSongIdList()
-                .stream()
-                .distinct()
-                .toList();
+        List<Long> distinctRequestSongIdList = requestDto.getSongIdList().stream().distinct().toList();
 
         List<Long> validRequestSongIdList = songRepository.findSongIdListBySongIdList(distinctRequestSongIdList);
 
@@ -103,10 +125,7 @@ public class PlaylistSongService {
             throw new CustomException(ErrorCode.PLAYLIST_REMOVE_SONG_REQUIRED);
         }
 
-        List<Long> distinctRequestSongIdList = requestDto.getSongIdList()
-                .stream()
-                .distinct()
-                .toList();
+        List<Long> distinctRequestSongIdList = requestDto.getSongIdList().stream().distinct().toList();
 
         List<Long> validRequestSongIdList = songRepository.findSongIdListBySongIdList(distinctRequestSongIdList);
 
