@@ -10,4 +10,5 @@ public class ArtistSearchResponseDto {
     private final Long artistId;
     private final String artistName;
     private final Long likeCount;
+    private final boolean isDeleted;
 }

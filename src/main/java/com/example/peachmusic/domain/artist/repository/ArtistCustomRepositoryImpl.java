@@ -63,7 +63,7 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
     private JPAQuery<ArtistSearchResponseDto> baseQuery(String word, UserRole role) {
 
         return queryFactory
-                .select(Projections.constructor(ArtistSearchResponseDto.class, artist.artistId, artist.artistName, artist.likeCount))
+                .select(Projections.constructor(ArtistSearchResponseDto.class, artist.artistId, artist.artistName, artist.likeCount, artist.isDeleted))
                 .from(artist)
                 .where(searchCondition(word, role));
     }

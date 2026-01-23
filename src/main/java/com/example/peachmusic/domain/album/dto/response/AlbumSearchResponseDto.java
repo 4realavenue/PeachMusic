@@ -14,4 +14,5 @@ public class AlbumSearchResponseDto {
     private final LocalDate albumReleaseDate;
     private final String albumImage;
     private final Long likeCount;
+    private final boolean isDeleted;
 }

@@ -17,9 +17,10 @@ public class UserAdminGetResponseDto {
     private final String email;
     private final LocalDateTime createdAt;
     private final LocalDateTime modifiedAt;
+    private final boolean isDeleted;
 
     public static UserAdminGetResponseDto from(User user) {
-        return new UserAdminGetResponseDto(user.getUserId(), user.getName(), user.getNickname(), user.getEmail(), user.getCreatedAt(), user.getModifiedAt()
+        return new UserAdminGetResponseDto(user.getUserId(), user.getName(), user.getNickname(), user.getEmail(), user.getCreatedAt(), user.getModifiedAt(), user.isDeleted()
         );
     }
 }

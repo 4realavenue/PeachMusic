@@ -67,7 +67,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
     private JPAQuery<SongSearchResponseDto> baseQuery(String word, UserRole role) {
 
         return queryFactory
-                .select(Projections.constructor(SongSearchResponseDto.class, song.songId, song.name, artist.artistName, song.likeCount, song.album.albumImage))
+                .select(Projections.constructor(SongSearchResponseDto.class, song.songId, song.name, artist.artistName, song.likeCount, song.album.albumImage, song.isDeleted))
                 .from(song)
                 .join(artistSong).on(artistSong.song.eq(song))
                 .join(artist).on(artistSong.artist.eq(artist))
