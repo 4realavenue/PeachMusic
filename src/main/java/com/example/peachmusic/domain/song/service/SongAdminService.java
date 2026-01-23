@@ -15,7 +15,7 @@ import com.example.peachmusic.domain.song.dto.request.AdminSongCreateRequestDto;
 import com.example.peachmusic.domain.song.dto.request.AdminSongUpdateRequestDto;
 import com.example.peachmusic.domain.song.dto.response.AdminSongCreateResponseDto;
 import com.example.peachmusic.domain.song.dto.response.AdminSongUpdateResponseDto;
-import com.example.peachmusic.domain.song.dto.response.SongSearchResponse;
+import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songGenre.entity.SongGenre;
@@ -25,9 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
-
 import static com.example.peachmusic.common.enums.UserRole.ADMIN;
 
 @Service
@@ -91,7 +89,7 @@ public class SongAdminService {
      * 음원 전체 조회
      */
     @Transactional(readOnly = true)
-    public Page<SongSearchResponse> getSongAll(String word, Pageable pageable) {
+    public Page<SongSearchResponseDto> getSongAll(String word, Pageable pageable) {
         return songRepository.findSongPageByWord(word, pageable, ADMIN);
     }
 

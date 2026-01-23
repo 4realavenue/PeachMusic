@@ -1,11 +1,11 @@
-package com.example.peachmusic.domain.song.model.response;
+package com.example.peachmusic.domain.song.dto.response;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class SongSearchResponse {
+public class SongSearchResponseDto {
 
     private final Long songId;
     private final String name;
