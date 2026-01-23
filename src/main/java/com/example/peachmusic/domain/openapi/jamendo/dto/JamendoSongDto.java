@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.jamendo.model;
+package com.example.peachmusic.domain.openapi.jamendo.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -10,41 +10,41 @@ import java.time.LocalDate;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class JamendoSongDto {
     @JsonProperty("id")
-    private String jamendoSongId;
+    private Long jamendoSongId;
 
     @JsonProperty("name")
-    private String name;
+    private String jamendoSongName;
 
     @JsonProperty("duration")
-    private Integer duration;
+    private Integer jamendoDuration;
 
     @JsonProperty("license_ccurl")
-    private String licenseCcurl;
+    private String jamendoLicenseCcurl;
 
     @JsonProperty("position")
-    private Integer position;
+    private Integer jamendoPosition;
 
     @JsonProperty("releasedate")
-    private LocalDate albumReleaseDate;
+    private LocalDate jamendoAlbumReleaseDate;
 
     @JsonProperty("audio")
-    private String audioUrl;
+    private String jamendoAudioUrl;
 
     @JsonProperty("artist_id")
-    private String artistId;
+    private Long jamendoArtistId;
 
     @JsonProperty("artist_name")
-    private String artistName;
+    private String jamendoArtistName;
 
     @JsonProperty("album_id")
-    private String albumId;
+    private Long jamendoAlbumId;
 
     @JsonProperty("album_name")
-    private String albumName;
+    private String jamendoAlbumName;
 
     @JsonProperty("album_image")
-    private String albumImage;
+    private String jamendoAlbumImage;
 
     @JsonProperty("musicinfo")
-    private JamendoMusicInfoDto musicInfo;
+    private JamendoMusicInfoDto jamendoMusicInfo;
 }

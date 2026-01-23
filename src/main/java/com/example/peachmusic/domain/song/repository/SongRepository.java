@@ -7,8 +7,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.List;
 import java.util.Optional;
+
+import java.util.List;
+import java.util.Set;
 
 public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRepository {
 
@@ -32,8 +34,6 @@ public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRep
     // (비활성) 여러 앨범 음원 조회
     List<Song> findAllByAlbum_AlbumIdInAndIsDeletedTrue(List<Long> albumIds);
 
-    boolean existsByJamendoSongId(String jamendoSongId);
-
     @Query("""
             select s.songId from Song s
             where s.songId in (:songIdList)
@@ -47,4 +47,7 @@ public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRep
             where s = :song
             """)
     Long findSongs_AlbumIdBySongId(Song song);
+
+    @Query("select s.jamendoSongId from Song s where s.jamendoSongId is not null")
+    Set<Long> findJamendoSongIdList();
 }
