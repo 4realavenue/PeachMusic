@@ -11,8 +11,9 @@ public class ArtistGetDetailResponseDto {
     private final Long artistId;
     private final String artistName;
     private final Long likeCount;
+    private final boolean liked;
 
-    public static ArtistGetDetailResponseDto from(Artist artist) {
-        return new ArtistGetDetailResponseDto(artist.getArtistId(), artist.getArtistName(), artist.getLikeCount());
+    public static ArtistGetDetailResponseDto from(Artist artist, boolean liked) {
+        return new ArtistGetDetailResponseDto(artist.getArtistId(), artist.getArtistName(), artist.getLikeCount(), liked);
     }
 }
