@@ -2,10 +2,10 @@ package com.example.peachmusic.domain.searchHistory.service;
 
 import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
 import com.example.peachmusic.domain.album.service.AlbumService;
-import com.example.peachmusic.domain.artist.model.response.ArtistSearchResponseDto;
+import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
 import com.example.peachmusic.domain.artist.service.ArtistService;
 import com.example.peachmusic.domain.searchHistory.dto.SearchPreviewResponseDto;
-import com.example.peachmusic.domain.song.model.response.SongSearchResponse;
+import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.example.peachmusic.domain.song.service.SongService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,7 +31,7 @@ public class SearchService {
 
         List<ArtistSearchResponseDto> artistList = artistService.searchArtistList(word);
         List<AlbumSearchResponseDto> albumList = albumService.searchAlbumList(word);
-        List<SongSearchResponse> songList = songService.searchSongList(word);
+        List<SongSearchResponseDto> songList = songService.searchSongList(word);
 
         searchHistoryService.recordSearch(word); // 검색어 기록
 

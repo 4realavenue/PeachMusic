@@ -4,7 +4,7 @@ import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.CommonResponse;
 import com.example.peachmusic.common.model.PageResponse;
 import com.example.peachmusic.domain.song.dto.response.SongGetDetailResponseDto;
-import com.example.peachmusic.domain.song.dto.response.SongSearchResponse;
+import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.example.peachmusic.domain.song.service.SongService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -45,11 +45,11 @@ public class SongController {
      * @return 음원 검색 응답 DTO (음원 id, 이름, 좋아요 수)
      */
     @GetMapping("/search/songs")
-    public ResponseEntity<PageResponse<SongSearchResponse>> searchSong(
+    public ResponseEntity<PageResponse<SongSearchResponseDto>> searchSong(
             @RequestParam String word,
             @PageableDefault(size = 10, sort = "likeCount", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<SongSearchResponse> result = songService.searchSongPage(word, pageable);
+        Page<SongSearchResponseDto> result = songService.searchSongPage(word, pageable);
         return ResponseEntity.ok(PageResponse.success("음원 검색이 완료되었습니다.", result));
     }
 }

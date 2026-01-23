@@ -2,11 +2,11 @@ package com.example.peachmusic.domain.artist.controller;
 
 import com.example.peachmusic.common.model.CommonResponse;
 import com.example.peachmusic.common.model.PageResponse;
-import com.example.peachmusic.domain.artist.model.request.ArtistCreateRequestDto;
-import com.example.peachmusic.domain.artist.model.request.ArtistUpdateRequestDto;
-import com.example.peachmusic.domain.artist.model.response.ArtistCreateResponseDto;
-import com.example.peachmusic.domain.artist.model.response.ArtistSearchResponse;
-import com.example.peachmusic.domain.artist.model.response.ArtistUpdateResponseDto;
+import com.example.peachmusic.domain.artist.dto.request.ArtistCreateRequestDto;
+import com.example.peachmusic.domain.artist.dto.request.ArtistUpdateRequestDto;
+import com.example.peachmusic.domain.artist.dto.response.ArtistCreateResponseDto;
+import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
+import com.example.peachmusic.domain.artist.dto.response.ArtistUpdateResponseDto;
 import com.example.peachmusic.domain.artist.service.ArtistAdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -47,11 +47,11 @@ public class ArtistAdminController {
      * @return 아티스트 목록 페이징 조회 결과
      */
     @GetMapping("/admin/artists")
-    public ResponseEntity<PageResponse<ArtistSearchResponse>> getArtistList(
+    public ResponseEntity<PageResponse<ArtistSearchResponseDto>> getArtistList(
             @RequestParam(required = false) String word,
             @PageableDefault(page = 0, size = 10, sort = "artistId", direction = Sort.Direction.ASC) Pageable pageable) {
 
-        Page<ArtistSearchResponse> responseDtoPage = artistAdminService.getArtistList(word, pageable);
+        Page<ArtistSearchResponseDto> responseDtoPage = artistAdminService.getArtistList(word, pageable);
 
         return ResponseEntity.ok(PageResponse.success("아티스트 목록 조회 성공", responseDtoPage));
     }
