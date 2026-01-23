@@ -15,14 +15,12 @@ import com.example.peachmusic.domain.user.dto.response.admin.UserUpdateResponseD
 import com.example.peachmusic.domain.user.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import static org.apache.logging.log4j.util.Strings.isNotBlank;
 
 @Service
@@ -33,6 +31,9 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
+    /**
+     * 회원가입
+     */
     @Transactional
     public UserCreateResponseDto createUser(@Valid UserCreateRequestDto request) {
 
@@ -45,20 +46,21 @@ public class UserService {
         return UserCreateResponseDto.from(user);
     }
 
+    /**
+     * 내 정보 조회
+     */
     @Transactional(readOnly = true)
     public UserGetResponseDto getUser(AuthUser authUser) {
-
-        User user = userRepository.findById(authUser.getUserId())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        return UserGetResponseDto.from(user);
+        return UserGetResponseDto.from(authUser.getUser());
     }
 
+    /**
+     * 내 정보 수정
+     */
     @Transactional
     public UserUpdateResponseDto update(@Valid UserUpdateRequestDto request, AuthUser authUser) {
 
-        User user = userRepository.findById(authUser.getUserId())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User user = authUser.getUser();
 
         if (isNotBlank(request.getNickname()) && !request.getNickname().trim().equals(user.getNickname())) {
             if (userRepository.existsByNickname(request.getNickname().trim())) {
@@ -68,19 +70,20 @@ public class UserService {
 
         user.update(request);
 
-
         return UserUpdateResponseDto.from(user);
     }
 
+    /**
+     * 회원탈퇴
+     */
     @Transactional
     public void deleteUser(AuthUser authUser) {
-
-        User findUser = userRepository.findById(authUser.getUserId())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        findUser.delete();
+        authUser.getUser().delete();
     }
 
+    /**
+     * 로그인
+     */
     @Transactional
     public LoginResponseDto login(@Valid LoginRequestDto request) {
         User user = userRepository.findUserByEmailAndIsDeletedFalse(request.getEmail())
@@ -91,7 +94,7 @@ public class UserService {
         }
         String token = jwtUtil.createToken(user.getUserId(), user.getEmail(), user.getRole(), user.getTokenVersion());
 
-        AuthUser authUser = new AuthUser(user.getUserId(), user.getEmail(), user.getRole(), user.getTokenVersion());
+        AuthUser authUser = new AuthUser(user, user.getUserId(), user.getEmail(), user.getRole(), user.getTokenVersion());
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(authUser,null, authUser.getAuthoritie());
 
@@ -100,12 +103,12 @@ public class UserService {
         return new LoginResponseDto(token);
     }
 
+    /**
+     * 로그아웃
+     */
     @Transactional
-    public void logout(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        user.increaseTokenVersion();
+    public void logout(AuthUser authUser) {
+        authUser.getUser().increaseTokenVersion();
     }
 
 }

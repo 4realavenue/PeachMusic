@@ -9,7 +9,6 @@ import com.example.peachmusic.domain.songLike.dto.response.SongLikeResponseDto;
 import com.example.peachmusic.domain.songLike.entity.SongLike;
 import com.example.peachmusic.domain.songLike.repository.SongLikeRepository;
 import com.example.peachmusic.domain.user.entity.User;
-import com.example.peachmusic.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class SongLikeService {
 
     private final SongLikeRepository songLikeRepository;
-    private final UserRepository userRepository;
     private final SongRepository songRepository;
 
     /**
@@ -28,10 +26,7 @@ public class SongLikeService {
     @Transactional
     public SongLikeResponseDto likeSong(AuthUser authUser, Long songId) {
 
-        Long userId = authUser.getUserId();
-
-        User findUser = userRepository.findByUserIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User findUser = authUser.getUser();
 
         Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
@@ -44,7 +39,7 @@ public class SongLikeService {
             liked = false;
 
             findSong.unlikeSong();
-        } else if (!liked) {
+        } else {
             SongLike songLike = new SongLike(findUser, findSong);
 
             songLikeRepository.save(songLike);

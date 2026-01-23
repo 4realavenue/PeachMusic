@@ -39,4 +39,8 @@ public class Playlist extends BaseEntity {
         this.playlistName = (requestDto.getPlaylistName() == null || requestDto.getPlaylistName().isBlank()) ? this.playlistName : requestDto.getPlaylistName();
         this.playlistImage = (requestDto.getPlaylistImage() == null || requestDto.getPlaylistImage().isBlank()) ? this.playlistImage : requestDto.getPlaylistImage();
     }
+
+    public boolean isOwnedBy(Long id) {
+        return this.user.getUserId().equals(id);
+    }
 }

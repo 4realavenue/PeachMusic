@@ -12,7 +12,6 @@ import com.example.peachmusic.domain.user.dto.response.admin.UserUpdateResponseD
 import com.example.peachmusic.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.aspectj.ConfigurableObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
-    private final ConfigurableObject configurableObject;
 
     @PostMapping("/auth/signup")
     public ResponseEntity<CommonResponse<UserCreateResponseDto>> createUser(
@@ -40,7 +38,7 @@ public class UserController {
     @GetMapping("/users")
     public ResponseEntity<CommonResponse<UserGetResponseDto>>  getUser(
             @AuthenticationPrincipal AuthUser authUser
-            ) {
+    ) {
 
         UserGetResponseDto response = userService.getUser(authUser);
 
@@ -80,12 +78,11 @@ public class UserController {
     public ResponseEntity<CommonResponse<Void>> logout(
             @AuthenticationPrincipal AuthUser authUser
     ) {
-        userService.logout(authUser.getUserId());
+        userService.logout(authUser);
 
         SecurityContextHolder.clearContext();
 
         return ResponseEntity.ok(CommonResponse.success("로그아웃 완료"));
     }
-
 
 }

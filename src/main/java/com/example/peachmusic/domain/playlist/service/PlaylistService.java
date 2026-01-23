@@ -11,12 +11,9 @@ import com.example.peachmusic.domain.playlist.dto.response.PlaylistUpdateRespons
 import com.example.peachmusic.domain.playlist.entity.Playlist;
 import com.example.peachmusic.domain.playlist.repository.PlaylistRepository;
 import com.example.peachmusic.domain.playlistSong.repository.PlaylistSongRepository;
-import com.example.peachmusic.domain.user.entity.User;
-import com.example.peachmusic.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 
 @Service
@@ -24,7 +21,6 @@ import java.util.List;
 public class PlaylistService {
 
     private final PlaylistRepository playlistRepository;
-    private final UserRepository userRepository;
     private final PlaylistSongRepository playlistSongRepository;
 
     /**
@@ -33,12 +29,7 @@ public class PlaylistService {
     @Transactional
     public PlaylistCreateResponseDto createPlaylist(PlaylistCreateRequestDto requestDto, AuthUser authUser) {
 
-        Long userId = authUser.getUserId();
-
-        User findUser = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        Playlist playlist = new Playlist(findUser, requestDto.getPlaylistName(), requestDto.getPlaylistImage());
+        Playlist playlist = new Playlist(authUser.getUser(), requestDto.getPlaylistName(), requestDto.getPlaylistImage());
 
         playlistRepository.save(playlist);
 
@@ -52,12 +43,7 @@ public class PlaylistService {
     @Transactional(readOnly = true)
     public List<PlaylistGetListResponseDto> getPlaylistAll(AuthUser authUser) {
 
-        Long userId = authUser.getUserId();
-
-        User findUser = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        List<Playlist> findPlaylistList = playlistRepository.findAllByUser(findUser);
+        List<Playlist> findPlaylistList = playlistRepository.findAllByUser(authUser.getUser());
 
         return findPlaylistList.stream().map(PlaylistGetListResponseDto::from).toList();
 
@@ -69,12 +55,10 @@ public class PlaylistService {
     @Transactional
     public PlaylistUpdateResponseDto updatePlaylist(Long playlistId, PlaylistUpdateRequestDto requestDto, AuthUser authUser) {
 
-        Long userId = authUser.getUserId();
-
         Playlist findPlaylist = playlistRepository.findById(playlistId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PLAYLIST_NOT_FOUND));
 
-        if (!findPlaylist.getUser().getUserId().equals(userId)) {
+        if (!findPlaylist.isOwnedBy(authUser.getUserId())) {
             throw new CustomException(ErrorCode.AUTH_AUTHORIZATION_REQUIRED);
         }
 
@@ -90,12 +74,10 @@ public class PlaylistService {
     @Transactional
     public void deletePlaylist(Long playlistId, AuthUser authUser) {
 
-        Long userId = authUser.getUserId();
-
         Playlist findPlaylist = playlistRepository.findById(playlistId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PLAYLIST_NOT_FOUND));
 
-        if (!findPlaylist.getUser().getUserId().equals(userId)) {
+        if (!findPlaylist.isOwnedBy(authUser.getUserId())) {
             throw new CustomException(ErrorCode.AUTH_AUTHORIZATION_REQUIRED);
         }
 
