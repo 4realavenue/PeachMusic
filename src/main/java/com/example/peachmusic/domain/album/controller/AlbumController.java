@@ -1,12 +1,14 @@
 package com.example.peachmusic.domain.album.controller;
 
+import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.CommonResponse;
-import com.example.peachmusic.domain.album.model.response.AlbumGetDetailResponseDto;
+import com.example.peachmusic.domain.album.dto.response.AlbumGetDetailResponseDto;
 import com.example.peachmusic.common.model.PageResponse;
-import com.example.peachmusic.domain.album.model.response.AlbumSearchResponse;
+import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
 import com.example.peachmusic.domain.album.service.AlbumService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.data.domain.Page;
@@ -30,11 +32,13 @@ public class AlbumController {
      * @return 조회한 앨범 정보
      */
     @GetMapping("/albums/{albumId}")
-    public ResponseEntity<CommonResponse<AlbumGetDetailResponseDto>> getAlbumDetail(@PathVariable("albumId") Long albumId) {
+    public ResponseEntity<CommonResponse<AlbumGetDetailResponseDto>> getAlbumDetail(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable("albumId") Long albumId) {
 
-        AlbumGetDetailResponseDto responseDto = albumService.getAlbumDetail(albumId);
+        AlbumGetDetailResponseDto responseDto = albumService.getAlbumDetail(authUser, albumId);
 
-        return ResponseEntity.ok(CommonResponse.success("앨범 조회 성공", responseDto));
+        return ResponseEntity.ok(CommonResponse.success("앨범 조회에 성공했습니다.", responseDto));
     }
 
     /**
@@ -44,11 +48,11 @@ public class AlbumController {
      * @return 앨범 검색 응답 DTO (앨범 id, 이름, 발매일, 이미지, 좋아요 수)
      */
     @GetMapping("/search/albums")
-    public ResponseEntity<PageResponse<AlbumSearchResponse>> searchAlbum(
+    public ResponseEntity<PageResponse<AlbumSearchResponseDto>> searchAlbum(
             @RequestParam String word,
             @PageableDefault(size = 10, sort = "likeCount", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<AlbumSearchResponse> result = albumService.searchAlbumPage(word, pageable);
+        Page<AlbumSearchResponseDto> result = albumService.searchAlbumPage(word, pageable);
         return ResponseEntity.ok(PageResponse.success("앨범 검색이 완료되었습니다.", result));
     }
 }
