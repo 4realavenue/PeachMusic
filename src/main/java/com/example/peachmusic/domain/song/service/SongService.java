@@ -13,7 +13,6 @@ import com.example.peachmusic.domain.songGenre.entity.SongGenre;
 import com.example.peachmusic.domain.songGenre.repository.SongGenreRepository;
 import com.example.peachmusic.domain.songLike.repository.SongLikeRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import static com.example.peachmusic.common.enums.UserRole.USER;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SongService {
@@ -43,8 +41,6 @@ public class SongService {
         boolean liked = false;
 
         if (authUser != null) { // 로그인이 된 경우
-            log.info("authUserId {}", authUser.getUserId());
-
             if (songLikeRepository.existsSongLikeByUserAndSong(authUser.getUser(), findSong)) {
                 liked = true;
             }
