@@ -82,12 +82,10 @@ public class ArtistAdminService {
         // 변경 여부 판단, 중복 검증, 업데이트에 동일하게 사용
         String trimmed = (newName == null) ? null : newName.trim();
 
-        // 변경이 없는 경우(같은 이름으로 수정 요청)면 그대로 반환
         if (foundArtist.isSameName(trimmed)) {
             return ArtistUpdateResponseDto.from(foundArtist);
         }
 
-        // 다른 아티스트가 동일 이름을 사용 중인지 검증
         boolean exists = artistRepository.existsByArtistNameAndIsDeletedFalseAndArtistIdNot(trimmed, artistId);
         if (exists) {
             throw new CustomException(ErrorCode.ARTIST_EXIST_NAME);

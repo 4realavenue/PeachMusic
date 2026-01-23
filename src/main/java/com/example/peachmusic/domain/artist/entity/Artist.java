@@ -31,10 +31,9 @@ public class Artist extends BaseEntity {
     }
 
     public void updateArtistName(String artistName) {
-        if (artistName == null || artistName.isBlank()) {
-            return;
+        if (artistName != null && !artistName.isBlank()) {
+            this.artistName = artistName.trim();
         }
-        this.artistName = artistName.trim();
     }
 
     public void delete() {
