@@ -38,6 +38,7 @@ public enum ErrorCode {
     PLAYLIST_NOT_FOUND(HttpStatus.NOT_FOUND, "플레이리스트가 존재하지 않습니다."),
     PLAYLIST_NOT_FOUND_SONG(HttpStatus.NOT_FOUND, "해당 곡이 플레이리스트에 존재하지 않습니다."),
     ALBUM_DETAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "앨범을 찾을 수 없습니다."),
+    ARTIST_DETAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "아티스트를 찾을 수 없습니다."),
 
 
     // 409

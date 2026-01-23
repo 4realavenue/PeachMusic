@@ -30,10 +30,7 @@ public class SongController {
             @PathVariable("songId") Long songId,
             @AuthenticationPrincipal AuthUser authUser
     ) {
-        authUser = (authUser != null) ? authUser : null;
-
         SongGetDetailResponseDto responseDto = songService.getSong(songId, authUser);
-
         return ResponseEntity.ok(CommonResponse.success("음원 조회에 성공 했습니다.", responseDto));
     }
 

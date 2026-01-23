@@ -39,7 +39,9 @@ public class Artist extends BaseEntity {
     }
 
     public void updateArtistName(String artistName) {
-        this.artistName = artistName;
+        if (artistName != null && !artistName.isBlank()) {
+            this.artistName = artistName.trim();
+        }
     }
 
     public void delete() {
@@ -58,5 +60,12 @@ public class Artist extends BaseEntity {
         if (this.likeCount > 0) {
             this.likeCount--;
         }
+    }
+
+    public boolean isSameName(String newName) {
+        if (newName == null || newName.isBlank()) {
+            return true;
+        }
+        return this.artistName.equals(newName.trim());
     }
 }

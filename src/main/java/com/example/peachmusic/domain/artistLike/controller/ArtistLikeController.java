@@ -2,7 +2,7 @@ package com.example.peachmusic.domain.artistLike.controller;
 
 import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.CommonResponse;
-import com.example.peachmusic.domain.artistLike.model.response.ArtistLikeResponseDto;
+import com.example.peachmusic.domain.artistLike.dto.response.ArtistLikeResponseDto;
 import com.example.peachmusic.domain.artistLike.service.ArtistLikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

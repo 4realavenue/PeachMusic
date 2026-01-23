@@ -6,10 +6,8 @@ import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
 import com.example.peachmusic.domain.artistLike.entity.ArtistLike;
-import com.example.peachmusic.domain.artistLike.model.response.ArtistLikeResponseDto;
+import com.example.peachmusic.domain.artistLike.dto.response.ArtistLikeResponseDto;
 import com.example.peachmusic.domain.artistLike.repository.ArtistLikeRepository;
-import com.example.peachmusic.domain.user.entity.User;
-import com.example.peachmusic.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ArtistLikeService {
 
     private final ArtistLikeRepository artistLikeRepository;
-    private final UserRepository userRepository;
     private final ArtistRepository artistRepository;
 
     /**
@@ -32,14 +29,8 @@ public class ArtistLikeService {
     @Transactional
     public ArtistLikeResponseDto likeArtist(AuthUser authUser, Long artistId) {
 
-        // AuthUser에서 사용자 ID 추출
         Long userId = authUser.getUserId();
 
-        // 삭제되지 않은 유효한 사용자 여부 검증
-        User foundUser = userRepository.findByUserIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        // 좋아요 대상 아티스트 조회 (삭제된 아티스트는 좋아요 불가)
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
 
@@ -52,13 +43,13 @@ public class ArtistLikeService {
             foundArtist.decreaseLikeCount();
         } else {
             // 좋아요 상태가 아니면 등록
-            artistLikeRepository.save(new ArtistLike(foundUser, foundArtist));
+            artistLikeRepository.save(new ArtistLike(authUser.getUser(), foundArtist));
             foundArtist.increaseLikeCount();
         }
 
         // 처리 후 최종 좋아요 상태
         boolean liked = !alreadyLiked;
 
-        return ArtistLikeResponseDto.of(foundArtist.getArtistId(), liked, foundArtist.getLikeCount());
+        return ArtistLikeResponseDto.of(foundArtist.getArtistId(), foundArtist.getArtistName(), liked, foundArtist.getLikeCount());
     }
 }

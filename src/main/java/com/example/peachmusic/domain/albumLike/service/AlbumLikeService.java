@@ -8,8 +8,6 @@ import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.albumLike.entity.AlbumLike;
 import com.example.peachmusic.domain.albumLike.dto.response.AlbumLikeResponseDto;
 import com.example.peachmusic.domain.albumLike.repository.AlbumLikeRepository;
-import com.example.peachmusic.domain.user.entity.User;
-import com.example.peachmusic.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class AlbumLikeService {
 
     private final AlbumLikeRepository albumLikeRepository;
-    private final UserRepository userRepository;
     private final AlbumRepository albumRepository;
 
     /**
@@ -35,10 +32,6 @@ public class AlbumLikeService {
         // AuthUser에서 사용자 ID 추출
         Long userId = authUser.getUserId();
 
-        // 삭제되지 않은 유효한 사용자 여부 검증
-        User foundUser = userRepository.findByUserIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
         // 좋아요 대상 앨범 조회 (삭제된 앨범은 좋아요 불가)
         Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
@@ -52,7 +45,7 @@ public class AlbumLikeService {
             foundAlbum.decreaseLikeCount();
         } else {
             // 좋아요 상태가 아니면 등록
-            albumLikeRepository.save(new AlbumLike(foundUser, foundAlbum));
+            albumLikeRepository.save(new AlbumLike(authUser.getUser(), foundAlbum));
             foundAlbum.increaseLikeCount();
         }
 
