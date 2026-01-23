@@ -42,7 +42,6 @@ public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRep
 
     boolean existsByAudioAndSongIdNot(String audio, Long songId);
 
-
     @Query("""
             select s.album.albumId from Song s
             where s = :song
