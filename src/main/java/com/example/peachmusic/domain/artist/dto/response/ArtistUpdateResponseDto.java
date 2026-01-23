@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.artist.model.response;
+package com.example.peachmusic.domain.artist.dto.response;
 
 import com.example.peachmusic.domain.artist.entity.Artist;
 import lombok.Getter;

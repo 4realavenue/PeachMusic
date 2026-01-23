@@ -3,9 +3,9 @@ package com.example.peachmusic.domain.artist.service;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.domain.artist.entity.Artist;
-import com.example.peachmusic.domain.artist.model.response.ArtistGetDetailResponseDto;
+import com.example.peachmusic.domain.artist.dto.response.ArtistGetDetailResponseDto;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
-import com.example.peachmusic.domain.artist.model.response.ArtistSearchResponse;
+import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,7 +42,7 @@ public class ArtistService {
      * @return 페이징된 아티스트 검색 응답 DTO
      */
     @Transactional(readOnly = true)
-    public Page<ArtistSearchResponse> searchArtistPage(String word, Pageable pageable) {
+    public Page<ArtistSearchResponseDto> searchArtistPage(String word, Pageable pageable) {
         return artistRepository.findArtistPageByWord(word, pageable, USER);
     }
 
@@ -52,7 +52,7 @@ public class ArtistService {
      * @return 아티스트 검색 응답 DTO 리스트
      */
     @Transactional(readOnly = true)
-    public List<ArtistSearchResponse> searchArtistList(String word) {
+    public List<ArtistSearchResponseDto> searchArtistList(String word) {
         final int limit = 5;
         return artistRepository.findArtistListByWord(word, limit);
     }

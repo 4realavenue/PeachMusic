@@ -4,11 +4,11 @@ import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.artist.entity.Artist;
-import com.example.peachmusic.domain.artist.model.request.ArtistCreateRequestDto;
-import com.example.peachmusic.domain.artist.model.request.ArtistUpdateRequestDto;
-import com.example.peachmusic.domain.artist.model.response.ArtistCreateResponseDto;
-import com.example.peachmusic.domain.artist.model.response.ArtistSearchResponse;
-import com.example.peachmusic.domain.artist.model.response.ArtistUpdateResponseDto;
+import com.example.peachmusic.domain.artist.dto.request.ArtistCreateRequestDto;
+import com.example.peachmusic.domain.artist.dto.request.ArtistUpdateRequestDto;
+import com.example.peachmusic.domain.artist.dto.response.ArtistCreateResponseDto;
+import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
+import com.example.peachmusic.domain.artist.dto.response.ArtistUpdateResponseDto;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
 import com.example.peachmusic.domain.artistAlbum.repository.ArtistAlbumRepository;
 import com.example.peachmusic.domain.song.entity.Song;
@@ -68,7 +68,7 @@ public class ArtistAdminService {
      * @return 아티스트 목록 페이징 조회 결과
      */
     @Transactional(readOnly = true)
-    public Page<ArtistSearchResponse> getArtistList(String word, Pageable pageable) {
+    public Page<ArtistSearchResponseDto> getArtistList(String word, Pageable pageable) {
         return artistRepository.findArtistPageByWord(word, pageable, ADMIN);
     }
 

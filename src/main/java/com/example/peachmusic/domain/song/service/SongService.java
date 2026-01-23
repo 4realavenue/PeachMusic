@@ -6,7 +6,7 @@ import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.song.dto.response.SongGetDetailResponseDto;
-import com.example.peachmusic.domain.song.dto.response.SongSearchResponse;
+import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songGenre.entity.SongGenre;
@@ -20,9 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
-
 import static com.example.peachmusic.common.enums.UserRole.USER;
 
 @Slf4j
@@ -85,7 +83,7 @@ public class SongService {
      * @return 페이징된 음원 검색 응답 DTO
      */
     @Transactional(readOnly = true)
-    public Page<SongSearchResponse> searchSongPage(String word, Pageable pageable) {
+    public Page<SongSearchResponseDto> searchSongPage(String word, Pageable pageable) {
         return songRepository.findSongPageByWord(word, pageable, USER);
     }
 
@@ -96,7 +94,7 @@ public class SongService {
      * @return 음원 검색 응답 DTO 리스트
      */
     @Transactional(readOnly = true)
-    public List<SongSearchResponse> searchSongList(String word) {
+    public List<SongSearchResponseDto> searchSongList(String word) {
         final int limit = 5;
         return songRepository.findSongListByWord(word, limit);
     }

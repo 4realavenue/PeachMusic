@@ -6,7 +6,7 @@ import com.example.peachmusic.domain.song.dto.request.AdminSongCreateRequestDto;
 import com.example.peachmusic.domain.song.dto.request.AdminSongUpdateRequestDto;
 import com.example.peachmusic.domain.song.dto.response.AdminSongCreateResponseDto;
 import com.example.peachmusic.domain.song.dto.response.AdminSongUpdateResponseDto;
-import com.example.peachmusic.domain.song.dto.response.SongSearchResponse;
+import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.example.peachmusic.domain.song.service.SongAdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,12 +41,12 @@ public class SongAdminController {
      * 음원 전체 조회 API
      */
     @GetMapping("/songs")
-    public ResponseEntity<PageResponse<SongSearchResponse>> getSongAll(
+    public ResponseEntity<PageResponse<SongSearchResponseDto>> getSongAll(
             @RequestParam(required = false) String word,
             @PageableDefault(size = 10, sort = "songId", direction = Sort.Direction.ASC) Pageable pageable
     ) {
 
-        Page<SongSearchResponse> responseDtoPage = songAdminService.getSongAll(word, pageable);
+        Page<SongSearchResponseDto> responseDtoPage = songAdminService.getSongAll(word, pageable);
 
         return ResponseEntity.ok(PageResponse.success("음원 목록 조회에 성공 했습니다", responseDtoPage));
     }
