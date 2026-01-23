@@ -1,6 +1,7 @@
 package com.example.peachmusic.domain.playlist.entity;
 
 import com.example.peachmusic.common.entity.BaseEntity;
+import com.example.peachmusic.domain.playlist.dto.request.PlaylistUpdateRequestDto;
 import com.example.peachmusic.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -25,12 +26,17 @@ public class Playlist extends BaseEntity {
     @Column(name = "playlist_name", nullable = false)
     private String playlistName;
 
-    public Playlist(User user, String playlistName) {
+    @Column(name = "playlist_image")
+    private String playlistImage;
+
+    public Playlist(User user, String playlistName, String playlistImage) {
         this.user = user;
         this.playlistName = playlistName;
+        this.playlistImage = playlistImage;
     }
 
-    public void updatePlaylist(String newName) {
-        this.playlistName = newName;
+    public void updatePlaylist(PlaylistUpdateRequestDto requestDto) {
+        this.playlistName = (requestDto.getPlaylistName() == null || requestDto.getPlaylistName().isBlank()) ? this.playlistName : requestDto.getPlaylistName();
+        this.playlistImage = (requestDto.getPlaylistImage() == null || requestDto.getPlaylistImage().isBlank()) ? this.playlistImage : requestDto.getPlaylistImage();
     }
 }

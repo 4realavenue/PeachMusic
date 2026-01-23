@@ -12,7 +12,8 @@ public enum ErrorCode {
     AUTH_EMAIL_PASSWORD_REQUIRED(HttpStatus.BAD_REQUEST, "이메일과 비밀번호를 입력해 주세요."),
     AUTH_EMAIL_PASSWORD_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "올바른 이메일 형식이 아닙니다."),
     SEARCH_KEYWORD_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "검색 키워드를 다시 입력해 주세요."),
-    PLAYLIST_ADD_SONG_REQUIRED(HttpStatus.BAD_REQUEST, "플레이리스트에 담을 음원을 선택해 주세요"),
+    PLAYLIST_ADD_SONG_REQUIRED(HttpStatus.BAD_REQUEST, "플레이리스트에 담을 음원을 선택해 주세요."),
+    PLAYLIST_REMOVE_SONG_REQUIRED(HttpStatus.BAD_REQUEST, "플레이리스트에서 제거할 음원을 선택해 주세요."),
     AUTH_PASSWORD_REQUIRED(HttpStatus.BAD_REQUEST, "이메일과 비밀번호를 입력해 주세요."),
     AUTH_INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 올바르지 않습니다."),
     AUTH_NAME_NICKNAME_REQUIRED(HttpStatus.BAD_REQUEST, "이름과 닉네임을 입력해 주세요."),
@@ -51,6 +52,8 @@ public enum ErrorCode {
     ARTIST_EXIST_NAME_DELETED(HttpStatus.CONFLICT, "비활성화된 동일 이름 아티스트가 존재합니다."),
     ALBUM_EXIST_NAME_RELEASE_DATE(HttpStatus.CONFLICT, "이미 동일한 앨범이 존재합니다."),
     ALBUM_EXIST_NAME_RELEASE_DATE_DELETED(HttpStatus.CONFLICT, "비활성화된 동일 앨범이 존재합니다."),
+    SONG_EXIST_SONG_URL(HttpStatus.CONFLICT, "이미 동일한 음원이 존재합니다."),
+    SONG_ALREADY_ACTIVE(HttpStatus.CONFLICT, "이미 활성화된 음원입니다."),
     ALBUM_EXIST_IMAGE(HttpStatus.CONFLICT, "이미 동일한 앨범 이미지가 존재합니다."),
 
     // 500

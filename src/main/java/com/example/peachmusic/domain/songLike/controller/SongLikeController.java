@@ -2,7 +2,7 @@ package com.example.peachmusic.domain.songLike.controller;
 
 import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.CommonResponse;
-import com.example.peachmusic.domain.songLike.model.response.SongLikeResponseDto;
+import com.example.peachmusic.domain.songLike.dto.response.SongLikeResponseDto;
 import com.example.peachmusic.domain.songLike.service.SongLikeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +26,7 @@ public class SongLikeController {
     public ResponseEntity<CommonResponse<SongLikeResponseDto>> likeSong(
             @PathVariable("songId") Long songId,
             @AuthenticationPrincipal AuthUser authUser
-            ) {
+    ) {
 
         SongLikeResponseDto responseDto = songLikeService.likeSong(authUser, songId);
 
