@@ -67,7 +67,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
     private JPAQuery<AlbumSearchResponseDto> baseQuery(String word, UserRole role) {
 
         return queryFactory
-                .selectDistinct(Projections.constructor(AlbumSearchResponseDto.class, album.albumId, album.albumName, artist.artistName, album.albumReleaseDate, album.albumImage, album.likeCount))
+                .selectDistinct(Projections.constructor(AlbumSearchResponseDto.class, album.albumId, album.albumName, artist.artistName, album.albumReleaseDate, album.albumImage, album.likeCount, album.isDeleted))
                 .from(album)
                 .join(artistAlbum).on(artistAlbum.album.eq(album))
                 .join(artist).on(artistAlbum.artist.eq(artist))
