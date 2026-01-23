@@ -17,7 +17,9 @@ public class JamendoBatchJdbcRepository {
     private final JdbcTemplate jdbcTemplate;
 
     public void insertSongs(List<SongRow> songs) {
-        if (songs.isEmpty()) return;
+        if (songs.isEmpty()) {
+            return;
+        }
 
         String insertSQL = """
             INSERT IGNORE INTO songs (
@@ -60,7 +62,9 @@ public class JamendoBatchJdbcRepository {
 
 
     public void insertArtistSongs(List<ArtistSongRow> rows) {
-        if (rows.isEmpty()) return;
+        if (rows.isEmpty()) {
+            return;
+        }
 
         String insertSQL = """
             INSERT IGNORE INTO artist_songs (artist_id, song_id)
@@ -90,7 +94,9 @@ public class JamendoBatchJdbcRepository {
     }
 
     public void insertArtistAlbums(List<ArtistAlbumRow> rows) {
-        if (rows.isEmpty()) return;
+        if (rows.isEmpty()) {
+            return;
+        }
 
         String insertSQL = """
             INSERT IGNORE INTO artist_albums (artist_id, album_id)
@@ -120,7 +126,9 @@ public class JamendoBatchJdbcRepository {
     }
 
     public void insertSongGenres(List<SongGenreRow> rows) {
-        if (rows.isEmpty()) return;
+        if (rows.isEmpty()) {
+            return;
+        }
 
         String insertSQL = """
             INSERT IGNORE INTO song_genres (song_id, genre_id)
@@ -148,7 +156,9 @@ public class JamendoBatchJdbcRepository {
     }
 
     public void insertArtists(List<ArtistRow> rows) {
-        if (rows.isEmpty()) return;
+        if (rows.isEmpty()) {
+            return;
+        }
 
         String insertSQL = """
             INSERT IGNORE INTO artists
@@ -173,7 +183,9 @@ public class JamendoBatchJdbcRepository {
     }
 
     public void insertAlbums(List<AlbumRow> rows) {
-        if (rows.isEmpty()) return;
+        if (rows.isEmpty()) {
+            return;
+        }
 
         String insertSQL = """
             INSERT IGNORE INTO albums
@@ -200,7 +212,9 @@ public class JamendoBatchJdbcRepository {
     }
 
     public void insertGenres(List<GenreRow> rows) {
-        if (rows.isEmpty()) return;
+        if (rows.isEmpty()) {
+            return;
+        }
 
         String insertSQL = """
             INSERT IGNORE INTO genres (genre_name)
