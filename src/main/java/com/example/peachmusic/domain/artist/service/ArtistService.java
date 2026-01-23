@@ -2,10 +2,12 @@ package com.example.peachmusic.domain.artist.service;
 
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
+import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.dto.response.ArtistGetDetailResponseDto;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
 import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
+import com.example.peachmusic.domain.artistLike.repository.ArtistLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +21,7 @@ import static com.example.peachmusic.common.enums.UserRole.USER;
 public class ArtistService {
 
     private final ArtistRepository artistRepository;
+    private final ArtistLikeRepository artistLikeRepository;
 
     /**
      * 아티스트 단건 조회 기능
@@ -26,13 +29,19 @@ public class ArtistService {
      * @return 조회한 아티스트 정보
      */
     @Transactional(readOnly = true)
-    public ArtistGetDetailResponseDto getArtistDetail(Long artistId) {
+    public ArtistGetDetailResponseDto getArtistDetail(AuthUser authUser, Long artistId) {
 
-        // 조회 대상 아티스트 조회 (삭제된 아티스트는 조회 불가)
+        boolean isLiked = false;
+
+        if (authUser != null) {
+            Long userId = authUser.getUserId();
+            isLiked = artistLikeRepository.existsByArtist_ArtistIdAndUser_UserId(userId, artistId);
+        }
+
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
 
-        return ArtistGetDetailResponseDto.from(foundArtist);
+        return ArtistGetDetailResponseDto.from(foundArtist, isLiked);
     }
 
     /**

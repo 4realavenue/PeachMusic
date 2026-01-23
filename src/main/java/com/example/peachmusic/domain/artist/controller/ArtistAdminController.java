@@ -37,13 +37,13 @@ public class ArtistAdminController {
 
         ArtistCreateResponseDto responseDto = artistAdminService.createArtist(requestDto);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("아티스트 생성 성공", responseDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("아티스트가 생성되었습니다.", responseDto));
     }
 
     /**
      * 전체 아티스트 조회 API (관리자 전용)
      *
-     * @param pageable pageable 페이지네이션 및 정렬 정보 (기본 정렬: 생성 시점 내림차순)
+     * @param pageable pageable 페이지네이션 및 정렬 정보 (기본 정렬: 아티스트 ID 오름차순)
      * @return 아티스트 목록 페이징 조회 결과
      */
     @GetMapping("/admin/artists")
@@ -53,7 +53,7 @@ public class ArtistAdminController {
 
         Page<ArtistSearchResponseDto> responseDtoPage = artistAdminService.getArtistList(word, pageable);
 
-        return ResponseEntity.ok(PageResponse.success("아티스트 목록 조회 성공", responseDtoPage));
+        return ResponseEntity.ok(PageResponse.success("아티스트 목록 조회에 성공했습니다.", responseDtoPage));
     }
 
     /**
@@ -70,7 +70,7 @@ public class ArtistAdminController {
 
         ArtistUpdateResponseDto responseDto = artistAdminService.updateArtist(artistId, requestDto);
 
-        return ResponseEntity.ok(CommonResponse.success("아티스트 정보 수정 성공", responseDto));
+        return ResponseEntity.ok(CommonResponse.success("아티스트 정보가 수정되었습니다.", responseDto));
     }
 
     /**
@@ -85,7 +85,7 @@ public class ArtistAdminController {
 
         artistAdminService.deleteArtist(artistId);
 
-        return ResponseEntity.ok(CommonResponse.success("아티스트 비활성화 성공", null));
+        return ResponseEntity.ok(CommonResponse.success("아티스트가 비활성화 되었습니다."));
     }
 
     /**
@@ -100,6 +100,6 @@ public class ArtistAdminController {
 
         artistAdminService.restoreArtist(artistId);
 
-        return ResponseEntity.ok(CommonResponse.success("아티스트 활성화 성공", null));
+        return ResponseEntity.ok(CommonResponse.success("아티스트가 활성화 되었습니다."));
     }
 }
