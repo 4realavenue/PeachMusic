@@ -8,8 +8,6 @@ import com.example.peachmusic.domain.artist.repository.ArtistRepository;
 import com.example.peachmusic.domain.artistLike.entity.ArtistLike;
 import com.example.peachmusic.domain.artistLike.dto.response.ArtistLikeResponseDto;
 import com.example.peachmusic.domain.artistLike.repository.ArtistLikeRepository;
-import com.example.peachmusic.domain.user.entity.User;
-import com.example.peachmusic.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ArtistLikeService {
 
     private final ArtistLikeRepository artistLikeRepository;
-    private final UserRepository userRepository;
     private final ArtistRepository artistRepository;
 
     /**
@@ -34,9 +31,6 @@ public class ArtistLikeService {
 
         Long userId = authUser.getUserId();
 
-        User foundUser = userRepository.findByUserIdAndIsDeletedFalse(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
 
@@ -49,7 +43,7 @@ public class ArtistLikeService {
             foundArtist.decreaseLikeCount();
         } else {
             // 좋아요 상태가 아니면 등록
-            artistLikeRepository.save(new ArtistLike(foundUser, foundArtist));
+            artistLikeRepository.save(new ArtistLike(authUser.getUser(), foundArtist));
             foundArtist.increaseLikeCount();
         }
 

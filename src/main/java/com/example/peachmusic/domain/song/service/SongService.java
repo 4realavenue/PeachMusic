@@ -12,10 +12,7 @@ import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songGenre.entity.SongGenre;
 import com.example.peachmusic.domain.songGenre.repository.SongGenreRepository;
 import com.example.peachmusic.domain.songLike.repository.SongLikeRepository;
-import com.example.peachmusic.domain.user.entity.User;
-import com.example.peachmusic.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import static com.example.peachmusic.common.enums.UserRole.USER;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SongService {
@@ -31,7 +27,6 @@ public class SongService {
     private final SongRepository songRepository;
     private final SongGenreRepository songGenreRepository;
     private final AlbumRepository albumRepository;
-    private final UserRepository userRepository;
     private final SongLikeRepository songLikeRepository;
 
     /**
@@ -45,18 +40,9 @@ public class SongService {
 
         boolean liked = false;
 
-        if (authUser != null) {
-            Long userId = authUser.getUserId();
-
-            log.info("authUserId {}", authUser.getUserId());
-
-            User findUser = userRepository.findByUserIdAndIsDeletedFalse(userId)
-                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-            if (songLikeRepository.existsSongLikeByUserAndSong(findUser, findSong)) {
+        if (authUser != null) { // 로그인이 된 경우
+            if (songLikeRepository.existsSongLikeByUserAndSong(authUser.getUser(), findSong)) {
                 liked = true;
-            } else {
-                liked = false;
             }
         }
 

@@ -68,7 +68,7 @@ public class PlaylistController {
      * 플레이리스트 삭제 API
      */
     @DeleteMapping("/playlists/{playlistId}")
-    public ResponseEntity<CommonResponse> deletePlaylist(
+    public ResponseEntity<CommonResponse<Void>> deletePlaylist(
             @PathVariable("playlistId") Long playlistId,
             @AuthenticationPrincipal AuthUser authUser
     ) {
