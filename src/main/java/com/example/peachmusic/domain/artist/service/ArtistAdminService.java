@@ -19,7 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
-import java.util.Optional;
+
 import static com.example.peachmusic.common.enums.UserRole.ADMIN;
 
 @Service
@@ -38,24 +38,16 @@ public class ArtistAdminService {
     @Transactional
     public ArtistCreateResponseDto createArtist(ArtistCreateRequestDto requestDto) {
 
-        String artistName = requestDto.getArtistName();
+        String artistName = requestDto.getArtistName().trim();
 
-        Optional<Artist> found = artistRepository.findByArtistName(artistName);
+        artistRepository.findByArtistName(artistName)
+                .ifPresent(artist -> {
+                    if (artist.isDeleted()) {
+                        throw new CustomException(ErrorCode.ARTIST_EXIST_NAME_DELETED);
+                    }
+                    throw new CustomException(ErrorCode.ARTIST_EXIST_NAME);
+                });
 
-        // 동일한 아티스트 이름이 이미 존재하는 경우
-        if (found.isPresent()) {
-            Artist artist = found.get();
-
-            // 비활성 상태(isDeleted=true)인 경우: 복구 대상이므로 생성 불가
-            if (artist.isDeleted()) {
-                throw new CustomException(ErrorCode.ARTIST_EXIST_NAME_DELETED);
-            }
-
-            // 활성 상태(isDeleted=false)인 경우: 중복 이름으로 생성 불가
-            throw new CustomException(ErrorCode.ARTIST_EXIST_NAME);
-        }
-
-        // 요청 값으로 아티스트 엔티티 생성 및 저장
         Artist artist = new Artist(artistName);
         Artist savedArtist = artistRepository.save(artist);
 
@@ -64,7 +56,7 @@ public class ArtistAdminService {
 
     /**
      * 전체 아티스트 조회 기능 (관리자 전용)
-     * @param pageable 페이지네이션 및 정렬 정보 (기본 정렬: createdAt DESC)
+     * @param pageable 페이지네이션 및 정렬 정보 (기본 정렬: artistId ASC)
      * @return 아티스트 목록 페이징 조회 결과
      */
     @Transactional(readOnly = true)
@@ -81,25 +73,25 @@ public class ArtistAdminService {
     @Transactional
     public ArtistUpdateResponseDto updateArtist(Long artistId, ArtistUpdateRequestDto requestDto) {
 
-        // 수정 대상 아티스트 조회 (삭제되지 않은 아티스트만 허용)
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
 
         String newName = requestDto.getArtistName();
 
-        // 변경이 없는 경우(같은 이름으로 수정 요청)면 그대로 반환
-        if (foundArtist.getArtistName().equals(newName)) {
+        // 입력값을 공통 기준으로 정규화(trim)하여
+        // 변경 여부 판단, 중복 검증, 업데이트에 동일하게 사용
+        String trimmed = (newName == null) ? null : newName.trim();
+
+        if (foundArtist.isSameName(trimmed)) {
             return ArtistUpdateResponseDto.from(foundArtist);
         }
 
-        // 다른 아티스트가 동일 이름을 사용 중인지 검증
-        boolean exists = artistRepository.existsByArtistNameAndIsDeletedFalseAndArtistIdNot(newName, artistId);
+        boolean exists = artistRepository.existsByArtistNameAndIsDeletedFalseAndArtistIdNot(trimmed, artistId);
         if (exists) {
             throw new CustomException(ErrorCode.ARTIST_EXIST_NAME);
         }
 
-        // 아티스트 이름 변경
-        foundArtist.updateArtistName(newName);
+        foundArtist.updateArtistName(trimmed);
 
         return ArtistUpdateResponseDto.from(foundArtist);
     }
@@ -111,28 +103,22 @@ public class ArtistAdminService {
     @Transactional
     public void deleteArtist(Long artistId) {
 
-        // 비활성화 대상 아티스트 조회 (이미 비활성화된 아티스트는 제외)
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
 
-        // 아티스트가 발매한 앨범 비활성화
         List<Album> foundAlbumList = artistAlbumRepository.findAlbumsByArtistIdAndIsDeleted(artistId, false);
 
-        // 앨범 ID 목록 추출
-        List<Long> albumIds = foundAlbumList.stream()
+        List<Long> albumIdList = foundAlbumList.stream()
                 .map(Album::getAlbumId)
                 .toList();
 
-        // 앨범에 포함된 음원 비활성화 (앨범들이 없으면 스킵)
-        if (!albumIds.isEmpty()) {
-            List<Song> foundSongList = songRepository.findAllByAlbum_AlbumIdInAndIsDeletedFalse(albumIds);
+        if (!albumIdList.isEmpty()) {
+            List<Song> foundSongList = songRepository.findAllByAlbum_AlbumIdInAndIsDeletedFalse(albumIdList);
             foundSongList.forEach(Song::deleteSong);
         }
 
-        // 앨범 비활성화
         foundAlbumList.forEach(Album::delete);
 
-        // 아티스트 비활성화
         foundArtist.delete();
     }
 
@@ -143,28 +129,22 @@ public class ArtistAdminService {
     @Transactional
     public void restoreArtist(Long artistId) {
 
-        // 활성화 대상 아티스트 조회 (삭제된 아티스트만 복구 가능)
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedTrue(artistId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
 
-        // 아티스트가 발매한 앨범 활성화
         List<Album> foundAlbumList = artistAlbumRepository.findAlbumsByArtistIdAndIsDeleted(artistId, true);
 
-        // 앨범 ID 목록 추출
-        List<Long> albumIds = foundAlbumList.stream()
+        List<Long> albumIdList = foundAlbumList.stream()
                 .map(Album::getAlbumId)
                 .toList();
 
-        // 앨범에 포함된 음원 활성화
-        if (!albumIds.isEmpty()) {
-            List<Song> foundSongList = songRepository.findAllByAlbum_AlbumIdInAndIsDeletedTrue(albumIds);
+        if (!albumIdList.isEmpty()) {
+            List<Song> foundSongList = songRepository.findAllByAlbum_AlbumIdInAndIsDeletedTrue(albumIdList);
             foundSongList.forEach(Song::restoreSong);
         }
 
-        // 앨범 활성화
         foundAlbumList.forEach(Album::restore);
 
-        // 아티스트 활성화
         foundArtist.restore();
     }
 }
