@@ -45,8 +45,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                         .requestMatchers("/api/search/**").permitAll()
-                        .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "BOSS")
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "BOSS") 
+                        .requestMatchers(HttpMethod.GET, "/api/songs/**", "/api/artists/**", "/api/albums/**").permitAll()
+                        .anyRequest().authenticated() 
                 );
 
         return http.build();

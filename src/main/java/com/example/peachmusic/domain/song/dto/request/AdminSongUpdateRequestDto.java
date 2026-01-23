@@ -1,27 +1,26 @@
-package com.example.peachmusic.domain.song.model.request;
+package com.example.peachmusic.domain.song.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.URL;
 
 import java.util.List;
 
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor
 public class AdminSongUpdateRequestDto {
 
-    @NotBlank
+    private Long albumId;
+
+    private Long position;
+
     private String name;
 
     private Long duration;
 
     private String licenseCcurl;
 
-    private Long position;
-
-    @URL
-    @NotBlank
+    @URL(message = "URL 형식으로 맞춰서 입력해 주세요.")
     private String audio;
 
     private String vocalinstrumental;
@@ -35,7 +34,5 @@ public class AdminSongUpdateRequestDto {
     private String instruments;
 
     private String vartags;
-
-    private Long albumId;
 
 }
