@@ -2,12 +2,20 @@ package com.example.peachmusic.common.exception;
 
 import com.example.peachmusic.common.model.CommonResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.Response;
+import org.springframework.http.HttpInputMessage;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+
 import java.util.Objects;
+import java.util.Optional;
 
 @RestControllerAdvice
 @Slf4j
@@ -48,4 +56,63 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ex.getStatusCode()).body(CommonResponse.fail(message));
     }
 
+    // 파라미터 타입 불일치
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<CommonResponse> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+
+        log.error("MethodArgumentTypeMismatchException 발생 : {} ", ex.getMessage());
+
+        String param = switch (ex.getName()) {
+            case "artistId" -> "아티스트";
+            case "albumId" -> "앨범";
+            case "songId" -> "음원";
+            case "playlistId" -> "플레이리스트";
+            default -> "요청 값";
+        };
+
+        String message = param + " 요청 값이 올바르지 않습니다.";
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(CommonResponse.fail(message));
+    }
+
+    // Request Body를 읽을 수 없을 때(Json 형식 오류 / Body 내부 타입 불일치)
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<CommonResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+
+        log.error("HttpMessageNotReadableException 발생 : {}", ex.getMessage());
+
+        String message = "입력하신 요청이 올바르지 않습니다.";
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(CommonResponse.fail(message));
+    }
+
+    // Request Method 불일치
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<CommonResponse> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException ex) {
+
+        log.error("HttpRequestMethodNotSupportedException 발생 : {}", ex.getMessage());
+
+        String method = switch (ex.getMethod()) {
+            case "POST" -> "입력";
+            case "GET" -> "읽기";
+            case "PUT", "PATCH" -> "수정";
+            case "DELETE" -> "삭제";
+            default -> "해당";
+        };
+
+        String message = method + " 요청은 지원하지 않는 요청입니다.";
+
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(CommonResponse.fail(message));
+    }
+
+    // 예외처리 안전망
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<CommonResponse> handleException(Exception ex) {
+
+        log.error("{} Exception 발생 : {}", ex, ex.getMessage());
+
+        String message = "오류가 발생 했습니다.";
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CommonResponse.fail(message));
+    }
 }
