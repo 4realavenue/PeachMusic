@@ -60,10 +60,6 @@ public class ArtistAdminService {
         return ArtistCreateResponseDto.from(savedArtist);
     }
 
-    private String normalize(String value) {
-        return (value != null && !value.isBlank()) ? value.trim() : null;
-    }
-
     /**
      * 전체 아티스트 조회 기능 (관리자 전용)
      * @param pageable 페이지네이션 및 정렬 정보 (기본 정렬: artistId ASC)
@@ -94,14 +90,6 @@ public class ArtistAdminService {
         return ArtistUpdateResponseDto.from(foundArtist);
     }
 
-    private boolean hasUpdateFields(ArtistUpdateRequestDto requestDto) {
-        return (requestDto.getArtistName() != null && !requestDto.getArtistName().isBlank())
-                || (requestDto.getCountry() != null && !requestDto.getCountry().isBlank())
-                || requestDto.getArtistType() != null
-                || requestDto.getDebutDate() != null
-                || (requestDto.getBio() != null && !requestDto.getBio().isBlank());
-    }
-
     /**
      * 아티스트 프로필 이미지 수정 기능 (관리자 전용)
      * @param artistId 프로필 이미지를 수정할 아티스트 ID
@@ -113,9 +101,15 @@ public class ArtistAdminService {
 
         Artist foundArtist = getArtistOrThrow(artistId, false, ErrorCode.ARTIST_NOT_FOUND);
 
-        String storedPath = fileStorageService.storeFile(profileImage, FileType.ARTIST_PROFILE);
+        String oldPath = foundArtist.getProfileImage();
 
-        foundArtist.updateProfileImage(storedPath);
+        String newPath = fileStorageService.storeFile(profileImage, FileType.ARTIST_PROFILE);
+
+        foundArtist.updateProfileImage(newPath);
+
+        if (oldPath != null) {
+            fileStorageService.deleteFileByPath(oldPath);
+        }
 
         return ArtistImageUpdateResponseDto.from(foundArtist);
     }
@@ -173,5 +167,17 @@ public class ArtistAdminService {
     private Artist getArtistOrThrow(Long artistId, boolean isDeleted, ErrorCode errorCode) {
         return artistRepository.findByArtistIdAndIsDeleted(artistId, isDeleted)
                 .orElseThrow(() -> new CustomException(errorCode));
+    }
+
+    private String normalize(String value) {
+        return (value != null && !value.isBlank()) ? value.trim() : null;
+    }
+
+    private boolean hasUpdateFields(ArtistUpdateRequestDto requestDto) {
+        return (requestDto.getArtistName() != null && !requestDto.getArtistName().isBlank())
+                || (requestDto.getCountry() != null && !requestDto.getCountry().isBlank())
+                || requestDto.getArtistType() != null
+                || requestDto.getDebutDate() != null
+                || (requestDto.getBio() != null && !requestDto.getBio().isBlank());
     }
 }
