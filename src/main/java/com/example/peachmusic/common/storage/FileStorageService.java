@@ -147,7 +147,7 @@ public class FileStorageService {
         s = s.replaceAll("\\s+", "");
 
         // 파일명에 쓸 수 없는 특수문자 제거
-        s = s.replaceAll("[\\\\/:*?\"<>|\\-_.]", "");
+        s = s.replaceAll("[\\\\/:*?\"<>|.]", "");
 
         // 너무 길면 자르기(서버 안전)
         int max = 80;
