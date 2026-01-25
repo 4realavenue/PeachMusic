@@ -31,7 +31,7 @@ public class ArtistLikeService {
 
         Long userId = authUser.getUserId();
 
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
+        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
 
         // 요청 전 좋아요 상태 확인
