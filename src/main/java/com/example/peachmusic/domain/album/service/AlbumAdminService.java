@@ -1,7 +1,9 @@
 package com.example.peachmusic.domain.album.service;
 
+import com.example.peachmusic.common.enums.FileType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
+import com.example.peachmusic.common.storage.FileStorageService;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.dto.request.AlbumCreateRequestDto;
 import com.example.peachmusic.domain.album.dto.request.AlbumUpdateRequestDto;
@@ -22,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static com.example.peachmusic.common.enums.UserRole.ADMIN;
@@ -51,15 +55,18 @@ public class AlbumAdminService {
 
         String albumName = requestDto.getAlbumName().trim();
         LocalDate albumReleaseDate = requestDto.getAlbumReleaseDate();
-        String storedPath = fileStorageService.storeFile(albumImage, FileType.ALBUM_IMAGE);
 
         albumRepository.findByAlbumNameAndAlbumReleaseDate(albumName, albumReleaseDate)
             .ifPresent(album -> {
                 if (album.isDeleted()) {
-                throw new CustomException(ErrorCode.ALBUM_EXIST_NAME_RELEASE_DATE_DELETED);
+                    throw new CustomException(ErrorCode.ALBUM_EXIST_NAME_RELEASE_DATE_DELETED);
             }
             throw new CustomException(ErrorCode.ALBUM_EXIST_NAME_RELEASE_DATE);
         });
+
+        String date = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        String baseName = "PeachMusic_album_" + albumName + "_" + date;
+        String storedPath = storeAlbumImage(albumImage, baseName);
 
         Album album = new Album(albumName, albumReleaseDate, storedPath);
         Album savedAlbum = albumRepository.save(album);
@@ -150,10 +157,15 @@ public class AlbumAdminService {
     public AlbumImageUpdateResponseDto updateAlbumImage(Long albumId, MultipartFile albumImage) {
 
         Album foundAlbum = getAlbumOrThrow(albumId);
+        String oldPath = foundAlbum.getAlbumImage();
 
-        String storedPath = fileStorageService.storeFile(albumImage, FileType.ALBUM_IMAGE);
+        String newPath = storeAlbumImage(albumImage, foundAlbum.getAlbumName());
 
-        foundAlbum.updateAlbumImage(storedPath);
+        foundAlbum.updateAlbumImage(newPath);
+
+        if (oldPath != null && !oldPath.equals(newPath)) {
+            fileStorageService.deleteFileByPath(oldPath);
+        }
 
         List<ArtistSummaryDto> artistList = getArtistSummaryListByAlbumId(albumId);
 
@@ -226,5 +238,11 @@ public class AlbumAdminService {
     private boolean hasUpdateFields(AlbumUpdateRequestDto requestDto) {
         return (requestDto.getAlbumName() != null && !requestDto.getAlbumName().isBlank())
                 || requestDto.getAlbumReleaseDate() != null;
+    }
+
+    private String storeAlbumImage(MultipartFile albumImage, String albumName) {
+        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        String baseName = "PeachMusic_album_" + albumName + "_" + date;
+        return fileStorageService.storeFile(albumImage, FileType.ALBUM_IMAGE, baseName);
     }
 }
