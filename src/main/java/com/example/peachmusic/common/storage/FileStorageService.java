@@ -20,7 +20,12 @@ public class FileStorageService {
     private static final Set<String> IMAGE_ALLOWED_EXT = Set.of("jpg", "jpeg", "png", "webp");
 
     private static final long AUDIO_MAX_SIZE = 30 * 1024 * 1024;
-    private static final Set<String> AUDIO_ALLOWED_EXT = Set.of("mp3", "wav", "m4a", "flac", "aac", "ogg");
+    private static final Set<String> AUDIO_ALLOWED_EXT = Set.of("mp3", "wav", "flac");
+
+    public String storeFile(MultipartFile file, FileType type) {
+        // 기존처럼 UUID로 저장 (아티스트 프로필 이미지에서 사용)
+        return storeFile(file, type, UUID.randomUUID().toString());
+    }
 
     /**
      * 이미지, 음원 파일을 서버에 저장하고,
@@ -29,7 +34,7 @@ public class FileStorageService {
      * @param file 업로드된 이미지, 음원 파일
      * @return 저장된 파일의 접근 경로
      */
-    public String storeFile(MultipartFile file, FileType type) {
+    public String storeFile(MultipartFile file, FileType type, String baseName) {
         validateFile(file, type);
 
         // 원본 파일명에서 확장자 추출
@@ -39,8 +44,15 @@ public class FileStorageService {
             throw new CustomException(type == FileType.AUDIO ? ErrorCode.AUDIO_INVALID_TYPE : ErrorCode.IMAGE_INVALID_TYPE);
         }
 
-        // 파일명 충돌 방지를 위해 UUID 기반 파일명 생성
-        String filename = UUID.randomUUID() + "." + ext;
+        // baseName 정리(특수문자 제거/공백 정리/길이 제한)
+        String safeBaseName = sanitizeBaseName(baseName);
+
+        if (safeBaseName.isBlank()) {
+            // 이름이 전부 특수문자였다거나 하면 빈 문자열이 될 수 있음
+            throw new CustomException(ErrorCode.FILE_UPLOAD_FAILED);
+        }
+
+        String filename = safeBaseName + "." + ext;
 
         // 프로젝트 실행 경로 기준(user.dir)으로 로컬 저장 디렉토리 지정
         Path dir = resolveDir(type);
@@ -128,5 +140,49 @@ public class FileStorageService {
 
     private Path resolveDir(FileType type) {
         return Paths.get(System.getProperty("user.dir"), "uploads", type.folder());
+    }
+
+    private String sanitizeBaseName(String input) {
+        if (input == null) {
+            return "";
+        }
+
+        String s = input.trim();
+
+        // 공백 여러개 -> 하나
+        s = s.replaceAll("\\s+", " ");
+
+        // 파일명에 특수 문자 제거: / \ : * ? " < > |
+        s = s.replaceAll("[\\\\/:*?\"<>|]", "");
+
+        // 구분자/가독성: 공백 -> -
+        s = s.replace(" ", "-");
+
+        // 너무 길면 자르기(서버 안전)
+        int max = 80;
+        if (s.length() > max) {
+            s = s.substring(0, max);
+        }
+
+        return s;
+    }
+
+    public void deleteFileByPath(String path) {
+
+        if (path == null || path.isBlank()) {
+            return;
+        }
+
+        // DB 경로("/uploads/...")에서 앞의 "/"를 제거해 실제 파일 경로로 변환
+        String relative = path.startsWith("/") ? path.substring(1) : path;
+
+        // 프로젝트 실행 경로 기준으로 삭제할 파일의 전체 경로 생성
+        Path target = Paths.get(System.getProperty("user.dir"), relative);
+
+        try {
+            Files.deleteIfExists(target);
+        } catch (IOException e) {
+           throw new CustomException(ErrorCode.FILE_DELETED_FAILED);
+        }
     }
 }

@@ -21,7 +21,7 @@ public enum ErrorCode {
     ALBUM_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "앨범 이름은 필수입니다."),
     AUTH_EMAIL_CERTIFICATION_FAILED(HttpStatus.BAD_REQUEST, "이메일 인증에 실패 했습니다."),
     AUTH_TOKEN_REQUIRED(HttpStatus.BAD_REQUEST, "토큰에 버전 정보가 없습니다."),
-    FILE_REQUIRED(HttpStatus.BAD_REQUEST, "이미지 파일은 필수입니다."),
+    FILE_REQUIRED(HttpStatus.BAD_REQUEST, "파일은 필수입니다."),
     IMAGE_TOO_LARGE(HttpStatus.BAD_REQUEST, "이미지 파일 용량이 너무 큽니다."),
     IMAGE_INVALID_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 이미지 파일 형식입니다."),
     AUDIO_TOO_LARGE(HttpStatus.BAD_REQUEST, "음원 파일 용량이 너무 큽니다."),
@@ -63,8 +63,9 @@ public enum ErrorCode {
     ALBUM_EXIST_IMAGE(HttpStatus.CONFLICT, "이미 동일한 앨범 이미지가 존재합니다."),
 
     // 500
-    SEARCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "일시적인 오류로 검색에 실패 했습니다."),
-    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패 했습니다.")
+    SEARCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "일시적인 오류로 검색에 실패했습니다."),
+    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다."),
+    FILE_DELETED_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 삭제에 실패했습니다.")
     ;
 
     private final HttpStatus status;
