@@ -50,4 +50,8 @@ public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRep
 
     @Query("select s.jamendoSongId from Song s where s.jamendoSongId is not null")
     Set<Long> findJamendoSongIdList();
+
+    boolean existsByAlbumAndName(Album album, String name);
+
+    boolean existsSongByAlbumAndPositionAndSongIdNot(Album album, Long position, Long songId);
 }

@@ -91,12 +91,11 @@ public class Song extends BaseEntity {
         this.vartags = vartags;
     }
 
-    public void updateSong(AdminSongUpdateRequestDto requestDto, String newAudio, Long newPosition, Album album) {
+    public void updateSong(AdminSongUpdateRequestDto requestDto, Long newPosition, Album album) {
         this.name = (requestDto.getName() == null || requestDto.getName().isBlank()) ? this.name : requestDto.getName();
         this.duration = (requestDto.getDuration() == null) ? this.duration : requestDto.getDuration();
         this.licenseCcurl = (requestDto.getLicenseCcurl() == null || requestDto.getLicenseCcurl().isBlank()) ? this.getLicenseCcurl() : requestDto.getLicenseCcurl();
         this.position = (newPosition == null) ? this.position : newPosition;
-        this.audio = (newAudio == null || newAudio.isBlank()) ? this.audio : newAudio;
         this.vocalinstrumental = (requestDto.getVocalinstrumental() == null || requestDto.getVocalinstrumental().isBlank()) ? this.getVocalinstrumental() : requestDto.getVocalinstrumental();
         this.lang = (requestDto.getLang() == null || requestDto.getLang().isBlank()) ? this.lang : requestDto.getLang();
         this.speed = (requestDto.getSpeed() == null || requestDto.getSpeed().isBlank()) ? this.speed : requestDto.getSpeed();
@@ -123,4 +122,7 @@ public class Song extends BaseEntity {
         this.likeCount++;
     }
 
+    public void updateAudio(String audio) {
+        this.audio = audio;
+    }
 }

@@ -23,7 +23,7 @@ public class AdminSongCreateResponseDto {
     private final String vocalinstrumental;
     private final String lang;
     private final String speed;
-    private final List<String> genre;
+    private final List<String> genreList;
     private final String instrumentals;
     private final String vartags;
 

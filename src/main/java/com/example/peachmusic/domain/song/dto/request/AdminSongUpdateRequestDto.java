@@ -2,7 +2,6 @@ package com.example.peachmusic.domain.song.dto.request;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.URL;
 
 import java.util.List;
 
@@ -20,16 +19,13 @@ public class AdminSongUpdateRequestDto {
 
     private String licenseCcurl;
 
-    @URL(message = "URL 형식으로 맞춰서 입력해 주세요.")
-    private String audio;
-
     private String vocalinstrumental;
 
     private String lang;
 
     private String speed;
 
-    private List<Long> genreId;
+    private List<Long> genreIdList;
 
     private String instruments;
 
