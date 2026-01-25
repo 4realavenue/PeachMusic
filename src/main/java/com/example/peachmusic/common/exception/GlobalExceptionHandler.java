@@ -2,8 +2,6 @@ package com.example.peachmusic.common.exception;
 
 import com.example.peachmusic.common.model.CommonResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.Response;
-import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -13,9 +11,9 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.Objects;
-import java.util.Optional;
 
 @RestControllerAdvice
 @Slf4j
@@ -103,6 +101,17 @@ public class GlobalExceptionHandler {
         String message = method + " 요청은 지원하지 않는 요청입니다.";
 
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(CommonResponse.fail(message));
+    }
+
+    // 서버에 존재하지 않는 url로 접근 요청 시
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<CommonResponse> handleNoHandlerFoundException(NoHandlerFoundException ex) {
+
+        log.error("NoHandlerFoundException 발생 : {}", ex.getMessage());
+
+        String message = "페이지를 찾을 수 없습니다.";
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(CommonResponse.fail(message));
     }
 
     // 예외처리 안전망
