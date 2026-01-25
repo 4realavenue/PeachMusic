@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -33,34 +34,24 @@ public class AlbumAdminService {
     private final ArtistRepository artistRepository;
     private final ArtistAlbumRepository artistAlbumRepository;
     private final SongRepository songRepository;
+    private final FileStorageService fileStorageService;
 
     /**
      * 앨범 생성 기능 (관리자 전용)
+     *
      * @param requestDto 앨범 생성 요청 DTO
+     * @param albumImage 업로드할 앨범 이미지 파일
      * @return 생성된 앨범 정보
      */
     @Transactional
-    public AlbumCreateResponseDto createAlbum(AlbumCreateRequestDto requestDto) {
+    public AlbumCreateResponseDto createAlbum(AlbumCreateRequestDto requestDto, MultipartFile albumImage) {
 
+        List<Long> artistIdList = distinctArtistIdList(requestDto.getArtistIdList());
+        List<Artist> artistList = getActiveArtistListOrThrow(artistIdList);
 
-        List<Long> artistIdList = requestDto.getArtistIdList().stream().distinct().toList();
-
-        List<Artist> artistList = artistRepository.findAllById(artistIdList);
-
-        // 요청한 아티스트 ID 중 존재하지 않는 항목이 있는지 검증
-        if (artistList.size() != artistIdList.size()) {
-            throw new CustomException(ErrorCode.ARTIST_NOT_FOUND);
-        }
-
-        String albumName = requestDto.getAlbumName();
+        String albumName = requestDto.getAlbumName().trim();
         LocalDate albumReleaseDate = requestDto.getAlbumReleaseDate();
-        String albumImage = requestDto.getAlbumImage();
-
-        if (albumImage != null) {
-            if (albumRepository.existsByAlbumImageAndIsDeletedFalse(albumImage)) {
-                throw new CustomException(ErrorCode.ALBUM_EXIST_IMAGE);
-            }
-        }
+        String storedPath = fileStorageService.storeFile(albumImage, FileType.ALBUM_IMAGE);
 
         albumRepository.findByAlbumNameAndAlbumReleaseDate(albumName, albumReleaseDate)
             .ifPresent(album -> {
@@ -70,7 +61,7 @@ public class AlbumAdminService {
             throw new CustomException(ErrorCode.ALBUM_EXIST_NAME_RELEASE_DATE);
         });
 
-        Album album = new Album(albumName, albumReleaseDate, albumImage);
+        Album album = new Album(albumName, albumReleaseDate, storedPath);
         Album savedAlbum = albumRepository.save(album);
 
         // 참여 아티스트와 앨범의 N:M 관계를 매핑 테이블(ArtistAlbum)에 저장
@@ -79,9 +70,7 @@ public class AlbumAdminService {
                 .toList();
         artistAlbumRepository.saveAll(artistAlbumList);
 
-        List<ArtistSummaryDto> dtoList = artistAlbumList.stream()
-                .map(artist -> ArtistSummaryDto.from(artist.getArtist()))
-                .toList();
+        List<ArtistSummaryDto> dtoList = toArtistSummaryList(artistAlbumList);
 
         return AlbumCreateResponseDto.from(savedAlbum, dtoList);
     }
@@ -105,21 +94,10 @@ public class AlbumAdminService {
     @Transactional
     public AlbumUpdateResponseDto updateAlbumInfo(Long albumId, AlbumUpdateRequestDto requestDto) {
 
-        Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
+        Album foundAlbum = getAlbumOrThrow(albumId);
 
         if (!hasUpdateFields(requestDto)) {
             throw new CustomException(ErrorCode.ALBUM_UPDATE_NO_CHANGES);
-        }
-
-        String image = requestDto.getAlbumImage();
-
-        // 이미지 유니크 검증 먼저 수행
-        if (image != null && !image.isBlank()) {
-            String trimmed = image.trim();
-            if (albumRepository.existsByAlbumImageAndIsDeletedFalseAndAlbumIdNot(trimmed, albumId)) {
-                throw new CustomException(ErrorCode.ALBUM_EXIST_IMAGE);
-            }
         }
 
         foundAlbum.updateAlbumInfo(requestDto);
@@ -129,17 +107,9 @@ public class AlbumAdminService {
                throw new CustomException(ErrorCode.ALBUM_EXIST_NAME_RELEASE_DATE);
         }
 
-        List<ArtistSummaryDto> artistList = artistAlbumRepository.findAllByAlbum_AlbumId(albumId).stream()
-                .map(artist -> new ArtistSummaryDto(artist.getArtist().getArtistId(), artist.getArtist().getArtistName()))
-                .toList();
+        List<ArtistSummaryDto> artistList = getArtistSummaryListByAlbumId(albumId);
 
         return AlbumUpdateResponseDto.from(foundAlbum, artistList);
-    }
-
-    private boolean hasUpdateFields(AlbumUpdateRequestDto requestDto) {
-        return (requestDto.getAlbumName() != null && !requestDto.getAlbumName().isBlank())
-                || requestDto.getAlbumReleaseDate() != null
-                || (requestDto.getAlbumImage() != null && !requestDto.getAlbumImage().isBlank());
     }
 
     /**
@@ -151,17 +121,10 @@ public class AlbumAdminService {
     @Transactional
     public ArtistAlbumUpdateResponseDto updateAlbumArtistList(Long albumId, ArtistAlbumUpdateRequestDto requestDto) {
 
-        Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
+        Album foundAlbum = getAlbumOrThrow(albumId);
 
-
-        List<Long> artistIdList = requestDto.getArtistIdList().stream().distinct().toList();
-
-        List<Artist> artistList = artistRepository.findAllByArtistIdInAndIsDeletedFalse(artistIdList);
-
-        if (artistList.size() != artistIdList.size()) {
-            throw new CustomException(ErrorCode.ARTIST_NOT_FOUND);
-        }
+        List<Long> artistIdList = distinctArtistIdList(requestDto.getArtistIdList());
+        List<Artist> artistList = getActiveArtistListOrThrow(artistIdList);
 
         // 앨범 정책에 따라 기존 매핑은 하드 딜리트 후 재생성
         artistAlbumRepository.deleteAllByAlbumId(foundAlbum.getAlbumId());
@@ -172,11 +135,29 @@ public class AlbumAdminService {
 
         artistAlbumRepository.saveAll(artistAlbumList);
 
-        List<ArtistSummaryDto> dtoList = artistAlbumList.stream()
-                .map(artist -> ArtistSummaryDto.from(artist.getArtist()))
-                .toList();
+        List<ArtistSummaryDto> dtoList = toArtistSummaryList(artistAlbumList);
 
         return ArtistAlbumUpdateResponseDto.from(foundAlbum, dtoList);
+    }
+
+    /**
+     * 앨범 이미지 수정 기능 (관리자 전용)
+     * @param albumId 수정할 앨범 ID
+     * @param albumImage 업로드할 앨범 이미지 파일
+     * @return 이미지가 수정된 앨범 정보
+     */
+    @Transactional
+    public AlbumImageUpdateResponseDto updateAlbumImage(Long albumId, MultipartFile albumImage) {
+
+        Album foundAlbum = getAlbumOrThrow(albumId);
+
+        String storedPath = fileStorageService.storeFile(albumImage, FileType.ALBUM_IMAGE);
+
+        foundAlbum.updateAlbumImage(storedPath);
+
+        List<ArtistSummaryDto> artistList = getArtistSummaryListByAlbumId(albumId);
+
+        return AlbumImageUpdateResponseDto.from(foundAlbum, artistList);
     }
 
     /**
@@ -211,5 +192,39 @@ public class AlbumAdminService {
         foundSongList.forEach(Song::restoreSong);
 
         foundAlbum.restore();
+    }
+
+    private Album getAlbumOrThrow(Long albumId) {
+        return albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
+    }
+
+    private List<Long> distinctArtistIdList(List<Long> artistIdList) {
+        return artistIdList.stream().distinct().toList();
+    }
+
+    private List<Artist> getActiveArtistListOrThrow(List<Long> artistIdList) {
+        List<Artist> artistList = artistRepository.findAllByArtistIdInAndIsDeletedFalse(artistIdList);
+        if (artistList.size() != artistIdList.size()) {
+            throw new CustomException(ErrorCode.ARTIST_NOT_FOUND);
+        }
+        return artistList;
+    }
+
+    private List<ArtistSummaryDto> toArtistSummaryList(List<ArtistAlbum> artistAlbumList) {
+        return artistAlbumList.stream()
+                .map(artist -> ArtistSummaryDto.from(artist.getArtist()))
+                .toList();
+    }
+
+    private List<ArtistSummaryDto> getArtistSummaryListByAlbumId(Long albumId) {
+        return artistAlbumRepository.findAllByAlbum_AlbumId(albumId).stream()
+                .map(artist -> ArtistSummaryDto.from(artist.getArtist()))
+                .toList();
+    }
+
+    private boolean hasUpdateFields(AlbumUpdateRequestDto requestDto) {
+        return (requestDto.getAlbumName() != null && !requestDto.getAlbumName().isBlank())
+                || requestDto.getAlbumReleaseDate() != null;
     }
 }
