@@ -11,7 +11,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
-import java.util.UUID;
 
 @Service
 public class FileStorageService {
@@ -21,11 +20,6 @@ public class FileStorageService {
 
     private static final long AUDIO_MAX_SIZE = 30 * 1024 * 1024;
     private static final Set<String> AUDIO_ALLOWED_EXT = Set.of("mp3", "wav", "flac");
-
-    public String storeFile(MultipartFile file, FileType type) {
-        // 기존처럼 UUID로 저장 (아티스트 프로필 이미지에서 사용)
-        return storeFile(file, type, UUID.randomUUID().toString());
-    }
 
     /**
      * 이미지, 음원 파일을 서버에 저장하고,
@@ -147,16 +141,13 @@ public class FileStorageService {
             return "";
         }
 
-        String s = input.trim();
+        String s = input.trim().toLowerCase();
 
-        // 공백 여러개 -> 하나
-        s = s.replaceAll("\\s+", " ");
+        // 공백 전부 제거
+        s = s.replaceAll("\\s+", "");
 
-        // 파일명에 특수 문자 제거: / \ : * ? " < > |
-        s = s.replaceAll("[\\\\/:*?\"<>|]", "");
-
-        // 구분자/가독성: 공백 -> -
-        s = s.replace(" ", "-");
+        // 파일명에 쓸 수 없는 특수문자 제거
+        s = s.replaceAll("[\\\\/:*?\"<>|\\-_.]", "");
 
         // 너무 길면 자르기(서버 안전)
         int max = 80;
