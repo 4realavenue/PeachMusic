@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static com.example.peachmusic.common.enums.UserRole.ADMIN;
@@ -51,7 +53,7 @@ public class ArtistAdminService {
 
         String storedPath = null;
         if (profileImage != null && !profileImage.isEmpty()) {
-            storedPath = fileStorageService.storeFile(profileImage, FileType.ARTIST_PROFILE);
+            storedPath = storeProfileImage(profileImage, artistName);
         }
 
         Artist artist = new Artist(artistName, storedPath, country, requestDto.getArtistType(), requestDto.getDebutDate(), bio);
@@ -103,7 +105,7 @@ public class ArtistAdminService {
 
         String oldPath = foundArtist.getProfileImage();
 
-        String newPath = fileStorageService.storeFile(profileImage, FileType.ARTIST_PROFILE);
+        String newPath = storeProfileImage(profileImage, foundArtist.getArtistName());
 
         foundArtist.updateProfileImage(newPath);
 
@@ -179,5 +181,11 @@ public class ArtistAdminService {
                 || requestDto.getArtistType() != null
                 || requestDto.getDebutDate() != null
                 || (requestDto.getBio() != null && !requestDto.getBio().isBlank());
+    }
+
+    private String storeProfileImage(MultipartFile profileImage, String artistName) {
+        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        String baseName = "PeachMusic_artist_" + artistName + "_" + date;
+        return fileStorageService.storeFile(profileImage, FileType.ARTIST_PROFILE, baseName);
     }
 }
