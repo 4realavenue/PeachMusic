@@ -24,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -64,9 +63,7 @@ public class AlbumAdminService {
             throw new CustomException(ErrorCode.ALBUM_EXIST_NAME_RELEASE_DATE);
         });
 
-        String date = LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        String baseName = "PeachMusic_album_" + albumName + "_" + date;
-        String storedPath = storeAlbumImage(albumImage, baseName);
+        String storedPath = storeAlbumImage(albumImage, albumName);
 
         Album album = new Album(albumName, albumReleaseDate, storedPath);
         Album savedAlbum = albumRepository.save(album);
