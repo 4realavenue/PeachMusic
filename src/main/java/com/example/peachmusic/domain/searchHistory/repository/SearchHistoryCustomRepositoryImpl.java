@@ -26,13 +26,16 @@ public class SearchHistoryCustomRepositoryImpl implements SearchHistoryCustomRep
     @Override
     public List<SearchPopularResponseDto> findPopularKeyword() {
 
-        NumberExpression<Integer> rank = Expressions.numberTemplate(Integer.class, "ROW_NUMBER() OVER (ORDER BY {0} DESC)", searchHistory.count);
+        NumberExpression<Long> totalCount = searchHistory.count.sum();
+
+        NumberExpression<Integer> rank = Expressions.numberTemplate(Integer.class, "ROW_NUMBER() OVER (ORDER BY {0} DESC)", totalCount);
 
         return queryFactory
-                .select(Projections.constructor(SearchPopularResponseDto.class, rank, searchHistory.word, searchHistory.count))
+                .select(Projections.constructor(SearchPopularResponseDto.class, rank, searchHistory.word, totalCount))
                 .from(searchHistory)
                 .where(searchHistory.searchDate.goe(LocalDate.now().minusWeeks(1))) // 일주일 동안의 검색어
-                .orderBy(searchHistory.count.desc()) // 검색 횟수 내림차순
+                .groupBy(searchHistory.word)
+                .orderBy(totalCount.desc()) // 검색 횟수 내림차순
                 .limit(POPULAR_KEYWORD_LIMIT)
                 .fetch();
     }
