@@ -10,6 +10,4 @@ public class PlaylistCreateRequestDto {
 
     @NotBlank(message = "플레이리스트 이름은 필수 입력 사항 입니다.")
     private String playlistName;
-
-    private String playlistImage;
 }

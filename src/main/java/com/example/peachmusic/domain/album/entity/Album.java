@@ -59,10 +59,6 @@ public class Album extends BaseEntity {
         this.albumReleaseDate = (requestDto.getAlbumReleaseDate() == null)
                 ? this.albumReleaseDate
                 : requestDto.getAlbumReleaseDate();
-
-        this.albumImage = (requestDto.getAlbumImage() == null || requestDto.getAlbumImage().isBlank())
-                ? this.albumImage
-                : requestDto.getAlbumImage().trim();
     }
 
     public void delete() {
@@ -81,5 +77,9 @@ public class Album extends BaseEntity {
         if (this.likeCount > 0) {
             this.likeCount--;
         }
+    }
+
+    public void updateAlbumImage(String albumImage) {
+        this.albumImage = albumImage;
     }
 }

@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.URL;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -21,9 +20,6 @@ public class AlbumCreateRequestDto {
     @NotNull(message = "앨범 발매일은 필수입니다.")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate albumReleaseDate;
-
-    @URL(message = "URL 형식으로 맞춰서 입력해 주세요.")
-    private String albumImage;
 
     @NotNull(message = "참여 아티스트는 필수입니다.")
     @Size(min = 1, message = "참여 아티스트는 최소 1명 이상이어야 합니다.")
