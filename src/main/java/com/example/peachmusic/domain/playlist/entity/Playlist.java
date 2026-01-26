@@ -35,9 +35,12 @@ public class Playlist extends BaseEntity {
         this.playlistImage = playlistImage;
     }
 
-    public void updatePlaylist(PlaylistUpdateRequestDto requestDto) {
+    public void updatePlaylistName(PlaylistUpdateRequestDto requestDto) {
         this.playlistName = (requestDto.getPlaylistName() == null || requestDto.getPlaylistName().isBlank()) ? this.playlistName : requestDto.getPlaylistName();
-        this.playlistImage = (requestDto.getPlaylistImage() == null || requestDto.getPlaylistImage().isBlank()) ? this.playlistImage : requestDto.getPlaylistImage();
+    }
+
+    public void updatePlaylistImage(String playlistImage) {
+        this.playlistImage = playlistImage;
     }
 
     public boolean isOwnedBy(Long id) {

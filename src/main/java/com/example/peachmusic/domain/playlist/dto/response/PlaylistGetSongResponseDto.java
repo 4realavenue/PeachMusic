@@ -17,10 +17,10 @@ public class PlaylistGetSongResponseDto {
     private final String playlistImage;
     private final LocalDateTime createdAt;
     private final LocalDateTime modifiedAt;
-    private final List<SongResponseDto> songs;
+    private final List<SongResponseDto> songList;
 
-    public static PlaylistGetSongResponseDto from(Playlist playlist, List<SongResponseDto> playlistSongs) {
-        return new PlaylistGetSongResponseDto(playlist.getPlaylistId(), playlist.getPlaylistName(), playlist.getPlaylistImage(), playlist.getCreatedAt(), playlist.getModifiedAt(), playlistSongs);
+    public static PlaylistGetSongResponseDto from(Playlist playlist, List<SongResponseDto> playlistSongList) {
+        return new PlaylistGetSongResponseDto(playlist.getPlaylistId(), playlist.getPlaylistName(), playlist.getPlaylistImage(), playlist.getCreatedAt(), playlist.getModifiedAt(), playlistSongList);
     }
 
     @Getter
