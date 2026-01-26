@@ -27,7 +27,6 @@ public class AdminSongCreateResponseDto {
     private final String instrumentals;
     private final String vartags;
 
-
     public static AdminSongCreateResponseDto from(Song song, List<String> genreNameList, Album album) {
         return new AdminSongCreateResponseDto(album.getAlbumId(), album.getAlbumName(), song.getPosition(), song.getSongId(), song.getName(), song.getAudio(), song.getDuration(), song.getLicenseCcurl(), song.getVocalinstrumental(), song.getLang(), song.getSpeed(), genreNameList, song.getInstruments(), song.getVartags());
     }

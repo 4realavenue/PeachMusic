@@ -10,7 +10,7 @@ import java.util.List;
 public class PlaylistSongAddResponseDto {
 
     private final Long playlistId;
-    private final List<Long> addedSongIds;
+    private final List<Long> addedSongIdList;
     private final Integer addedCount;
 
     public static PlaylistSongAddResponseDto from(Long playlistId, List<Long> addedSongIds, Integer addedCount) {
