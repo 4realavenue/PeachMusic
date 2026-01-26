@@ -38,14 +38,13 @@ public class SongService {
     @Transactional(readOnly = true)
     public SongGetDetailResponseDto getSong(Long songId, AuthUser authUser) {
 
-        User findUser = userService.findUser(authUser);
-
         Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
         boolean liked = false;
 
         if (authUser != null) { // 로그인이 된 경우
+            User findUser = userService.findUser(authUser);
             if (songLikeRepository.existsSongLikeByUserAndSong(findUser, findSong)) {
                 liked = true;
             }
