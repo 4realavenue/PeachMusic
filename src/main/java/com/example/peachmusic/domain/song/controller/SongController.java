@@ -31,7 +31,7 @@ public class SongController {
             @AuthenticationPrincipal AuthUser authUser
     ) {
         SongGetDetailResponseDto responseDto = songService.getSong(songId, authUser);
-        return ResponseEntity.ok(CommonResponse.success("음원 조회에 성공 했습니다.", responseDto));
+        return ResponseEntity.ok(CommonResponse.success("음원 조회에 성공했습니다.", responseDto));
     }
 
     /**

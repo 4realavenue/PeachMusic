@@ -14,7 +14,7 @@ public class AdminSongCreateRequestDto {
 
     private Long position;
 
-    @NotBlank(message = "음원의 제목은 필수 입력 사항 입니다.")
+    @NotBlank(message = "음원 제목 입력은 필수 입니다.")
     private String name;
 
     private Long duration;

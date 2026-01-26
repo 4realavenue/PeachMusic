@@ -50,7 +50,7 @@ public class PlaylistController {
 
         List<PlaylistGetListResponseDto> responseDtoList = playlistService.getPlaylistAll(authUser);
 
-        return ResponseEntity.ok(CommonResponse.success("플레이리스트가 조회 되었습니다", responseDtoList));
+        return ResponseEntity.ok(CommonResponse.success("플레이리스트가 목록 조회에 성공했습니다.", responseDtoList));
     }
 
     /**
@@ -65,7 +65,7 @@ public class PlaylistController {
 
         PlaylistUpdateResponseDto responseDto = playlistService.updatePlaylist(playlistId, requestDto, authUser);
 
-        return ResponseEntity.ok(CommonResponse.success("플레이리스트 이름이 수정 되었습니다.", responseDto));
+        return ResponseEntity.ok(CommonResponse.success("플레이리스트 정보가 수정되었습니다.", responseDto));
     }
 
     /**
