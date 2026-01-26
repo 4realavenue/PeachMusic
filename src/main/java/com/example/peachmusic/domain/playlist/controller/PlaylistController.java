@@ -71,7 +71,7 @@ public class PlaylistController {
     /**
      * 플레이리스트 이미지 수정 API
      */
-    @PatchMapping("/playlists/{playlistId}/playlist-image")
+    @PatchMapping("/playlists/{playlistId}/image")
     public ResponseEntity<CommonResponse<PlaylistImageUpdateResponseDto>> updatePlaylistImage(
             @PathVariable("playlistId") Long playlistId,
             @RequestParam MultipartFile playlistImage,
