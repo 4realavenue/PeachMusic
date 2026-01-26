@@ -9,6 +9,7 @@ import com.example.peachmusic.domain.songLike.dto.response.SongLikeResponseDto;
 import com.example.peachmusic.domain.songLike.entity.SongLike;
 import com.example.peachmusic.domain.songLike.repository.SongLikeRepository;
 import com.example.peachmusic.domain.user.entity.User;
+import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ public class SongLikeService {
 
     private final SongLikeRepository songLikeRepository;
     private final SongRepository songRepository;
+    private final UserService userService;
 
     /**
      * 음원 좋아요/좋아요 취소 기능
@@ -26,7 +28,7 @@ public class SongLikeService {
     @Transactional
     public SongLikeResponseDto likeSong(AuthUser authUser, Long songId) {
 
-        User findUser = authUser.getUser();
+        User findUser = userService.findUser(authUser);
 
         Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
