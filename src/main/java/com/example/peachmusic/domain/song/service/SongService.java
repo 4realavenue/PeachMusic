@@ -12,6 +12,8 @@ import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songGenre.entity.SongGenre;
 import com.example.peachmusic.domain.songGenre.repository.SongGenreRepository;
 import com.example.peachmusic.domain.songLike.repository.SongLikeRepository;
+import com.example.peachmusic.domain.user.entity.User;
+import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +30,7 @@ public class SongService {
     private final SongGenreRepository songGenreRepository;
     private final AlbumRepository albumRepository;
     private final SongLikeRepository songLikeRepository;
+    private final UserService userService;
 
     /**
      * 음원 단건 조회
@@ -35,13 +38,15 @@ public class SongService {
     @Transactional(readOnly = true)
     public SongGetDetailResponseDto getSong(Long songId, AuthUser authUser) {
 
+        User findUser = userService.findUser(authUser);
+
         Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
         boolean liked = false;
 
         if (authUser != null) { // 로그인이 된 경우
-            if (songLikeRepository.existsSongLikeByUserAndSong(authUser.getUser(), findSong)) {
+            if (songLikeRepository.existsSongLikeByUserAndSong(findUser, findSong)) {
                 liked = true;
             }
         }
