@@ -26,7 +26,8 @@ public enum ErrorCode {
     IMAGE_INVALID_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 이미지 파일 형식입니다."),
     AUDIO_TOO_LARGE(HttpStatus.BAD_REQUEST, "음원 파일 용량이 너무 큽니다."),
     AUDIO_INVALID_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 음원 파일 형식입니다."),
-
+    ARTIST_UPDATE_NO_CHANGES(HttpStatus.BAD_REQUEST, "수정할 값이 없습니다."),
+    ARTIST_DEBUT_DATE_INVALID(HttpStatus.BAD_REQUEST, "데뷔일은 오늘 이후일 수 없습니다."),
 
     // 401
     AUTH_CERTIFICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "로그인이 필요한 서비스 입니다."),
@@ -54,8 +55,6 @@ public enum ErrorCode {
     USER_EXIST_ACTIVATION_USER(HttpStatus.CONFLICT, "이미 존재하는 유저 입니다."),
     USER_EXIST_ROLE(HttpStatus.CONFLICT, "이미 부여된 권한입니다."),
     USER_EXIST_DELETED(HttpStatus.CONFLICT, "이미 삭제된 유저 입니다."),
-    ARTIST_EXIST_NAME(HttpStatus.CONFLICT, "이미 존재하는 아티스트명 입니다."),
-    ARTIST_EXIST_NAME_DELETED(HttpStatus.CONFLICT, "비활성화된 동일 이름 아티스트가 존재합니다."),
     ALBUM_EXIST_NAME_RELEASE_DATE(HttpStatus.CONFLICT, "이미 동일한 앨범이 존재합니다."),
     ALBUM_EXIST_NAME_RELEASE_DATE_DELETED(HttpStatus.CONFLICT, "비활성화된 동일 앨범이 존재합니다."),
     SONG_EXIST_SONG_URL(HttpStatus.CONFLICT, "이미 동일한 음원이 존재합니다."),

@@ -1,0 +1,1 @@
+ALTER TABLE artists DROP INDEX uk_artists_artist_name;

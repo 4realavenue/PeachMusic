@@ -38,7 +38,7 @@ public class ArtistService {
             isLiked = artistLikeRepository.existsByArtist_ArtistIdAndUser_UserId(userId, artistId);
         }
 
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
+        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
 
         return ArtistGetDetailResponseDto.from(foundArtist, isLiked);
