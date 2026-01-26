@@ -20,4 +20,9 @@ public class OpenApiScheduler {
     public void importScheduledJamendo() {
         jamendoSongService.importScheduledJamendo();
     }
+
+    @Scheduled(cron = "0 30 3 1 * ?")
+    public void importJamendoMonthlySync() {
+        jamendoSongService.importJamendoMonthlySync();
+    }
 }

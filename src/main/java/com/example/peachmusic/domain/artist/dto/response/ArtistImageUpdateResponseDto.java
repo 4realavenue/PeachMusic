@@ -9,7 +9,7 @@ import java.time.LocalDate;
 
 @Getter
 @RequiredArgsConstructor
-public class ArtistCreateResponseDto {
+public class ArtistImageUpdateResponseDto {
 
     private final Long artistId;
     private final String artistName;
@@ -18,9 +18,11 @@ public class ArtistCreateResponseDto {
     private final ArtistType artistType;
     private final LocalDate debutDate;
     private final String bio;
+    private final Long likeCount;
 
-    public static ArtistCreateResponseDto from(Artist artist) {
-        return new ArtistCreateResponseDto(artist.getArtistId(), artist.getArtistName(), artist.getProfileImage(),
-                artist.getCountry(), artist.getArtistType(), artist.getDebutDate(), artist.getBio());
+    public static ArtistImageUpdateResponseDto from(Artist artist) {
+        return new ArtistImageUpdateResponseDto(
+                artist.getArtistId(), artist.getArtistName(), artist.getProfileImage(), artist.getCountry(), artist.getArtistType(),
+                artist.getDebutDate(), artist.getBio(), artist.getLikeCount());
     }
 }

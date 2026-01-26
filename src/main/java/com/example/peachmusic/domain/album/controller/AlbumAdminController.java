@@ -16,6 +16,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,13 +29,15 @@ public class AlbumAdminController {
      * 앨범 생성 API (관리자 전용)
      *
      * @param requestDto 앨범 생성 요청 DTO
+     * @param albumImage 업로드할 앨범 이미지 파일
      * @return 생성된 앨범 정보
      */
     @PostMapping("/admin/albums")
     public ResponseEntity<CommonResponse<AlbumCreateResponseDto>> createAlbum(
-            @Valid @RequestBody AlbumCreateRequestDto requestDto) {
+            @RequestPart("request") @Valid AlbumCreateRequestDto requestDto,
+            @RequestPart(value = "albumImage") MultipartFile albumImage) {
 
-        AlbumCreateResponseDto responseDto = albumAdminService.createAlbum(requestDto);
+        AlbumCreateResponseDto responseDto = albumAdminService.createAlbum(requestDto, albumImage);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("앨범이 생성되었습니다.", responseDto));
     }
@@ -87,6 +90,23 @@ public class AlbumAdminController {
         ArtistAlbumUpdateResponseDto responseDto = albumAdminService.updateAlbumArtistList(albumId, requestDto);
 
         return ResponseEntity.ok(CommonResponse.success("참여 아티스트 목록이 갱신되었습니다.", responseDto));
+    }
+
+    /**
+     * 앨범 이미지 수정 API (관리자 전용)
+     *
+     * @param albumId 수정할 앨범 ID
+     * @param albumImage 업로드할 앨범 이미지 파일
+     * @return 이미지가 수정된 앨범 정보
+     */
+    @PatchMapping(value = "/admin/albums/{albumId}/image")
+    public ResponseEntity<CommonResponse<AlbumImageUpdateResponseDto>> updateAlbumImage(
+            @PathVariable("albumId") Long albumId,
+            @RequestParam MultipartFile albumImage) {
+
+        AlbumImageUpdateResponseDto responseDto =  albumAdminService.updateAlbumImage(albumId, albumImage);
+
+        return ResponseEntity.ok(CommonResponse.success("앨범 이미지 수정 성공", responseDto));
     }
 
     /**
