@@ -21,6 +21,6 @@ public class JamendoApiController {
             @RequestParam LocalDate endDate
     ) {
         jamendoSongService.importInitJamendo(startDate, endDate);
-        return ResponseEntity.ok(CommonResponse.success("기간 : " + startDate + " - " + endDate + " 데이터 적재 성공"));
+        return ResponseEntity.ok(CommonResponse.success("기간 : " + startDate + " - " + endDate + " 데이터 적재에 성공했습니다."));
     }
 }
