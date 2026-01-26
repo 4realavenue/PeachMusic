@@ -20,8 +20,4 @@ public interface AlbumRepository extends JpaRepository<Album, Long>, AlbumCustom
     // 비활성 상태(isDeleted=true)인 앨범 조회
     Optional<Album> findByAlbumIdAndIsDeletedTrue(Long albumId);
 
-    boolean existsByAlbumImageAndIsDeletedFalse(String albumImage);
-
-    boolean existsByAlbumImageAndIsDeletedFalseAndAlbumIdNot(String trimmed, Long albumId);
-
 }
