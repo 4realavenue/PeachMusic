@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
@@ -16,13 +15,13 @@ public class JamendoBatchJdbcRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public void insertSongs(List<SongRow> songs) {
+    public void upsertSongs(List<SongRow> songs) {
         if (songs.isEmpty()) {
             return;
         }
 
         String insertSQL = """
-            INSERT IGNORE INTO songs (
+            INSERT INTO songs (
                 jamendo_song_id, album_id, name, duration, license_ccurl,
                 position, audio, vocalinstrumental, lang, speed,
                 instruments, vartags, like_count
@@ -31,6 +30,18 @@ public class JamendoBatchJdbcRepository {
                 ?, a.album_id, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0
             FROM albums a
             WHERE a.jamendo_album_id = ?
+            ON DUPLICATE KEY UPDATE
+                name = VALUES(name),
+                duration = VALUES(duration),
+                license_ccurl = VALUES(license_ccurl),
+                position = VALUES(position),
+                audio = VALUES(audio),
+                vocalinstrumental = VALUES(vocalinstrumental),
+                lang = VALUES(lang),
+                speed = VALUES(speed),
+                instruments = VALUES(instruments),
+                vartags = VALUES(vartags),
+                modified_at = CURRENT_TIMESTAMP
         """;
 
         jdbcTemplate.batchUpdate(insertSQL, new BatchPreparedStatementSetter() {
@@ -145,7 +156,7 @@ public class JamendoBatchJdbcRepository {
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 SongGenreRow r = rows.get(i);
                 ps.setString(1, r.genreName());
-                ps.setLong(2, r.jamendoSongId());;
+                ps.setLong(2, r.jamendoSongId());
             }
 
             @Override
@@ -155,15 +166,18 @@ public class JamendoBatchJdbcRepository {
         });
     }
 
-    public void insertArtists(List<ArtistRow> rows) {
+    public void upsertArtists(List<ArtistRow> rows) {
         if (rows.isEmpty()) {
             return;
         }
 
         String insertSQL = """
-            INSERT IGNORE INTO artists
+            INSERT INTO artists
             (artist_name, jamendo_artist_id, like_count)
             VALUES (?, ?, 0)
+            ON DUPLICATE KEY UPDATE
+                artist_name = VALUES(artist_name),
+                modified_at = CURRENT_TIMESTAMP
         """;
 
         jdbcTemplate.batchUpdate(insertSQL, new BatchPreparedStatementSetter() {
@@ -182,15 +196,20 @@ public class JamendoBatchJdbcRepository {
         });
     }
 
-    public void insertAlbums(List<AlbumRow> rows) {
+    public void upsertAlbums(List<AlbumRow> rows) {
         if (rows.isEmpty()) {
             return;
         }
 
         String insertSQL = """
-            INSERT IGNORE INTO albums
+            INSERT INTO albums
             (album_name, album_release_date, album_image, jamendo_album_id, like_count)
             VALUES (?, ?, ?, ?, 0)
+            ON DUPLICATE KEY UPDATE
+                album_name = VALUES(album_name),
+                album_release_date = VALUES(album_release_date),
+                album_image = VALUES(album_image),
+                modified_at = CURRENT_TIMESTAMP
         """;
 
         jdbcTemplate.batchUpdate(insertSQL, new BatchPreparedStatementSetter() {
@@ -211,14 +230,16 @@ public class JamendoBatchJdbcRepository {
         });
     }
 
-    public void insertGenres(List<GenreRow> rows) {
+    public void upsertGenres(List<GenreRow> rows) {
         if (rows.isEmpty()) {
             return;
         }
 
         String insertSQL = """
-            INSERT IGNORE INTO genres (genre_name)
+            INSERT INTO genres (genre_name)
             VALUES (?)
+            ON DUPLICATE KEY UPDATE
+                genre_name = VALUES(genre_name)
         """;
 
         jdbcTemplate.batchUpdate(insertSQL, new BatchPreparedStatementSetter() {

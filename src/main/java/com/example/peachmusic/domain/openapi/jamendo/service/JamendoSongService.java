@@ -6,12 +6,10 @@ import com.example.peachmusic.domain.openapi.jamendo.dto.JamendoSongResponseDto;
 import com.example.peachmusic.domain.openapi.jamendo.dto.JamendoTagDto;
 import com.example.peachmusic.domain.openapi.jamendo.jdbc.JamendoBatchJdbcRepository;
 import com.example.peachmusic.domain.openapi.jamendo.jdbc.row.*;
-import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
@@ -24,39 +22,48 @@ public class JamendoSongService {
     private final JamendoApiService jamendoApiService;
     private final JamendoBatchJdbcRepository batchJdbcRepository;
 
-    private final SongRepository songRepository;
+    private static final int INIT_MAX_PAGE = 10000;
+    private static final int DAILY_MAX_PAGE = 1000;
+    private static final int MONTHLY_MAX_PAGE = 2000;
 
     /**
      * Jamendo 음원 초기 적재
      */
     @Transactional
     public void importInitJamendo(LocalDate startDate, LocalDate endDate) {
-        int maxPage = 1000;
         String dateBetween = startDate + "_" + endDate;
-        duplicationJamendo(maxPage, dateBetween);
+        importJamendoByDateRange(INIT_MAX_PAGE, dateBetween);
     }
 
     /**
-     * Jamendo 음원 매일 3시 정기 적재
+     * Jamendo 음원 매일 3시 정기 적재(일간 동기화)
      */
     @Transactional
     public void importScheduledJamendo() {
-        int maxPage = 1000;
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         LocalDate yesterday = today.minusDays(1);
         String dateBetween = yesterday + "_" + today;
-        duplicationJamendo(maxPage, dateBetween);
+        importJamendoByDateRange(DAILY_MAX_PAGE, dateBetween);
+    }
+
+    /**
+     * Jamendo 월 1회 정합성 동기화 (최근 6개월)
+     */
+    @Transactional
+    public void importJamendoMonthlySync() {
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        LocalDate oneMonthAgo = today.minusMonths(6);
+        String dateBetween = oneMonthAgo + "_" + today;
+        importJamendoByDateRange(MONTHLY_MAX_PAGE, dateBetween);
     }
 
     /**
      * Jamendo 적재 핵심 로직
      */
-    public void duplicationJamendo(int maxPage, String dateBetween) {
+    public void importJamendoByDateRange(int maxPage, String dateBetween) {
         int limit = 200;        // Jamendo API 한 페이지당 조회 개수
-        int successCount = 0;   // 전체 신규 적재된 음원 수
+        int successCount = 0;   // 처리된 음원 수
         int skipCount = 0;      // 전체 중복(스킵) 음원 수
-
-        Set<Long> existingJamendoSongIdList = new HashSet<>(songRepository.findJamendoSongIdList());
 
         // Jamendo API 페이지 단위로 반복
         for (int page = 1; page <= maxPage; page++) {
@@ -72,11 +79,12 @@ public class JamendoSongService {
                 log.info("Api 응답 결과 : 데이터 없음. 적재 종료");
                 break;
             }
+
             List<ArtistRow> artistRowList = new ArrayList<>(); // 부모 테이블
             List<AlbumRow> albumRowList = new ArrayList<>();
             List<GenreRow> genreRowList = new ArrayList<>();
-
             List<SongRow> songList = new ArrayList<>();
+
             List<ArtistSongRow> artistSongRowList = new ArrayList<>();
             List<ArtistAlbumRow> artistAlbumRowList = new ArrayList<>();
             List<SongGenreRow> songGenreRowList = new ArrayList<>();
@@ -85,13 +93,18 @@ public class JamendoSongService {
             for (JamendoSongDto dto : results) {
 
                 Long jamendoSongId = dto.getJamendoSongId();
+
+                // 앨범 정보가 없는 orphan 음원은 FK 정합성 보장을 위해서 적재에서 제외
                 if (jamendoSongId == null || dto.getJamendoAlbumId() == null) {
+                    log.warn("skip orphan song: songId={}, albumId={}, artistId={}",
+                            dto.getJamendoSongId(),
+                            dto.getJamendoAlbumId(),
+                            dto.getJamendoArtistId()
+                    );
                     skipCount++;
                     skipInPage++;
                     continue;
                 }
-
-                existingJamendoSongIdList.add(jamendoSongId);
 
                 Long jamendoArtistId = dto.getJamendoArtistId();
                 Long jamendoAlbumId = dto.getJamendoAlbumId();
@@ -103,7 +116,6 @@ public class JamendoSongService {
                 JamendoTagDto tags = (musicInfo != null) ? musicInfo.getTags() : null;
 
                 songList.add(toSongRowList(dto, musicInfo, tags));
-
                 artistSongRowList.add(new ArtistSongRow(jamendoArtistId, jamendoSongId));
                 artistAlbumRowList.add(new ArtistAlbumRow(jamendoArtistId, jamendoAlbumId));
 
@@ -118,12 +130,13 @@ public class JamendoSongService {
                 insertedInPage++;
             }
 
-            batchJdbcRepository.insertArtists(artistRowList);
-            batchJdbcRepository.insertAlbums(albumRowList);
-            batchJdbcRepository.insertGenres(genreRowList);
+            // 외부 API 기준 데이터 -> 변경 가능해서 upsert(ON DUPLICATE KEY UPDATE) 사용
+            batchJdbcRepository.upsertArtists(artistRowList);
+            batchJdbcRepository.upsertAlbums(albumRowList);
+            batchJdbcRepository.upsertGenres(genreRowList);
+            batchJdbcRepository.upsertSongs(songList);
 
-            // 이번 페이지에서 수집한 데이터들을 JDBC insert로 한 번에 저장
-            batchJdbcRepository.insertSongs(songList);
+            // 관계는 상태가 아니라 존재여부여서 insert ignore
             batchJdbcRepository.insertArtistSongs(artistSongRowList);
             batchJdbcRepository.insertArtistAlbums(artistAlbumRowList);
             batchJdbcRepository.insertSongGenres(songGenreRowList);
