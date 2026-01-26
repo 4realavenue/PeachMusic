@@ -1,14 +1,14 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/peach_music
-    username: root
-    password: 12345678
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
@@ -22,10 +22,10 @@ spring:
       max-request-size: 30MB
 
   mail:
-    host: smtp.gmail.com
+    host: ${MAIL_HOST}
     port: 587
-    username: hosujjing@gmail.com
-    password: qwkvwqeacpibuiad
+    username: ${MAIL_NAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true

@@ -28,6 +28,7 @@ public enum ErrorCode {
     AUDIO_INVALID_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 음원 파일 형식입니다."),
     ARTIST_UPDATE_NO_CHANGES(HttpStatus.BAD_REQUEST, "수정할 값이 없습니다."),
     ARTIST_DEBUT_DATE_INVALID(HttpStatus.BAD_REQUEST, "데뷔일은 오늘 이후일 수 없습니다."),
+    EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "이메일이 인증되지 않았습니다."),
 
     // 401
     AUTH_CERTIFICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "로그인이 필요한 서비스 입니다."),
