@@ -31,15 +31,15 @@ public class ArtistService {
     @Transactional(readOnly = true)
     public ArtistGetDetailResponseDto getArtistDetail(AuthUser authUser, Long artistId) {
 
+        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
+
         boolean isLiked = false;
 
         if (authUser != null) {
             Long userId = authUser.getUserId();
-            isLiked = artistLikeRepository.existsByArtist_ArtistIdAndUser_UserId(userId, artistId);
+            isLiked = artistLikeRepository.existsByArtist_ArtistIdAndUser_UserId(artistId, userId);
         }
-
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
 
         return ArtistGetDetailResponseDto.from(foundArtist, isLiked);
     }

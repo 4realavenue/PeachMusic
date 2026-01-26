@@ -67,7 +67,7 @@ public class ArtistAdminController {
      * @param requestDto 아티스트 기본 정보 수정 요청 DTO
      * @return 수정된 아티스트 정보
      */
-    @PutMapping("/admin/artists/{artistId}")
+    @PatchMapping("/admin/artists/{artistId}")
     public ResponseEntity<CommonResponse<ArtistUpdateResponseDto>> updateArtist(
             @PathVariable("artistId") Long artistId,
             @Valid @RequestBody ArtistUpdateRequestDto requestDto) {

@@ -19,11 +19,11 @@ public class ArtistGetDetailResponseDto {
     private final LocalDate debutDate;
     private final String bio;
     private final Long likeCount;
-    private final boolean liked;
+    private final boolean isLiked;
 
-    public static ArtistGetDetailResponseDto from(Artist artist, boolean liked) {
+    public static ArtistGetDetailResponseDto from(Artist artist, boolean isLiked) {
         return new ArtistGetDetailResponseDto(
                 artist.getArtistId(), artist.getArtistName(), artist.getProfileImage(), artist.getCountry(), artist.getArtistType(),
-                artist.getDebutDate(), artist.getBio(), artist.getLikeCount(), liked);
+                artist.getDebutDate(), artist.getBio(), artist.getLikeCount(), isLiked);
     }
 }
