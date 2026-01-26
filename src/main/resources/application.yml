@@ -1,17 +1,29 @@
 spring:
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:mysql://localhost:3306/peach_music
+    username: root
+    password: 12345678
     driver-class-name: com.mysql.cj.jdbc.Driver
+
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     properties:
       hibernate:
         format_sql: true
     defer-datasource-initialization: true
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: hosujjing@gmail.com
+    password: qwkvwqeacpibuiad
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+
 
 jwt:
   secret:

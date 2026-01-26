@@ -1,5 +1,6 @@
 package com.example.peachmusic.domain.user.service;
 
+import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.filter.JwtUtil;
@@ -30,33 +31,43 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final MemberService memberService;
 
-    /**
-     * 회원가입
-     */
     @Transactional
     public UserCreateResponseDto createUser(@Valid UserCreateRequestDto request) {
 
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new CustomException(ErrorCode.USER_EXIST_EMAIL);
+        }
+
         String encodePassword = passwordEncoder.encode(request.getPassword());
 
-        User user = new User(request.getName(), request.getNickname(), request.getEmail(), encodePassword);
+        User user = User.builder()
+                .name(request.getName())
+                .nickname(request.getNickname())
+                .email(request.getEmail())
+                .password(encodePassword)
+                .role(UserRole.USER)
+                .emailVerified(false)
+                .tokenVersion(0L)
+                .build();
+
 
         userRepository.save(user);
+
+        // 이메일 발송
+        memberService.sendCodeToEmail(request.getEmail());
 
         return UserCreateResponseDto.from(user);
     }
 
-    /**
-     * 내 정보 조회
-     */
+
     @Transactional(readOnly = true)
     public UserGetResponseDto getUser(AuthUser authUser) {
         return UserGetResponseDto.from(authUser.getUser());
     }
 
-    /**
-     * 내 정보 수정
-     */
+
     @Transactional
     public UserUpdateResponseDto update(@Valid UserUpdateRequestDto request, AuthUser authUser) {
 
@@ -73,17 +84,11 @@ public class UserService {
         return UserUpdateResponseDto.from(user);
     }
 
-    /**
-     * 회원탈퇴
-     */
     @Transactional
     public void deleteUser(AuthUser authUser) {
         authUser.getUser().delete();
     }
 
-    /**
-     * 로그인
-     */
     @Transactional
     public LoginResponseDto login(@Valid LoginRequestDto request) {
         User user = userRepository.findUserByEmailAndIsDeletedFalse(request.getEmail())
@@ -103,9 +108,6 @@ public class UserService {
         return new LoginResponseDto(token);
     }
 
-    /**
-     * 로그아웃
-     */
     @Transactional
     public void logout(AuthUser authUser) {
         authUser.getUser().increaseTokenVersion();

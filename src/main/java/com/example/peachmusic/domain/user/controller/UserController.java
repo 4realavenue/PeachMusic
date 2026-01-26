@@ -34,7 +34,6 @@ public class UserController {
         return new ResponseEntity<>(CommonResponse.success("유저 생성 성공", response), HttpStatus.CREATED);
     }
 
-
     @GetMapping("/users")
     public ResponseEntity<CommonResponse<UserGetResponseDto>>  getUser(
             @AuthenticationPrincipal AuthUser authUser
@@ -53,7 +52,7 @@ public class UserController {
     ) {
         UserUpdateResponseDto result = userService.update(request, authUser);
 
-        return ResponseEntity.ok(CommonResponse.success("유저 정보 수정 성공",result));
+        return ResponseEntity.ok(CommonResponse.success("유저 정보 수정 성공했습니다.",result));
     }
 
     @DeleteMapping("/users")
@@ -62,7 +61,7 @@ public class UserController {
     ) {
         userService.deleteUser(authUser);
 
-        return ResponseEntity.ok(CommonResponse.success("유저 비활성화 성공"));
+        return ResponseEntity.ok(CommonResponse.success("유저 비활성화를 성공했습니다."));
     }
 
     @PostMapping("/auth/login")
@@ -71,7 +70,7 @@ public class UserController {
     ) {
         LoginResponseDto responseDto = userService.login(request);
 
-        return ResponseEntity.ok(CommonResponse.success("로그인 성공",responseDto));
+        return ResponseEntity.ok(CommonResponse.success("로그인을 성공했습니다.",responseDto));
     }
 
     @DeleteMapping("/auth/logout")
@@ -82,7 +81,7 @@ public class UserController {
 
         SecurityContextHolder.clearContext();
 
-        return ResponseEntity.ok(CommonResponse.success("로그아웃 완료"));
+        return ResponseEntity.ok(CommonResponse.success("로그아웃을 완료했습니다."));
     }
 
 }

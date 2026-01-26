@@ -1,20 +1,21 @@
 package com.example.peachmusic.domain.user.entity;
 
 import com.example.peachmusic.common.entity.BaseEntity;
+import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.UserRole;
+import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.domain.user.dto.request.UserUpdateRequestDto;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
-
-import static org.apache.logging.log4j.util.Strings.isNotBlank;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "users")
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class User extends BaseEntity {
-
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,8 +41,19 @@ public class User extends BaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
+    @NotNull
     @Column(name = "token_version", nullable = false)
     private Long tokenVersion = 0L;
+
+    @Column(nullable = false)
+    private boolean emailVerified = false;
+
+    public void verifyEmail() {
+        if (emailVerified) {
+            throw new CustomException(ErrorCode.EMAIL_ALREADY_VERIFIED);
+        }
+        this.emailVerified = true;
+    }
 
     public void increaseTokenVersion() {
         this.tokenVersion++;
