@@ -57,7 +57,7 @@ public enum ErrorCode {
     USER_EXIST_DELETED(HttpStatus.CONFLICT, "이미 삭제된 유저 입니다."),
     ALBUM_EXIST_NAME_RELEASE_DATE(HttpStatus.CONFLICT, "이미 동일한 앨범이 존재합니다."),
     ALBUM_EXIST_NAME_RELEASE_DATE_DELETED(HttpStatus.CONFLICT, "비활성화된 동일 앨범이 존재합니다."),
-    SONG_EXIST_SONG_URL(HttpStatus.CONFLICT, "이미 동일한 음원이 존재합니다."),
+    SONG_EXIST_NAME(HttpStatus.CONFLICT, "해당 앨범에 이미 동일한 곡 제목이 존재합니다."),
     SONG_ALREADY_ACTIVE(HttpStatus.CONFLICT, "이미 활성화된 음원입니다."),
     ALBUM_EXIST_IMAGE(HttpStatus.CONFLICT, "이미 동일한 앨범 이미지가 존재합니다."),
 

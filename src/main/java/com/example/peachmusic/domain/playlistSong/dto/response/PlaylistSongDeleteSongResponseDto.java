@@ -11,7 +11,7 @@ import java.util.List;
 public class PlaylistSongDeleteSongResponseDto {
 
     private final Long playlistId;
-    private final List<Long> deletedSongIds;
+    private final List<Long> deletedSongIdList;
 
     public static PlaylistSongDeleteSongResponseDto from(Playlist playlist, List<Long> deletedSongIds) {
         return new PlaylistSongDeleteSongResponseDto(playlist.getPlaylistId(), deletedSongIds);

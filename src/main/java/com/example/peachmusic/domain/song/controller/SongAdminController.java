@@ -4,6 +4,7 @@ import com.example.peachmusic.common.model.CommonResponse;
 import com.example.peachmusic.common.model.PageResponse;
 import com.example.peachmusic.domain.song.dto.request.AdminSongCreateRequestDto;
 import com.example.peachmusic.domain.song.dto.request.AdminSongUpdateRequestDto;
+import com.example.peachmusic.domain.song.dto.response.AdminSongAudioUpdateResponseDto;
 import com.example.peachmusic.domain.song.dto.response.AdminSongCreateResponseDto;
 import com.example.peachmusic.domain.song.dto.response.AdminSongUpdateResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,10 +31,11 @@ public class SongAdminController {
      */
     @PostMapping("/songs")
     public ResponseEntity<CommonResponse<AdminSongCreateResponseDto>> createSong(
-            @Valid @RequestBody AdminSongCreateRequestDto requestDto
+            @RequestPart("request") @Valid AdminSongCreateRequestDto requestDto,
+            @RequestPart("audio") MultipartFile audio
     ) {
 
-        AdminSongCreateResponseDto responseDto = songAdminService.createSong(requestDto);
+        AdminSongCreateResponseDto responseDto = songAdminService.createSong(requestDto, audio);
 
         return ResponseEntity.ok(CommonResponse.success("음원이 생성 되었습니다.", responseDto));
     }
@@ -52,7 +55,7 @@ public class SongAdminController {
     }
 
     /**
-     * 음원 정보 수정 API
+     * 음원 기본 정보 수정 API
      */
     @PatchMapping("/songs/{songId}")
     public ResponseEntity<CommonResponse<AdminSongUpdateResponseDto>> updateSong(
@@ -63,6 +66,19 @@ public class SongAdminController {
         AdminSongUpdateResponseDto responseDto = songAdminService.updateSong(requestDto, songId);
 
         return ResponseEntity.ok(CommonResponse.success("음원 정보가 수정 되었습니다.", responseDto));
+    }
+
+    /**
+     * 음원 파일 수정 API
+     */
+    @PatchMapping("/songs/{songId}/audio")
+    public ResponseEntity<CommonResponse<AdminSongAudioUpdateResponseDto>> updateAudio(
+            @PathVariable("songId") Long songId,
+            @RequestParam MultipartFile audio
+    ) {
+        AdminSongAudioUpdateResponseDto responseDto = songAdminService.updateAudio(songId, audio);
+
+        return ResponseEntity.ok(CommonResponse.success("음원 파일이 수정되었습니다.", responseDto));
     }
 
     /**
