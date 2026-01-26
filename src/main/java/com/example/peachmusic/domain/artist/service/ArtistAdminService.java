@@ -1,8 +1,11 @@
 package com.example.peachmusic.domain.artist.service;
 
+import com.example.peachmusic.common.enums.FileType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
+import com.example.peachmusic.common.storage.FileStorageService;
 import com.example.peachmusic.domain.album.entity.Album;
+import com.example.peachmusic.domain.artist.dto.response.ArtistImageUpdateResponseDto;
 import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.dto.request.ArtistCreateRequestDto;
 import com.example.peachmusic.domain.artist.dto.request.ArtistUpdateRequestDto;
@@ -18,6 +21,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static com.example.peachmusic.common.enums.UserRole.ADMIN;
@@ -29,26 +36,27 @@ public class ArtistAdminService {
     private final ArtistRepository artistRepository;
     private final SongRepository songRepository;
     private final ArtistAlbumRepository artistAlbumRepository;
+    private final FileStorageService fileStorageService;
 
     /**
      * 아티스트 생성 기능 (관리자 전용)
-     * @param requestDto 아티스트 생성 요청 DTO
+     * @param requestDto   아티스트 생성 요청 DTO
+     * @param profileImage 업로드할 아티스트 프로필 이미지 파일 (선택)
      * @return 생성된 아티스트 정보
      */
     @Transactional
-    public ArtistCreateResponseDto createArtist(ArtistCreateRequestDto requestDto) {
+    public ArtistCreateResponseDto createArtist(ArtistCreateRequestDto requestDto, MultipartFile profileImage) {
 
         String artistName = requestDto.getArtistName().trim();
+        String country = normalize(requestDto.getCountry());
+        String bio = normalize(requestDto.getBio());
 
-        artistRepository.findByArtistName(artistName)
-                .ifPresent(artist -> {
-                    if (artist.isDeleted()) {
-                        throw new CustomException(ErrorCode.ARTIST_EXIST_NAME_DELETED);
-                    }
-                    throw new CustomException(ErrorCode.ARTIST_EXIST_NAME);
-                });
+        String storedPath = null;
+        if (profileImage != null && !profileImage.isEmpty()) {
+            storedPath = storeProfileImage(profileImage, artistName);
+        }
 
-        Artist artist = new Artist(artistName);
+        Artist artist = new Artist(artistName, storedPath, country, requestDto.getArtistType(), requestDto.getDebutDate(), bio);
         Artist savedArtist = artistRepository.save(artist);
 
         return ArtistCreateResponseDto.from(savedArtist);
@@ -65,35 +73,47 @@ public class ArtistAdminService {
     }
 
     /**
-     * 아티스트 수정 기능 (관리자 전용)
+     * 아티스트 기본 정보 수정 기능 (관리자 전용)
      * @param artistId 수정할 아티스트 ID
-     * @param requestDto 아티스트 수정 요청 DTO
+     * @param requestDto 아티스트 기본 정보 수정 요청 DTO
      * @return 수정된 아티스트 정보
      */
     @Transactional
     public ArtistUpdateResponseDto updateArtist(Long artistId, ArtistUpdateRequestDto requestDto) {
 
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
+        Artist foundArtist = getArtistOrThrow(artistId, false, ErrorCode.ARTIST_NOT_FOUND);
 
-        String newName = requestDto.getArtistName();
-
-        // 입력값을 공통 기준으로 정규화(trim)하여
-        // 변경 여부 판단, 중복 검증, 업데이트에 동일하게 사용
-        String trimmed = (newName == null) ? null : newName.trim();
-
-        if (foundArtist.isSameName(trimmed)) {
-            return ArtistUpdateResponseDto.from(foundArtist);
+        if (!hasUpdateFields(requestDto)) {
+            throw new CustomException(ErrorCode.ARTIST_UPDATE_NO_CHANGES);
         }
 
-        boolean exists = artistRepository.existsByArtistNameAndIsDeletedFalseAndArtistIdNot(trimmed, artistId);
-        if (exists) {
-            throw new CustomException(ErrorCode.ARTIST_EXIST_NAME);
-        }
-
-        foundArtist.updateArtistName(trimmed);
+        foundArtist.updateArtistInfo(requestDto);
 
         return ArtistUpdateResponseDto.from(foundArtist);
+    }
+
+    /**
+     * 아티스트 프로필 이미지 수정 기능 (관리자 전용)
+     * @param artistId 프로필 이미지를 수정할 아티스트 ID
+     * @param profileImage 업로드할 새로운 프로필 이미지 파일
+     * @return 수정된 프로필 이미지가 반영된 아티스트 정보
+     */
+    @Transactional
+    public ArtistImageUpdateResponseDto updateProfileImage(Long artistId, MultipartFile profileImage) {
+
+        Artist foundArtist = getArtistOrThrow(artistId, false, ErrorCode.ARTIST_NOT_FOUND);
+
+        String oldPath = foundArtist.getProfileImage();
+
+        String newPath = storeProfileImage(profileImage, foundArtist.getArtistName());
+
+        foundArtist.updateProfileImage(newPath);
+
+        if (oldPath != null) {
+            fileStorageService.deleteFileByPath(oldPath);
+        }
+
+        return ArtistImageUpdateResponseDto.from(foundArtist);
     }
 
     /**
@@ -103,8 +123,7 @@ public class ArtistAdminService {
     @Transactional
     public void deleteArtist(Long artistId) {
 
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
+        Artist foundArtist = getArtistOrThrow(artistId, false, ErrorCode.ARTIST_DETAIL_NOT_FOUND);
 
         List<Album> foundAlbumList = artistAlbumRepository.findAlbumsByArtistIdAndIsDeleted(artistId, false);
 
@@ -129,8 +148,7 @@ public class ArtistAdminService {
     @Transactional
     public void restoreArtist(Long artistId) {
 
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedTrue(artistId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
+        Artist foundArtist = getArtistOrThrow(artistId, true, ErrorCode.ARTIST_DETAIL_NOT_FOUND);
 
         List<Album> foundAlbumList = artistAlbumRepository.findAlbumsByArtistIdAndIsDeleted(artistId, true);
 
@@ -146,5 +164,28 @@ public class ArtistAdminService {
         foundAlbumList.forEach(Album::restore);
 
         foundArtist.restore();
+    }
+
+    private Artist getArtistOrThrow(Long artistId, boolean isDeleted, ErrorCode errorCode) {
+        return artistRepository.findByArtistIdAndIsDeleted(artistId, isDeleted)
+                .orElseThrow(() -> new CustomException(errorCode));
+    }
+
+    private String normalize(String value) {
+        return (value != null && !value.isBlank()) ? value.trim() : null;
+    }
+
+    private boolean hasUpdateFields(ArtistUpdateRequestDto requestDto) {
+        return (requestDto.getArtistName() != null && !requestDto.getArtistName().isBlank())
+                || (requestDto.getCountry() != null && !requestDto.getCountry().isBlank())
+                || requestDto.getArtistType() != null
+                || requestDto.getDebutDate() != null
+                || (requestDto.getBio() != null && !requestDto.getBio().isBlank());
+    }
+
+    private String storeProfileImage(MultipartFile profileImage, String artistName) {
+        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        String baseName = "PeachMusic_artist_" + artistName + "_" + date;
+        return fileStorageService.storeFile(profileImage, FileType.ARTIST_PROFILE, baseName);
     }
 }

@@ -5,6 +5,7 @@ import com.example.peachmusic.common.model.PageResponse;
 import com.example.peachmusic.domain.artist.dto.request.ArtistCreateRequestDto;
 import com.example.peachmusic.domain.artist.dto.request.ArtistUpdateRequestDto;
 import com.example.peachmusic.domain.artist.dto.response.ArtistCreateResponseDto;
+import com.example.peachmusic.domain.artist.dto.response.ArtistImageUpdateResponseDto;
 import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
 import com.example.peachmusic.domain.artist.dto.response.ArtistUpdateResponseDto;
 import com.example.peachmusic.domain.artist.service.ArtistAdminService;
@@ -17,6 +18,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,13 +31,15 @@ public class ArtistAdminController {
      * 아티스트 생성 API (관리자 전용)
      *
      * @param requestDto 아티스트 생성 요청 DTO
+     * @param profileImage 업로드할 아티스트 프로필 이미지 파일 (선택)
      * @return 생성된 아티스트 정보
      */
     @PostMapping("/admin/artists")
     public ResponseEntity<CommonResponse<ArtistCreateResponseDto>> createArtist(
-            @Valid @RequestBody ArtistCreateRequestDto requestDto) {
+            @RequestPart("request") @Valid ArtistCreateRequestDto requestDto,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
 
-        ArtistCreateResponseDto responseDto = artistAdminService.createArtist(requestDto);
+        ArtistCreateResponseDto responseDto = artistAdminService.createArtist(requestDto, profileImage);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("아티스트가 생성되었습니다.", responseDto));
     }
@@ -57,10 +61,10 @@ public class ArtistAdminController {
     }
 
     /**
-     * 아티스트 수정 API (관리자 전용)
+     * 아티스트 기본 정보 수정 API (관리자 전용)
      *
      * @param artistId 수정할 아티스트 ID
-     * @param requestDto 아티스트 수정 요청 DTO
+     * @param requestDto 아티스트 기본 정보 수정 요청 DTO
      * @return 수정된 아티스트 정보
      */
     @PutMapping("/admin/artists/{artistId}")
@@ -71,6 +75,23 @@ public class ArtistAdminController {
         ArtistUpdateResponseDto responseDto = artistAdminService.updateArtist(artistId, requestDto);
 
         return ResponseEntity.ok(CommonResponse.success("아티스트 정보가 수정되었습니다.", responseDto));
+    }
+
+    /**
+     * 아티스트 프로필 이미지 수정 API (관리자 전용)
+     *
+     * @param artistId 프로필 이미지를 수정할 아티스트 ID
+     * @param profileImage 업로드할 새로운 프로필 이미지 파일
+     * @return 수정된 프로필 이미지가 반영된 아티스트 정보
+     */
+    @PatchMapping("/admin/artists/{artistId}/profile-image")
+    public ResponseEntity<CommonResponse<ArtistImageUpdateResponseDto>> updateProfileImage(
+            @PathVariable("artistId") Long artistId,
+            @RequestParam MultipartFile profileImage) {
+
+        ArtistImageUpdateResponseDto responseDto = artistAdminService.updateProfileImage(artistId, profileImage);
+
+        return ResponseEntity.ok(CommonResponse.success("아티스트 프로필 이미지가 수정되었습니다.", responseDto));
     }
 
     /**
