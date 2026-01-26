@@ -72,7 +72,7 @@ public class AlbumAdminController {
 
         AlbumUpdateResponseDto responseDto = albumAdminService.updateAlbumInfo(albumId, requestDto);
 
-        return ResponseEntity.ok(CommonResponse.success("앨범 기본 정보가 수정되었습니다.", responseDto));
+        return ResponseEntity.ok(CommonResponse.success("앨범 정보가 수정되었습니다.", responseDto));
     }
 
     /**
@@ -89,7 +89,7 @@ public class AlbumAdminController {
 
         ArtistAlbumUpdateResponseDto responseDto = albumAdminService.updateAlbumArtistList(albumId, requestDto);
 
-        return ResponseEntity.ok(CommonResponse.success("참여 아티스트 목록이 갱신되었습니다.", responseDto));
+        return ResponseEntity.ok(CommonResponse.success("참여 아티스트 목록이 수정되었습니다.", responseDto));
     }
 
     /**
@@ -106,7 +106,7 @@ public class AlbumAdminController {
 
         AlbumImageUpdateResponseDto responseDto =  albumAdminService.updateAlbumImage(albumId, albumImage);
 
-        return ResponseEntity.ok(CommonResponse.success("앨범 이미지 수정 성공", responseDto));
+        return ResponseEntity.ok(CommonResponse.success("앨범 이미지가 수정되었습니다.", responseDto));
     }
 
     /**

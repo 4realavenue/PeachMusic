@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PlaylistCreateRequestDto {
 
-    @NotBlank(message = "플레이리스트 이름은 필수 입력 사항 입니다.")
+    @NotBlank(message = "플레이리스트 이름 입력은 필수입니다.")
     private String playlistName;
 }

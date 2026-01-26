@@ -29,7 +29,7 @@ public class UserAdminController {
     ) {
         Page<UserAdminGetResponseDto> response = useradminService.getAllUser(word, pageable);
 
-        return ResponseEntity.ok(PageResponse.success("전체 유저 조회 성공", response));
+        return ResponseEntity.ok(PageResponse.success("유저 목록 조회에 성공했습니다.", response));
     }
 
     @DeleteMapping("/admin/users/{userId}/delete")
@@ -38,7 +38,7 @@ public class UserAdminController {
     ) {
         useradminService.deleteUser(userId);
 
-        return ResponseEntity.ok(CommonResponse.success("계정 삭제 성공"));
+        return ResponseEntity.ok(CommonResponse.success("유저가 비활성화 되었습니다."));
     }
 
     @PatchMapping("/admin/users/{userId}/restore")
@@ -47,7 +47,7 @@ public class UserAdminController {
     ) {
         useradminService.restorationUser(userId);
 
-        return ResponseEntity.ok(CommonResponse.success("계정 복구 성공"));
+        return ResponseEntity.ok(CommonResponse.success("유저가 활성화 되었습니다."));
     }
 
     @PatchMapping("/admin/users/{userId}/role")
@@ -59,6 +59,6 @@ public class UserAdminController {
 
         useradminService.role(userId, newRole);
 
-        return ResponseEntity.ok(CommonResponse.success("계정 권한 변경 성공" ));
+        return ResponseEntity.ok(CommonResponse.success("유저 권한 변경에 성공했습니다."));
     }
 }

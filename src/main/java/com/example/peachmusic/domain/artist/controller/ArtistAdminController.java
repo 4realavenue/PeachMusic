@@ -91,7 +91,7 @@ public class ArtistAdminController {
 
         ArtistImageUpdateResponseDto responseDto = artistAdminService.updateProfileImage(artistId, profileImage);
 
-        return ResponseEntity.ok(CommonResponse.success("아티스트 프로필 이미지가 수정되었습니다.", responseDto));
+        return ResponseEntity.ok(CommonResponse.success("아티스트 이미지가 수정되었습니다.", responseDto));
     }
 
     /**

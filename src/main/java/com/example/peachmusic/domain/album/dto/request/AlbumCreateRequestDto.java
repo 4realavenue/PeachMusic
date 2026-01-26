@@ -14,14 +14,14 @@ import java.util.List;
 @NoArgsConstructor
 public class AlbumCreateRequestDto {
 
-    @NotBlank(message = "앨범 이름은 필수입니다.")
+    @NotBlank(message = "앨범 이름 입력은 필수입니다.")
     private String albumName;
 
-    @NotNull(message = "앨범 발매일은 필수입니다.")
+    @NotNull(message = "앨범 발매일 입력은 필수입니다.")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate albumReleaseDate;
 
-    @NotNull(message = "참여 아티스트는 필수입니다.")
+    @NotNull(message = "참여 아티스트 입력은 필수입니다.")
     @Size(min = 1, message = "참여 아티스트는 최소 1명 이상이어야 합니다.")
     private List<Long> artistIdList;
 }
