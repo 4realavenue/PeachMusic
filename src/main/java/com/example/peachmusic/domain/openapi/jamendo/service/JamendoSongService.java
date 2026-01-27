@@ -25,6 +25,9 @@ public class JamendoSongService {
     private static final int DAILY_MAX_PAGE = 1000;
     private static final int MONTHLY_MAX_PAGE = 2000;
 
+    // 앨범 ID 없는 음원 스킵 로그 샘플 5개
+    private static final int ORPHAN_LOG_LIMIT = 5;
+
     /**
      * Jamendo 음원 초기 적재
      */
@@ -65,20 +68,15 @@ public class JamendoSongService {
     public void importJamendoByDateRange(int maxPage, String dateBetween) {
         int limit = 200;        // Jamendo API 한 페이지당 조회 개수
         int successCount = 0;   // 처리된 음원 수
-        int skipCount = 0;      // 전체 중복(스킵) 음원 수
+        int orphanSkipCount = 0;// 앨범 ID 없는 orphan 음원 스킵 수
+        int orphanLogCount = 0; // orphan 로그 샘플 카운트
 
         // Jamendo API 페이지 단위로 반복
         for (int page = 1; page <= maxPage; page++) {
-            int insertedInPage = 0; // 현재 페이지에서 신규 적재된 음원 수
-            int skipInPage = 0;     // 현재 페이지에서 중복으로 스킵된 음원 수
-
-            log.info("Jamendo 적재 중... page={}", page);
-
             JamendoSongResponseDto response = jamendoApiService.fetchSongs(page, limit, dateBetween);
             List<JamendoSongDto> results = response.getResults();
 
             if (results == null || results.isEmpty()) {
-                log.info("Api 응답 결과 : 데이터 없음. 적재 종료");
                 break;
             }
 
@@ -98,13 +96,17 @@ public class JamendoSongService {
 
                 // 앨범 정보가 없는 orphan 음원은 FK 정합성 보장을 위해서 적재에서 제외
                 if (jamendoSongId == null || dto.getJamendoAlbumId() == null) {
-                    log.warn("skip orphan song: songId={}, albumId={}, artistId={}",
-                            dto.getJamendoSongId(),
-                            dto.getJamendoAlbumId(),
-                            dto.getJamendoArtistId()
-                    );
-                    skipCount++;
-                    skipInPage++;
+                    orphanSkipCount++;
+                    // 중복 스킵 샘플 로그
+                    if (orphanLogCount < ORPHAN_LOG_LIMIT) {
+                        log.warn(
+                                "[Jamendo Skip] orphan song(no album) - songId={}, albumId={}, artistId={}",
+                                dto.getJamendoSongId(),
+                                dto.getJamendoAlbumId(),
+                                dto.getJamendoArtistId()
+                        );
+                        orphanLogCount++;
+                    }
                     continue;
                 }
 
@@ -129,7 +131,6 @@ public class JamendoSongService {
                     }
                 }
                 successCount++;
-                insertedInPage++;
             }
 
             // 외부 API 기준 데이터 -> 변경 가능해서 upsert(ON DUPLICATE KEY UPDATE) 사용
@@ -143,16 +144,13 @@ public class JamendoSongService {
             batchJdbcRepository.insertArtistAlbums(artistAlbumRowList);
             batchJdbcRepository.insertSongGenres(songGenreRowList);
 
-            log.info("page={} 결과 → 신규 {}, 중복 {}", page, insertedInPage, skipInPage);
-
             // 마지막 페이지면 종료
             if (results.size() < limit) {
-                log.info("마지막 페이지 -> 적재 종료 page : {}", page);
                 break;
             }
         }
         log.info("=== Jamendo 적재 완료 ===");
-        log.info("성공: {}, 중복: {}", successCount, skipCount);
+        log.info("성공: {}, orphan 스킵(앨범 없음): {}", successCount, orphanSkipCount);
     }
 
     /**
