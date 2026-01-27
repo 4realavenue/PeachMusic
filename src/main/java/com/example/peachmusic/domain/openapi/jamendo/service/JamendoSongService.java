@@ -33,7 +33,7 @@ public class JamendoSongService {
      */
     @Transactional
     public void importInitJamendo(JamendoInitRequestDto request) {
-        if(!request.getStartDate().isBefore(request.getEndDate())) {
+        if(request.getStartDate().isAfter(request.getEndDate())) {
             throw new CustomException(ErrorCode.JAMENDO_INVALID_DATE_RANGE);
         }
         String dateBetween = request.getStartDate() + "_" + request.getEndDate();
