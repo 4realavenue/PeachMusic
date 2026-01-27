@@ -14,11 +14,12 @@ import com.example.peachmusic.domain.playlist.dto.response.PlaylistUpdateRespons
 import com.example.peachmusic.domain.playlist.entity.Playlist;
 import com.example.peachmusic.domain.playlist.repository.PlaylistRepository;
 import com.example.peachmusic.domain.playlistSong.repository.PlaylistSongRepository;
+import com.example.peachmusic.domain.user.entity.User;
+import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -30,12 +31,15 @@ public class PlaylistService {
     private final PlaylistRepository playlistRepository;
     private final PlaylistSongRepository playlistSongRepository;
     private final FileStorageService fileStorageService;
+    private final UserService userService;
 
     /**
      * 플레이리스트 생성
      */
     @Transactional
     public PlaylistCreateResponseDto createPlaylist(PlaylistCreateRequestDto requestDto, MultipartFile playlistImage, AuthUser authUser) {
+
+        User findUser = userService.findUser(authUser);
 
         String playlistName = requestDto.getPlaylistName().trim();
 
@@ -44,7 +48,7 @@ public class PlaylistService {
             storedPath = storePlaylistImage(playlistImage, playlistName);
         }
 
-        Playlist playlist = new Playlist(authUser.getUser(), playlistName, storedPath);
+        Playlist playlist = new Playlist(findUser, playlistName, storedPath);
 
         playlistRepository.save(playlist);
 
@@ -58,7 +62,9 @@ public class PlaylistService {
     @Transactional(readOnly = true)
     public List<PlaylistGetListResponseDto> getPlaylistAll(AuthUser authUser) {
 
-        List<Playlist> findPlaylistList = playlistRepository.findAllByUser(authUser.getUser());
+        User findUser = userService.findUser(authUser);
+
+        List<Playlist> findPlaylistList = playlistRepository.findAllByUser(findUser);
 
         return findPlaylistList.stream().map(PlaylistGetListResponseDto::from).toList();
 

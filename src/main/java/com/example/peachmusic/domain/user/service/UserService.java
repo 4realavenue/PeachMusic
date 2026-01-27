@@ -14,7 +14,6 @@ import com.example.peachmusic.domain.user.dto.response.UserCreateResponseDto;
 import com.example.peachmusic.domain.user.dto.response.UserGetResponseDto;
 import com.example.peachmusic.domain.user.dto.response.admin.UserUpdateResponseDto;
 import com.example.peachmusic.domain.user.repository.UserRepository;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -34,7 +33,7 @@ public class UserService {
     private final MemberService memberService;
 
     @Transactional
-    public UserCreateResponseDto createUser(@Valid UserCreateRequestDto request) {
+    public UserCreateResponseDto createUser(UserCreateRequestDto request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new CustomException(ErrorCode.USER_EXIST_EMAIL);
@@ -64,14 +63,14 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserGetResponseDto getUser(AuthUser authUser) {
-        return UserGetResponseDto.from(authUser.getUser());
+        return UserGetResponseDto.from(findUser(authUser));
     }
 
 
     @Transactional
-    public UserUpdateResponseDto update(@Valid UserUpdateRequestDto request, AuthUser authUser) {
+    public UserUpdateResponseDto update(UserUpdateRequestDto request, AuthUser authUser) {
 
-        User user = authUser.getUser();
+        User user = findUser(authUser);
 
         if (isNotBlank(request.getNickname()) && !request.getNickname().trim().equals(user.getNickname())) {
             if (userRepository.existsByNickname(request.getNickname().trim())) {
@@ -86,11 +85,11 @@ public class UserService {
 
     @Transactional
     public void deleteUser(AuthUser authUser) {
-        authUser.getUser().delete();
+        findUser(authUser).delete();
     }
 
     @Transactional
-    public LoginResponseDto login(@Valid LoginRequestDto request) {
+    public LoginResponseDto login(LoginRequestDto request) {
         User user = userRepository.findUserByEmailAndIsDeletedFalse(request.getEmail())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
@@ -99,7 +98,7 @@ public class UserService {
         }
         String token = jwtUtil.createToken(user.getUserId(), user.getEmail(), user.getRole(), user.getTokenVersion());
 
-        AuthUser authUser = new AuthUser(user, user.getUserId(), user.getEmail(), user.getRole(), user.getTokenVersion());
+        AuthUser authUser = new AuthUser(user.getUserId(), user.getEmail(), user.getRole(), user.getTokenVersion());
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(authUser,null, authUser.getAuthoritie());
 
@@ -110,7 +109,16 @@ public class UserService {
 
     @Transactional
     public void logout(AuthUser authUser) {
-        authUser.getUser().increaseTokenVersion();
+        findUser(authUser).increaseTokenVersion();
+    }
+
+    /**
+     * DB에서 유저 조회
+     */
+    @Transactional
+    public User findUser(AuthUser authUser) {
+        return userRepository.findById(authUser.getUserId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 
 }

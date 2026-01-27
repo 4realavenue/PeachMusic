@@ -33,7 +33,7 @@ public class PlaylistSongController {
 
         PlaylistSongAddResponseDto responseDto = playlistSongService.addPlaylistSong(playlistId, requestDto, authUser);
 
-        return ResponseEntity.ok(CommonResponse.success("플레이리스트에 곡이 추가 되었습니다.", responseDto));
+        return ResponseEntity.ok(CommonResponse.success("플레이리스트에 곡이 추가되었습니다.", responseDto));
     }
 
     /**
@@ -47,7 +47,7 @@ public class PlaylistSongController {
 
         PlaylistGetSongResponseDto responseDto = playlistSongService.getPlaylistSongList(playlistId, authUser);
 
-        return ResponseEntity.ok(CommonResponse.success("플레이리스트 조회에 성공했습니다.", responseDto));
+        return ResponseEntity.ok(CommonResponse.success("플레이리스트 음원 조회에 성공했습니다.", responseDto));
     }
 
     /**
@@ -62,6 +62,6 @@ public class PlaylistSongController {
 
         PlaylistSongDeleteSongResponseDto responseDto = playlistSongService.deletePlaylistSong(playlistId, requestDto, authUser);
 
-        return ResponseEntity.ok(CommonResponse.success("플레이리스트에서 곡이 삭제 되었습니다.", responseDto));
+        return ResponseEntity.ok(CommonResponse.success("플레이리스트에서 곡이 삭제되었습니다.", responseDto));
     }
 }

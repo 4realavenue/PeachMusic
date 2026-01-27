@@ -51,7 +51,7 @@ public class SongAdminController {
 
         Page<SongSearchResponseDto> responseDtoPage = songAdminService.getSongAll(word, pageable);
 
-        return ResponseEntity.ok(PageResponse.success("음원 목록 조회에 성공 했습니다", responseDtoPage));
+        return ResponseEntity.ok(PageResponse.success("음원 목록 조회에 성공했습니다", responseDtoPage));
     }
 
     /**
@@ -65,7 +65,7 @@ public class SongAdminController {
 
         AdminSongUpdateResponseDto responseDto = songAdminService.updateSong(requestDto, songId);
 
-        return ResponseEntity.ok(CommonResponse.success("음원 정보가 수정 되었습니다.", responseDto));
+        return ResponseEntity.ok(CommonResponse.success("음원 정보가 수정되었습니다.", responseDto));
     }
 
     /**

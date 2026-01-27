@@ -67,7 +67,7 @@ public class ArtistAdminController {
      * @param requestDto 아티스트 기본 정보 수정 요청 DTO
      * @return 수정된 아티스트 정보
      */
-    @PutMapping("/admin/artists/{artistId}")
+    @PatchMapping("/admin/artists/{artistId}")
     public ResponseEntity<CommonResponse<ArtistUpdateResponseDto>> updateArtist(
             @PathVariable("artistId") Long artistId,
             @Valid @RequestBody ArtistUpdateRequestDto requestDto) {
@@ -91,7 +91,7 @@ public class ArtistAdminController {
 
         ArtistImageUpdateResponseDto responseDto = artistAdminService.updateProfileImage(artistId, profileImage);
 
-        return ResponseEntity.ok(CommonResponse.success("아티스트 프로필 이미지가 수정되었습니다.", responseDto));
+        return ResponseEntity.ok(CommonResponse.success("아티스트 이미지가 수정되었습니다.", responseDto));
     }
 
     /**
