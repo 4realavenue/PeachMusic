@@ -1,19 +1,21 @@
-package com.example.peachmusic.domain.email.service;
+package com.example.peachmusic.domain.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class MailService {
 
     private final JavaMailSender javaMailSender;
 
     /**
      *  이메일 보내기
      */
+    @Transactional
     public void sendEmail(String toEmail, String title, String text) {
         SimpleMailMessage emailForm = createEmailForm(toEmail, title, text);
         javaMailSender.send(emailForm);

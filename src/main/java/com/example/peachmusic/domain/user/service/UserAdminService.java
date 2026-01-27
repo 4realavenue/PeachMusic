@@ -1,10 +1,10 @@
 package com.example.peachmusic.domain.user.service;
 
+import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.common.enums.ErrorCode;
-import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.dto.response.admin.UserAdminGetResponseDto;
+import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

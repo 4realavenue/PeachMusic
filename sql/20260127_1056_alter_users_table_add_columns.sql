@@ -1,0 +1,3 @@
+ALTER TABLE users
+    ADD COLUMN tokenVersion VARCHAR(255) NULL DEFAULT 0 COMMENT '토큰 버전',
+    ADD COLUMN emailVerified TINYINT(1) NOT NULL DEFAULT 0 COMMENT '이메일 인증 여부'

@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.email.dto;
+package com.example.peachmusic.common.config;
 
 import org.springframework.stereotype.Component;
 
@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-public class InMemoryEmailVerificationStore {
+public class InMemoryEmailVerificationConfig {
     private static final long EXPIRATION_TIME = 3 * 60 * 1000;
     private final Map<String, String> verificationCodes = new HashMap<>();
     private final Map<String, Long> expirationTimes = new HashMap<>();

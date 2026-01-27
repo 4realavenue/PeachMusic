@@ -1,8 +1,8 @@
-package com.example.peachmusic.domain.email.service;
+package com.example.peachmusic.domain.user.service;
 
+import com.example.peachmusic.common.config.InMemoryEmailVerificationConfig;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.domain.email.dto.InMemoryEmailVerificationStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -10,24 +10,20 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class MailCheckService {
 
-    private final AuthService authService;
-    private final InMemoryEmailVerificationStore verificationStore;
-
+    private final MailService mailService;
+    private final InMemoryEmailVerificationConfig verificationStore;
 
     /**
      *  코드 전송
      */
     public void sendCodeToEmail(String email) {
-        if (email == null || !isValidEmail(email)) {
-            throw new CustomException(ErrorCode.AUTH_EMAIL_PASSWORD_INVALID_FORMAT);
-        }
 
         String authCode = generateAuthCode();
         verificationStore.saveVerificationCode(email, authCode);
 
         String title = "[PeachMusic] 이메일 인증 코드";
         String text = String.format("인증 코드: %s\n이 코드는 3분간 유효합니다.", authCode);
-        authService.sendEmail(email, title, text);
+        mailService.sendEmail(email, title, text);
     }
 
     /**

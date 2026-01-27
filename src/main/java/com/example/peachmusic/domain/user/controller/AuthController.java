@@ -1,14 +1,15 @@
-package com.example.peachmusic.domain.email.controller;
+package com.example.peachmusic.domain.user.controller;
 
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.CommonResponse;
-import com.example.peachmusic.domain.email.dto.SendEmailRequestDto;
-import com.example.peachmusic.domain.email.dto.VerifyCodeRequest;
-import com.example.peachmusic.domain.email.service.MailCheckService;
 import com.example.peachmusic.domain.user.dto.request.LoginRequestDto;
+import com.example.peachmusic.domain.user.dto.request.SendEmailRequestDto;
 import com.example.peachmusic.domain.user.dto.request.UserCreateRequestDto;
+import com.example.peachmusic.domain.user.dto.request.VerifyCodeRequestDto;
 import com.example.peachmusic.domain.user.dto.response.LoginResponseDto;
+import com.example.peachmusic.domain.user.service.AuthService;
+import com.example.peachmusic.domain.user.service.MailCheckService;
 import com.example.peachmusic.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class AuthController {
 
     private final MailCheckService mailCheckService;
     private final UserService userService;
+    private final AuthService authService;
 
     /**
      *  회원가입
@@ -32,7 +34,7 @@ public class AuthController {
     public ResponseEntity<CommonResponse<Void>> createUser(
             @Valid @RequestBody UserCreateRequestDto request
     ) {
-        userService.createUser(request);
+        authService.createUser(request);
         return new ResponseEntity<>(CommonResponse.success("유저 생성 성공"), HttpStatus.CREATED);
     }
 
@@ -43,7 +45,7 @@ public class AuthController {
     public ResponseEntity<CommonResponse<LoginResponseDto>> login(
             @Valid @RequestBody LoginRequestDto request
     ) {
-        LoginResponseDto responseDto = userService.login(request);
+        LoginResponseDto responseDto = authService.login(request);
         return ResponseEntity.ok(CommonResponse.success("로그인을 성공했습니다.", responseDto));
     }
 
@@ -54,7 +56,7 @@ public class AuthController {
     public ResponseEntity<CommonResponse<Void>> logout(
             @AuthenticationPrincipal AuthUser authUser
     ) {
-        userService.logout(authUser);
+        authService.logout(authUser);
         return ResponseEntity.ok(CommonResponse.success("로그아웃을 완료했습니다."));
     }
 
@@ -71,7 +73,7 @@ public class AuthController {
      *  코드 인증
      */
     @PostMapping("/auth/email/verify-code")
-    public ResponseEntity<CommonResponse<Void>> verifyCode(@Valid @RequestBody VerifyCodeRequest request) {
+    public ResponseEntity<CommonResponse<Void>> verifyCode(@Valid @RequestBody VerifyCodeRequestDto request) {
         boolean isVerified;
         try {
             isVerified = mailCheckService.verifyEmailCode(request.getEmail(), request.getCode());
