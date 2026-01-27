@@ -1,6 +1,6 @@
 package com.example.peachmusic.domain.artist.entity;
 
-import com.example.peachmusic.common.entity.BaseEntity;
+import com.example.peachmusic.common.model.BaseEntity;
 import com.example.peachmusic.common.enums.ArtistType;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.exception.CustomException;

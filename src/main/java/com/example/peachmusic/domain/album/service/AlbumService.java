@@ -9,10 +9,10 @@ import com.example.peachmusic.domain.album.dto.response.AlbumGetDetailResponseDt
 import com.example.peachmusic.domain.album.dto.response.ArtistSummaryDto;
 import com.example.peachmusic.domain.album.dto.response.SongSummaryDto;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
-import com.example.peachmusic.domain.albumLike.repository.AlbumLikeRepository;
+import com.example.peachmusic.domain.albumlike.repository.AlbumLikeRepository;
 import com.example.peachmusic.domain.artist.entity.Artist;
-import com.example.peachmusic.domain.artistAlbum.entity.ArtistAlbum;
-import com.example.peachmusic.domain.artistAlbum.repository.ArtistAlbumRepository;
+import com.example.peachmusic.domain.artistalbum.entity.ArtistAlbum;
+import com.example.peachmusic.domain.artistalbum.repository.ArtistAlbumRepository;
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;

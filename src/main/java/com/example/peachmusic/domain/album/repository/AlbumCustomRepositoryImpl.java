@@ -15,7 +15,7 @@ import java.util.List;
 import static com.example.peachmusic.common.enums.UserRole.USER;
 import static com.example.peachmusic.domain.album.entity.QAlbum.album;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
-import static com.example.peachmusic.domain.artistAlbum.entity.QArtistAlbum.artistAlbum;
+import static com.example.peachmusic.domain.artistalbum.entity.QArtistAlbum.artistAlbum;
 
 public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
 

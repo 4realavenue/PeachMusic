@@ -13,7 +13,7 @@ import com.example.peachmusic.domain.playlist.dto.response.PlaylistImageUpdateRe
 import com.example.peachmusic.domain.playlist.dto.response.PlaylistUpdateResponseDto;
 import com.example.peachmusic.domain.playlist.entity.Playlist;
 import com.example.peachmusic.domain.playlist.repository.PlaylistRepository;
-import com.example.peachmusic.domain.playlistSong.repository.PlaylistSongRepository;
+import com.example.peachmusic.domain.playlistsong.repository.PlaylistSongRepository;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
