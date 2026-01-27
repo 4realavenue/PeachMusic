@@ -11,9 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 
 @RestController
 @RequiredArgsConstructor
@@ -22,6 +20,9 @@ public class UserAdminController {
 
     private final UserAdminService useradminService;
 
+    /**
+     *  유저 목록 조회
+     */
     @GetMapping("/admin/users")
     public ResponseEntity<PageResponse<UserAdminGetResponseDto>> getUsers(
             @RequestParam(required = false) String word,
@@ -32,6 +33,9 @@ public class UserAdminController {
         return ResponseEntity.ok(PageResponse.success("유저 목록 조회를 성공했습니다.", response));
     }
 
+    /**
+     *  유저 삭제
+     */
     @DeleteMapping("/admin/users/{userId}/delete")
     public ResponseEntity deleteUser(
             @PathVariable Long userId
@@ -41,6 +45,9 @@ public class UserAdminController {
         return ResponseEntity.ok(CommonResponse.success("유저 비활성화를 성공했습니다."));
     }
 
+    /**
+     *  유저 복구
+     */
     @PatchMapping("/admin/users/{userId}/restore")
     public ResponseEntity updateUser(
             @PathVariable Long userId
@@ -50,6 +57,9 @@ public class UserAdminController {
         return ResponseEntity.ok(CommonResponse.success("유저 활성화를 성공했습니다."));
     }
 
+    /**
+     *  권한 부여
+     */
     @PatchMapping("/admin/users/{userId}/role")
     public ResponseEntity<CommonResponse<Void>> changeRole(
             @PathVariable Long userId,
