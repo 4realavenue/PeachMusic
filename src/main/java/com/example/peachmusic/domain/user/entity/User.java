@@ -1,6 +1,6 @@
 package com.example.peachmusic.domain.user.entity;
 
-import com.example.peachmusic.common.entity.BaseEntity;
+import com.example.peachmusic.common.model.BaseEntity;
 import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.domain.user.dto.request.UserUpdateRequestDto;
 import jakarta.persistence.*;

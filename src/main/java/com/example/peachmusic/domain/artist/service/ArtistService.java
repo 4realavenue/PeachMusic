@@ -7,7 +7,7 @@ import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.dto.response.ArtistGetDetailResponseDto;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
 import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
-import com.example.peachmusic.domain.artistLike.repository.ArtistLikeRepository;
+import com.example.peachmusic.domain.artistlike.repository.ArtistLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

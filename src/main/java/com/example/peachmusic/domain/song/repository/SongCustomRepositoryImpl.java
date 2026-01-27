@@ -14,7 +14,7 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 import static com.example.peachmusic.common.enums.UserRole.USER;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
-import static com.example.peachmusic.domain.artistSong.entity.QArtistSong.artistSong;
+import static com.example.peachmusic.domain.artistsong.entity.QArtistSong.artistSong;
 import static com.example.peachmusic.domain.song.entity.QSong.song;
 
 public class SongCustomRepositoryImpl implements SongCustomRepository {

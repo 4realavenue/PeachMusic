@@ -1,6 +1,6 @@
 package com.example.peachmusic.domain.album.entity;
 
-import com.example.peachmusic.common.entity.BaseEntity;
+import com.example.peachmusic.common.model.BaseEntity;
 import com.example.peachmusic.domain.album.dto.request.AlbumUpdateRequestDto;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
