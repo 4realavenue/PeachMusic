@@ -1,9 +1,8 @@
 package com.example.peachmusic.domain.openapi.jamendo.service;
 
-import com.example.peachmusic.domain.openapi.jamendo.dto.JamendoMusicInfoDto;
-import com.example.peachmusic.domain.openapi.jamendo.dto.JamendoSongDto;
-import com.example.peachmusic.domain.openapi.jamendo.dto.JamendoSongResponseDto;
-import com.example.peachmusic.domain.openapi.jamendo.dto.JamendoTagDto;
+import com.example.peachmusic.common.enums.ErrorCode;
+import com.example.peachmusic.common.exception.CustomException;
+import com.example.peachmusic.domain.openapi.jamendo.dto.*;
 import com.example.peachmusic.domain.openapi.jamendo.jdbc.JamendoBatchJdbcRepository;
 import com.example.peachmusic.domain.openapi.jamendo.jdbc.row.*;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +29,11 @@ public class JamendoSongService {
      * Jamendo 음원 초기 적재
      */
     @Transactional
-    public void importInitJamendo(LocalDate startDate, LocalDate endDate) {
-        String dateBetween = startDate + "_" + endDate;
+    public void importInitJamendo(JamendoInitRequestDto request) {
+        if(!request.getStartDate().isBefore(request.getEndDate())) {
+            throw new CustomException(ErrorCode.JAMENDO_INVALID_DATE_RANGE);
+        }
+        String dateBetween = request.getStartDate() + "_" + request.getEndDate();
         importJamendoByDateRange(INIT_MAX_PAGE, dateBetween);
     }
 
