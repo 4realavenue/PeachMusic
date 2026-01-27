@@ -50,13 +50,6 @@ public class MailCheckService {
     }
 
     /**
-     *  이메일 유효성 검사
-     */
-    private boolean isValidEmail(String email) {
-        return email.contains("@");
-    }
-
-    /**
      *  코드 생성
      */
     private String generateAuthCode() {

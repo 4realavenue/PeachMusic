@@ -11,8 +11,6 @@ import com.example.peachmusic.domain.user.dto.response.UserCreateResponseDto;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
