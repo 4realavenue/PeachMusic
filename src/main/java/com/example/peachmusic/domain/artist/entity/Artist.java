@@ -69,6 +69,11 @@ public class Artist extends BaseEntity {
         this.artistName = (requestDto.getArtistName() == null || requestDto.getArtistName().isBlank()) ? this.artistName : requestDto.getArtistName().trim();
         this.country = (requestDto.getCountry() == null || requestDto.getCountry().isBlank()) ? this.country : requestDto.getCountry().trim();
         this.bio = (requestDto.getBio() == null || requestDto.getBio().isBlank()) ? this.bio : requestDto.getBio().trim();
+
+        if (requestDto.getArtistType() != null) {
+            this.artistType = requestDto.getArtistType();
+        }
+
         if (requestDto.getDebutDate() != null) {
             if (requestDto.getDebutDate().isAfter(LocalDate.now())) {
                 throw new CustomException(ErrorCode.ARTIST_DEBUT_DATE_INVALID);

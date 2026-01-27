@@ -8,6 +8,8 @@ import com.example.peachmusic.domain.artist.repository.ArtistRepository;
 import com.example.peachmusic.domain.artistLike.entity.ArtistLike;
 import com.example.peachmusic.domain.artistLike.dto.response.ArtistLikeResponseDto;
 import com.example.peachmusic.domain.artistLike.repository.ArtistLikeRepository;
+import com.example.peachmusic.domain.user.entity.User;
+import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,7 @@ public class ArtistLikeService {
 
     private final ArtistLikeRepository artistLikeRepository;
     private final ArtistRepository artistRepository;
+    private final UserService userService;
 
     /**
      * 아티스트 좋아요 토글 기능
@@ -28,6 +31,8 @@ public class ArtistLikeService {
      */
     @Transactional
     public ArtistLikeResponseDto likeArtist(AuthUser authUser, Long artistId) {
+
+        User findUser = userService.findUser(authUser);
 
         Long userId = authUser.getUserId();
 
@@ -43,7 +48,7 @@ public class ArtistLikeService {
             foundArtist.decreaseLikeCount();
         } else {
             // 좋아요 상태가 아니면 등록
-            artistLikeRepository.save(new ArtistLike(authUser.getUser(), foundArtist));
+            artistLikeRepository.save(new ArtistLike(findUser, foundArtist));
             foundArtist.increaseLikeCount();
         }
 

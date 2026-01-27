@@ -160,7 +160,7 @@ public class AlbumAdminService {
 
         foundAlbum.updateAlbumImage(newPath);
 
-        if (oldPath != null && !oldPath.equals(newPath)) {
+        if (oldPath != null && !oldPath.equals(newPath) && isManagedFilePath(oldPath)) {
             fileStorageService.deleteFileByPath(oldPath);
         }
 
@@ -241,5 +241,9 @@ public class AlbumAdminService {
         String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         String baseName = "PeachMusic_album_" + albumName + "_" + date;
         return fileStorageService.storeFile(albumImage, FileType.ALBUM_IMAGE, baseName);
+    }
+
+    private boolean isManagedFilePath(String path) {
+        return !path.startsWith("https://");
     }
 }
