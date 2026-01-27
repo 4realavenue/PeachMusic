@@ -1,5 +1,7 @@
 package com.example.peachmusic.common.filter;
 
+import com.example.peachmusic.common.enums.ErrorCode;
+import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.repository.UserRepository;
@@ -37,8 +39,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String bearerJwt = request.getHeader("Authorization");
 
-        if (bearerJwt == null || bearerJwt.isBlank()) { // 토큰이 null 이거나 비어있을경우
-            // 토큰이 없는 경우 시큐리티한테 위임
+        if (bearerJwt == null || bearerJwt.isBlank()) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -52,29 +53,28 @@ public class JwtFilter extends OncePerRequestFilter {
             Long tokenVersion = claims.get("version", Long.class);
 
             if (tokenVersion == null) {
-                throw new BadCredentialsException("토큰 버전 정보가 없습니다.");
+                throw new CustomException(ErrorCode.AUTH_TOKEN_REQUIRED);
             }
 
-            // DB에서 최신 버전 조회
             User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new BadCredentialsException("사용자를 찾을 수 없습니다."));
+                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-            // 버전이 다르다면, 로그아웃된 토큰 출력
             if (!user.getTokenVersion().equals(tokenVersion)) {
+                SecurityContextHolder.clearContext();
+
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json;charset=UTF-8");
                 response.getWriter().write("{\"message\":\"만료된 토큰입니다.\"}");
                 return;
             }
 
-            // 버전이 같으면 정상 인증 진행함
-            String email = (String) claims.get("email");
+            String email = claims.get("email", String.class);
             String roleStr = claims.get("userRole", String.class);
-            UserRole role = (roleStr != null) ? UserRole.valueOf(roleStr) : UserRole.USER;
+            UserRole role = roleStr != null ? UserRole.valueOf(roleStr) : UserRole.USER;
 
-            AuthUser authuser = new AuthUser(userId, email, role);
+            AuthUser authUser = new AuthUser( userId, email, role, tokenVersion);
             Authentication authentication = new UsernamePasswordAuthenticationToken(
-                    authuser, null, authuser.getAuthoritie()
+                    authUser, null, authUser.getAuthorities()
             );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);

@@ -35,21 +35,20 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
 
-                // 예외 처리 핸들러 등록
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                         .accessDeniedHandler(jwtAccessDeniedHandler)
                 )
 
-                // JWT 필터 추가 (UsernamePasswordAuthenticationFilter 전에)
                 .addFilterBefore(jwtFilter, SecurityContextHolderAwareRequestFilter.class)
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll() // 무조건 통과
-                        .requestMatchers("/api/search/**").permitAll() // 무조건 통과
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // 어드민 권한만 통과
-                        // 통과목록에 필요할경우 추가
-                        .anyRequest().authenticated() // 위 통과 목록 아니면 인증해야됨
+                        .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/email/**").permitAll()
+                        .requestMatchers("/api/search/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "BOSS")
+                        .requestMatchers(HttpMethod.GET, "/api/songs/**", "/api/artists/**", "/api/albums/**").permitAll()
+                        .anyRequest().authenticated()
                 );
 
         return http.build();

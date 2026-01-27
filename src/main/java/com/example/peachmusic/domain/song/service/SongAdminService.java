@@ -1,28 +1,41 @@
 package com.example.peachmusic.domain.song.service;
 
-import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
+import com.example.peachmusic.common.enums.FileType;
+import com.example.peachmusic.common.exception.CustomException;
+import com.example.peachmusic.common.storage.FileStorageService;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
+import com.example.peachmusic.domain.artist.entity.Artist;
+import com.example.peachmusic.domain.artistalbum.repository.ArtistAlbumRepository;
+import com.example.peachmusic.domain.artistsong.entity.ArtistSong;
+import com.example.peachmusic.domain.artistsong.repository.ArtistSongRepository;
 import com.example.peachmusic.domain.genre.entity.Genre;
 import com.example.peachmusic.domain.genre.repository.GenreRepository;
+import com.example.peachmusic.domain.song.dto.request.AdminSongCreateRequestDto;
+import com.example.peachmusic.domain.song.dto.request.AdminSongUpdateRequestDto;
+import com.example.peachmusic.domain.song.dto.response.AdminSongAudioUpdateResponseDto;
+import com.example.peachmusic.domain.song.dto.response.AdminSongCreateResponseDto;
+import com.example.peachmusic.domain.song.dto.response.AdminSongUpdateResponseDto;
+import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.example.peachmusic.domain.song.entity.Song;
-import com.example.peachmusic.domain.song.model.request.AdminSongCreateRequestDto;
-import com.example.peachmusic.domain.song.model.request.AdminSongUpdateRequestDto;
-import com.example.peachmusic.domain.song.model.response.AdminSongCreateResponseDto;
-import com.example.peachmusic.domain.song.model.response.AdminSongUpdateResponseDto;
-import com.example.peachmusic.domain.song.model.response.SongSearchResponse;
 import com.example.peachmusic.domain.song.repository.SongRepository;
-import com.example.peachmusic.domain.songGenre.entity.SongGenre;
-import com.example.peachmusic.domain.songGenre.repository.SongGenreRepository;
+import com.example.peachmusic.domain.songgenre.entity.SongGenre;
+import com.example.peachmusic.domain.songgenre.repository.SongGenreRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import static com.example.peachmusic.common.enums.UserRole.ADMIN;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SongAdminService {
@@ -31,90 +44,136 @@ public class SongAdminService {
     private final AlbumRepository albumRepository;
     private final GenreRepository genreRepository;
     private final SongGenreRepository songGenreRepository;
+    private final ArtistSongRepository artistSongRepository;
+    private final ArtistAlbumRepository artistAlbumRepository;
+    private final FileStorageService fileStorageService;
 
     /**
      * 음원 생성
      */
     @Transactional
-    public AdminSongCreateResponseDto createSong(AdminSongCreateRequestDto requestDto) {
+    public AdminSongCreateResponseDto createSong(AdminSongCreateRequestDto requestDto, MultipartFile audio) {
 
-        // 1. 음원 생성할 때 소속 시켜줄 앨범 찾아오기
         Album findAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(requestDto.getAlbumId())
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 
-        // 2. 요청 받은 음원의 데이터가 중복 되는지 검증
+        if (songRepository.existsByAlbumAndName(findAlbum, requestDto.getName())) {
+            throw new CustomException(ErrorCode.SONG_EXIST_NAME);
+        }
+
         if (songRepository.existsSongByAlbumAndPosition(findAlbum, requestDto.getPosition())) {
             throw new CustomException(ErrorCode.ALBUM_EXIST_SONG_POSITION);
         }
 
-        // 2. 요청 받은 데이터 담긴 음원 객체 생성
-        Song song = new Song(findAlbum, requestDto.getName(), requestDto.getDuration(), requestDto.getLicenseCcurl(), requestDto.getPosition(), requestDto.getAudio(), requestDto.getVocalinstrumental(), requestDto.getLang(), requestDto.getSpeed(), requestDto.getInstruments(), requestDto.getVartags());
+        String storedPath = storeAudio(audio, requestDto.getName());
 
-        // 3. 음원 레포지토리를 통해 DB에 저장
-        Song saveSong = songRepository.save(song);
+        try {
+            Song song = new Song(findAlbum, requestDto.getName(), requestDto.getDuration(), requestDto.getLicenseCcurl(), requestDto.getPosition(), storedPath, requestDto.getVocalinstrumental(), requestDto.getLang(), requestDto.getSpeed(), requestDto.getInstruments(), requestDto.getVartags());
 
-        // 4. 요청 받은 장르를 장르 레포지토리를 통해서 전부 찾아오고
-        //    담아줄 장르 리스트에 담아주기
-        List<Genre> genreList = genreRepository.findAllById(requestDto.getGenreId());
+            Song saveSong = songRepository.save(song);
 
-        // 5. 장르 리스트 순회하면서 음원과 각 장르로 SongGenre 객체 리스트 생성
-        List<SongGenre> songGenreList = genreList.stream().map(genre -> new SongGenre(saveSong, genre)).toList();
+            List<Genre> genreList = genreRepository.findAllById(requestDto.getGenreIdList());
 
-        // 6. 중간 테이블 리스트를 중간테이블 레포지토리를 통해 DB에 전부 저장
-        songGenreRepository.saveAll(songGenreList);
+            List<SongGenre> songGenreList = genreList.stream()
+                    .map(genre -> new SongGenre(saveSong, genre))
+                    .toList();
 
-        // 7. 중간 테이블 리스트를 순회하면서 중간테이블->음원->음원이름을 추출해서 문자열 리스트로 변환
-        List<String> genreNameList = genreList.stream().map(Genre::getGenreName).toList();
+            songGenreRepository.saveAll(songGenreList);
 
-        // 8. 응답Dto from메서드 실행 후 반환
-        return AdminSongCreateResponseDto.from(saveSong, genreNameList, requestDto.getAlbumId());
+            List<Artist> findArtistList = artistAlbumRepository.findArtist_ArtistIdByArtistAlbum_Album_AlbumId(findAlbum.getAlbumId());
 
+            List<ArtistSong> artistSongList = findArtistList.stream()
+                    .map(artistSong -> new ArtistSong(artistSong, saveSong))
+                    .toList();
+
+            artistSongRepository.saveAll(artistSongList);
+
+            List<String> genreNameList = genreList.stream()
+                    .map(Genre::getGenreName)
+                    .toList();
+
+            return AdminSongCreateResponseDto.from(saveSong, genreNameList, findAlbum);
+
+        } catch (RuntimeException e) {
+            // DB 실패 시 업로드된 파일이 남지 않도록 정리
+            cleanupFileQuietly(storedPath);
+            throw e;
+        }
     }
 
     /**
      * 음원 전체 조회
      */
     @Transactional(readOnly = true)
-    public Page<SongSearchResponse> getSongAll(String word, Pageable pageable) {
+    public Page<SongSearchResponseDto> getSongAll(String word, Pageable pageable) {
         return songRepository.findSongPageByWord(word, pageable, ADMIN);
     }
 
     /**
-     * 음원 정보 수정
+     * 음원 기본 정보 수정
      */
     @Transactional
     public AdminSongUpdateResponseDto updateSong(AdminSongUpdateRequestDto requestDto, Long songId) {
 
-        // 1. 요청 받은 songId로 음원 찾아오기
         Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
-        // 2. 요청 받은 albumId로 앨범 찾아오기
         Album findAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(requestDto.getAlbumId())
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 
-        // 3. 찾아온 음원의 updateSong 메서드 실행
-        findSong.updateSong(requestDto.getName(), requestDto.getDuration(), requestDto.getLicenseCcurl(), requestDto.getPosition(), requestDto.getAudio(), requestDto.getVocalinstrumental(), requestDto.getLang(), requestDto.getSpeed(), requestDto.getInstruments(), requestDto.getVartags(), findAlbum);
+        Long newPosition = requestDto.getPosition();
+        if (newPosition != null && songRepository.existsSongByAlbumAndPositionAndSongIdNot(findAlbum, newPosition, songId)) {
+            throw new CustomException(ErrorCode.ALBUM_EXIST_SONG_POSITION);
+        }
 
-        // 4. 찾아온 song에 관한 songGenre 데이터 초기화 / 즉시 동기화
+        findSong.updateSong(requestDto, newPosition, findAlbum);
+
         songGenreRepository.deleteAllBySong(findSong);
         songGenreRepository.flush();
 
-        // 5. 찾아온 장르 리스트를 장르 레포지토리 통해 장르 DB에서 찾아오기
-        List<Genre> findGenreList = genreRepository.findAllById(requestDto.getGenreId());
+        List<Genre> findGenreList = genreRepository.findAllById(requestDto.getGenreIdList());
 
-        // 6. 찾아온 장르 리스트를 순회하며 새로운 중간테이블 객체 생성 리스트로 변환
-        List<SongGenre> songGenreList = findGenreList.stream().map(genre -> new SongGenre(findSong, genre)).toList();
+        List<SongGenre> songGenreList = findGenreList.stream()
+                .map(genre -> new SongGenre(findSong, genre))
+                .toList();
 
-        // 7. 중간 테이블 리스트를 중간테이블 레포지토리를 통해 DB에 전부 저장
         songGenreRepository.saveAll(songGenreList);
 
-        // 8. 중간 테이블 리스트를 순회하면서 중간테이블->음원->음원이름을 추출해서 문자열 리스트로 변환
-        List<String> genreNameList = findGenreList.stream().map(Genre::getGenreName).toList();
+        List<String> genreNameList = findGenreList.stream()
+                .map(Genre::getGenreName)
+                .toList();
 
-        // 9. 응답dto의 from메서드 실행 후 반환
-        return AdminSongUpdateResponseDto.from(findSong, genreNameList, requestDto.getAlbumId());
+        return AdminSongUpdateResponseDto.from(findSong, genreNameList, findAlbum);
 
+    }
+
+    /**
+     * 음원 파일 수정
+     */
+    @Transactional
+    public AdminSongAudioUpdateResponseDto updateAudio(Long songId, MultipartFile audio) {
+
+        Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
+
+        // 기존 파일 경로 백업
+        String oldPath = findSong.getAudio();
+
+        String newPath = storeAudio(audio, findSong.getName());
+
+        try {
+            findSong.updateAudio(newPath);
+        } catch (RuntimeException e) {
+            // DB 반영 실패하면 새로 저장한 파일 정리
+            cleanupFileQuietly(newPath);
+            throw e;
+        }
+
+        if (oldPath != null && !oldPath.equals(newPath)) {
+            fileStorageService.deleteFileByPath(oldPath);
+        }
+
+        return AdminSongAudioUpdateResponseDto.from(findSong);
     }
 
     /**
@@ -123,11 +182,9 @@ public class SongAdminService {
     @Transactional
     public void deleteSong(Long songId) {
 
-        // 1. 요청 받은 songId로 음원 찾아오기
         Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
-        // 2. 찾아온 음원의 deleteSong 메서드 실행
         findSong.deleteSong();
 
     }
@@ -138,13 +195,32 @@ public class SongAdminService {
     @Transactional
     public void restoreSong(Long songId) {
 
-        // 1. 요청 받은 songId로 음원 찾아오기
         Song findSong = songRepository.findById(songId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
-        // 2. 찾아온 음원의 restoreSong 메서드 실행
+        if (!findSong.isDeleted()) {
+            throw new CustomException(ErrorCode.SONG_EXIST_ACTIVATION_SONG);
+        }
+
         findSong.restoreSong();
 
     }
 
+    // 트랜잭션 외부 파일 정리용
+    private void cleanupFileQuietly(String path) {
+        if (path == null || path.isBlank()) {
+            return;
+        }
+        try {
+            fileStorageService.deleteFileByPath(path);
+        } catch (RuntimeException ignored) {
+            log.warn("파일 정리에 실패했습니다. path={}", path, ignored);
+        }
+    }
+
+    private String storeAudio(MultipartFile audio, String name) {
+        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        String baseName = "PeachMusic_song_" + name + "_" + date;
+        return fileStorageService.storeFile(audio, FileType.AUDIO, baseName);
+    }
 }

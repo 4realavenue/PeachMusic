@@ -1,7 +1,7 @@
 package com.example.peachmusic.domain.album.repository;
 
 import com.example.peachmusic.common.enums.UserRole;
-import com.example.peachmusic.domain.album.model.response.AlbumSearchResponse;
+import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -15,7 +15,7 @@ import java.util.List;
 import static com.example.peachmusic.common.enums.UserRole.USER;
 import static com.example.peachmusic.domain.album.entity.QAlbum.album;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
-import static com.example.peachmusic.domain.artistAlbum.entity.QArtistAlbum.artistAlbum;
+import static com.example.peachmusic.domain.artistalbum.entity.QArtistAlbum.artistAlbum;
 
 public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
 
@@ -32,9 +32,9 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
      * @return 페이징 처리된 앨범 검색 결과
      */
     @Override
-    public Page<AlbumSearchResponse> findAlbumPageByWord(String word, Pageable pageable, UserRole role) {
+    public Page<AlbumSearchResponseDto> findAlbumPageByWord(String word, Pageable pageable, UserRole role) {
 
-        List<AlbumSearchResponse> content = baseQuery(word, role)
+        List<AlbumSearchResponseDto> content = baseQuery(word, role)
                 .offset(pageable.getOffset()) // 시작 위치
                 .limit(pageable.getPageSize()) // 개수
                 .fetch();
@@ -57,17 +57,17 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
      * @return 앨범 검색 미리보기
      */
     @Override
-    public List<AlbumSearchResponse> findAlbumListByWord(String word, int limit) {
+    public List<AlbumSearchResponseDto> findAlbumListByWord(String word, int limit) {
         return baseQuery(word, USER).limit(limit).fetch();
     }
 
     /**
      * 기본 쿼리
      */
-    private JPAQuery<AlbumSearchResponse> baseQuery(String word, UserRole role) {
+    private JPAQuery<AlbumSearchResponseDto> baseQuery(String word, UserRole role) {
 
         return queryFactory
-                .selectDistinct(Projections.constructor(AlbumSearchResponse.class, album.albumId, album.albumName, artist.artistName, album.albumReleaseDate, album.albumImage, album.likeCount))
+                .selectDistinct(Projections.constructor(AlbumSearchResponseDto.class, album.albumId, album.albumName, artist.artistName, album.albumReleaseDate, album.albumImage, album.likeCount, album.isDeleted))
                 .from(album)
                 .join(artistAlbum).on(artistAlbum.album.eq(album))
                 .join(artist).on(artistAlbum.artist.eq(artist))

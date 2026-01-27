@@ -1,12 +1,14 @@
 package com.example.peachmusic.domain.artist.controller;
 
+import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.CommonResponse;
-import com.example.peachmusic.domain.artist.model.response.ArtistGetDetailResponseDto;
+import com.example.peachmusic.domain.artist.dto.response.ArtistGetDetailResponseDto;
 import com.example.peachmusic.common.model.PageResponse;
 import com.example.peachmusic.domain.artist.service.ArtistService;
-import com.example.peachmusic.domain.artist.model.response.ArtistSearchResponse;
+import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,11 +32,13 @@ public class ArtistController {
      * @return 조회한 아티스트 정보
      */
     @GetMapping("/artists/{artistId}")
-    public ResponseEntity<CommonResponse<ArtistGetDetailResponseDto>> getArtistDetail(@PathVariable("artistId") Long artistId) {
+    public ResponseEntity<CommonResponse<ArtistGetDetailResponseDto>> getArtistDetail(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable("artistId") Long artistId) {
 
-       ArtistGetDetailResponseDto responseDto = artistService.getArtistDetail(artistId);
+       ArtistGetDetailResponseDto responseDto = artistService.getArtistDetail(authUser, artistId);
 
-       return ResponseEntity.ok(CommonResponse.success("아티스트 조회 성공", responseDto));
+       return ResponseEntity.ok(CommonResponse.success("아티스트 조회에 성공했습니다.", responseDto));
     }
 
     /**
@@ -44,11 +48,11 @@ public class ArtistController {
      * @return 아티스트 검색 응답 DTO (아티스트 id, 이름, 좋아요 수)
      */
     @GetMapping("/search/artists")
-    public ResponseEntity<PageResponse<ArtistSearchResponse>> searchArtist(
+    public ResponseEntity<PageResponse<ArtistSearchResponseDto>> searchArtist(
             @RequestParam String word,
             @PageableDefault(size = 10, sort = "likeCount", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<ArtistSearchResponse> result = artistService.searchArtistPage(word, pageable);
+        Page<ArtistSearchResponseDto> result = artistService.searchArtistPage(word, pageable);
         return ResponseEntity.ok(PageResponse.success("아티스트 검색이 완료되었습니다.", result));
     }
 }

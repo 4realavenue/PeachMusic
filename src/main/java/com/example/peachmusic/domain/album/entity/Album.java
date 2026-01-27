@@ -1,6 +1,7 @@
 package com.example.peachmusic.domain.album.entity;
 
-import com.example.peachmusic.common.entity.BaseEntity;
+import com.example.peachmusic.common.model.BaseEntity;
+import com.example.peachmusic.domain.album.dto.request.AlbumUpdateRequestDto;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -20,7 +21,7 @@ public class Album extends BaseEntity {
     private Long albumId;
 
     @Column(name = "jamendo_album_id", unique = true)
-    private String jamendoAlbumId;
+    private Long jamendoAlbumId;
 
     @Column(name = "album_name", nullable = false)
     private String albumName;
@@ -43,23 +44,21 @@ public class Album extends BaseEntity {
         this.albumImage = albumImage;
     }
 
-    public Album(String jamendoAlbumId, String albumName, LocalDate albumReleaseDate, String albumImage) {
+    public Album(Long jamendoAlbumId, String albumName, LocalDate albumReleaseDate, String albumImage) {
         this.jamendoAlbumId = jamendoAlbumId;
         this.albumName = albumName;
         this.albumReleaseDate = albumReleaseDate;
         this.albumImage = albumImage;
     }
 
-    public void updateAlbumName(String albumName) {
-        this.albumName = albumName;
-    }
+    public void updateAlbumInfo(AlbumUpdateRequestDto requestDto) {
+        this.albumName = (requestDto.getAlbumName() == null || requestDto.getAlbumName().isBlank())
+                ? this.albumName
+                : requestDto.getAlbumName().trim();
 
-    public void updateAlbumReleaseDate(LocalDate albumReleaseDate) {
-        this.albumReleaseDate = albumReleaseDate;
-    }
-
-    public void updateAlbumImage(String albumImage) {
-        this.albumImage = albumImage;
+        this.albumReleaseDate = (requestDto.getAlbumReleaseDate() == null)
+                ? this.albumReleaseDate
+                : requestDto.getAlbumReleaseDate();
     }
 
     public void delete() {
@@ -78,5 +77,9 @@ public class Album extends BaseEntity {
         if (this.likeCount > 0) {
             this.likeCount--;
         }
+    }
+
+    public void updateAlbumImage(String albumImage) {
+        this.albumImage = albumImage;
     }
 }

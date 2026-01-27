@@ -1,16 +1,15 @@
 package com.example.peachmusic.domain.user.entity;
 
-import com.example.peachmusic.common.entity.BaseEntity;
+import com.example.peachmusic.common.model.BaseEntity;
 import com.example.peachmusic.common.enums.UserRole;
+import com.example.peachmusic.domain.user.dto.request.UserUpdateRequestDto;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "users")
 public class User extends BaseEntity {
@@ -34,36 +33,36 @@ public class User extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
-    private UserRole role = UserRole.USER;
+    private UserRole role;
 
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
     @Column(name = "token_version", nullable = false)
-    private Long tokenVersion = 0L;  // 기본값 0
+    private Long tokenVersion = 0L;
 
-    public void increaseTokenVersion() {
-        this.tokenVersion++;
-    }
+    @Column(nullable = false)
+    private boolean emailVerified = false;
 
     public User(String name, String nickname, String email, String password) {
         this.name = name;
         this.nickname = nickname;
         this.email = email;
         this.password = password;
-        this.role = UserRole.USER;  // ← 명시적으로 기본값 지정
+        this.role = UserRole.USER;
     }
-    public void setRole(UserRole role) {
-        this.role = role != null ? role : UserRole.USER;  // null 들어와도 USER로 방어
+
+    public void increaseTokenVersion() {this.tokenVersion++;}
+
+    public void update(UserUpdateRequestDto request) {
+        if (request.getName() != null) {
+            this.name = request.getName().trim();
+        }
+        if (request.getNickname() != null) {
+            this.nickname = request.getNickname().trim();
+        }
     }
-    public void UpdateUser(String name, String nickname) {
-        this.name = name;
-        this.nickname = nickname;
-    }
-    public void delete() {
-        this.isDeleted = true;
-    }
-    public void restore() {
-        this.isDeleted = false;
-    }
+    public void delete() {this.isDeleted = true;}
+    public void restore() {this.isDeleted = false;}
+    public void setRole(UserRole role) {this.role = role != null ? role : UserRole.USER;}
 }
