@@ -3,10 +3,8 @@ package com.example.peachmusic.domain.user.dto.response;
 import com.example.peachmusic.domain.user.entity.User;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
 @Getter
-@Setter
 @RequiredArgsConstructor
 public class UserCreateResponseDto {
     private Long userId;
