@@ -17,7 +17,7 @@ public class AuthUser {
     private final UserRole role;
     private final Long tokenVersion;
 
-    public Collection<? extends GrantedAuthority> getAuthoritie() {
+    public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 }

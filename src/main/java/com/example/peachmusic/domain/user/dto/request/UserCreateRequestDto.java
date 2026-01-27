@@ -3,17 +3,17 @@ package com.example.peachmusic.domain.user.dto.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor
 public class UserCreateRequestDto {
 
-    @NotBlank(message = "이름을 입력해주세요.")
+    @NotBlank(message = "name을 입력해주세요.")
     private String name;
 
-    @NotBlank(message = "닉네임을 입력해주세요.")
+    @NotBlank(message = "nickname을 입력해주세요.")
     private String nickname;
 
     @Email
@@ -22,9 +22,9 @@ public class UserCreateRequestDto {
             message = "이메일 형식이 올바르지 않습니다."
     )
 
-    @NotBlank(message = "이메일을 입력해주세요.")
+    @NotBlank(message = "email을 입력해주세요.")
     private String email;
 
-    @NotBlank(message = "비밀번호를 입력해주세요.")
+    @NotBlank(message = "password를 입력해주세요.")
     private String password;
 }

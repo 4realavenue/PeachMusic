@@ -28,13 +28,18 @@ public enum ErrorCode {
     AUDIO_INVALID_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 음원 파일 형식입니다."),
     ARTIST_UPDATE_NO_CHANGES(HttpStatus.BAD_REQUEST, "수정할 값이 없습니다."),
     ARTIST_DEBUT_DATE_INVALID(HttpStatus.BAD_REQUEST, "데뷔일은 오늘 이후일 수 없습니다."),
+    EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "이메일이 인증되지 않았습니다."),
 
     // 401
     AUTH_CERTIFICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "로그인이 필요한 서비스 입니다."),
+    AUTH_EMAIL_NOT_VERIFIED(HttpStatus.UNAUTHORIZED, "이메일 인증이 완료되지 않았습니다. 이메일을 확인해주세요."),
 
     // 403
     AUTH_AUTHORIZATION_REQUIRED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
 
+    UNABLE_TO_SEND_EMAIL(HttpStatus.BAD_REQUEST, "인증번호를 보낼 수 없습니다."),
+    AUTH_CODE_EXPIRED(HttpStatus.BAD_REQUEST, "인증 코드가 만료되었습니다. 재발송을 요청해주세요."),
+    AUTH_CODE_INVALID(HttpStatus.BAD_REQUEST, "유효하지 않은 인증 코드입니다."),
 
     // 404
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "유저가 존재하지 않습니다."),
@@ -60,6 +65,7 @@ public enum ErrorCode {
     SONG_EXIST_NAME(HttpStatus.CONFLICT, "해당 앨범에 이미 동일한 제목의 음원이 존재합니다."),
     SONG_EXIST_ACTIVATION_SONG(HttpStatus.CONFLICT, "이미 활성화 된 음원입니다."),
     ALBUM_EXIST_IMAGE(HttpStatus.CONFLICT, "이미 동일한 앨범 이미지가 존재합니다."),
+    EMAIL_ALREADY_VERIFIED(HttpStatus.CONFLICT,"이미 검증된 이메일입니다."),
 
     // 500
     SEARCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "일시적인 오류로 검색에 실패했습니다."),

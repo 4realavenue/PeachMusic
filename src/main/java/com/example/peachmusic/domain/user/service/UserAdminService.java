@@ -1,10 +1,10 @@
 package com.example.peachmusic.domain.user.service;
 
+import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.common.enums.ErrorCode;
-import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.dto.response.admin.UserAdminGetResponseDto;
+import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,6 +19,9 @@ public class UserAdminService {
 
     private final UserRepository userRepository;
 
+    /**
+     *  (관리자) 유저 목록 조회
+     */
     @Transactional(readOnly = true)
     public Page<UserAdminGetResponseDto> getAllUser(String word, Pageable pageable) {
 
@@ -27,6 +30,9 @@ public class UserAdminService {
         return users.map(UserAdminGetResponseDto::from);
     }
 
+    /**
+     *  (관리자) 유저 비활성화
+     */
     @Transactional
     public void deleteUser(Long userId) {
 
@@ -39,6 +45,9 @@ public class UserAdminService {
         user.delete();
     }
 
+    /**
+     *  (관리자) 유저 활성화
+     */
     @Transactional
     public void restorationUser(Long userId) {
 
@@ -51,6 +60,9 @@ public class UserAdminService {
         user.restore();
     }
 
+    /**
+     *  (관리자) 유저 권한부여
+     */
     @Transactional
     public void role(Long userId, UserRole newRole) {
 
