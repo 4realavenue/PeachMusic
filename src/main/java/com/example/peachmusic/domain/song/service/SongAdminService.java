@@ -199,7 +199,7 @@ public class SongAdminService {
                 .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
         if (!findSong.isDeleted()) {
-            throw new CustomException(ErrorCode.SONG_ALREADY_ACTIVE);
+            throw new CustomException(ErrorCode.SONG_EXIST_ACTIVATION_SONG);
         }
 
         findSong.restoreSong();

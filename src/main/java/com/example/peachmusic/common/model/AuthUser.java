@@ -1,7 +1,6 @@
 package com.example.peachmusic.common.model;
 
 import com.example.peachmusic.common.enums.UserRole;
-import com.example.peachmusic.domain.user.entity.User;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -13,13 +12,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthUser {
 
-    private final User user;
     private final Long userId;
     private final String email;
     private final UserRole role;
     private final Long tokenVersion;
 
-    public Collection<? extends GrantedAuthority> getAuthoritie() {
+    public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 }

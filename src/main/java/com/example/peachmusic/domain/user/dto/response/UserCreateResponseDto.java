@@ -4,21 +4,24 @@ import com.example.peachmusic.domain.user.entity.User;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Getter
 @RequiredArgsConstructor
 public class UserCreateResponseDto {
+    private Long userId;
+    private String email;
+    private String nickname;
 
-    private final Long userId;
-    private final String name;
-    private final String nickname;
-    private final String email;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime modifiedAt;
+    public UserCreateResponseDto(Long userId, String email, String nickname) {
+        this.userId = userId;
+        this.email = email;
+        this.nickname = nickname;
+    }
 
     public static UserCreateResponseDto from(User user) {
-        return new UserCreateResponseDto(user.getUserId(), user.getName(), user.getNickname(), user.getEmail(), user.getCreatedAt(), user.getModifiedAt()
+        return new UserCreateResponseDto(
+                user.getUserId(),
+                user.getEmail(),
+                user.getNickname()
         );
     }
 }
