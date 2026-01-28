@@ -11,6 +11,7 @@ import com.example.peachmusic.domain.artistlike.repository.ArtistLikeRepository;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,28 +34,46 @@ public class ArtistLikeService {
     public ArtistLikeResponseDto likeArtist(AuthUser authUser, Long artistId) {
 
         User findUser = userService.findUser(authUser);
-
         Long userId = authUser.getUserId();
 
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
 
-        // 요청 전 좋아요 상태 확인
-        boolean alreadyLiked = artistLikeRepository.existsByArtist_ArtistIdAndUser_UserId(artistId, userId);
+        int deleted = artistLikeRepository.deleteByArtistIdAndUserId(artistId, userId);
 
-        // 이미 좋아요 상태면 취소
-        if (alreadyLiked) {
-            artistLikeRepository.deleteByArtist_ArtistIdAndUser_UserId(artistId, userId);
-            foundArtist.decreaseLikeCount();
-        } else {
-            // 좋아요 상태가 아니면 등록
-            artistLikeRepository.save(new ArtistLike(findUser, foundArtist));
-            foundArtist.increaseLikeCount();
+        if (deleted == 1) {
+            // 취소 성공 -> 카운트 -1 (원자 업데이트)
+            artistRepository.decrementLikeCount(artistId);
+            return buildResponse(artistId, foundArtist.getArtistName(), false);
         }
 
-        // 처리 후 최종 좋아요 상태
-        boolean liked = !alreadyLiked;
+        // delete가 0이면 insert 시도
+        try {
+            artistLikeRepository.save(new ArtistLike(findUser, foundArtist));
+            artistRepository.incrementLikeCount(artistId);
 
-        return ArtistLikeResponseDto.of(foundArtist.getArtistId(), foundArtist.getArtistName(), liked, foundArtist.getLikeCount());
+            return buildResponse(artistId, foundArtist.getArtistName(), true);
+
+        } catch (DataIntegrityViolationException e) {
+            // 동시 insert로 유니크 충돌 -> 토글 상태를 맞추기 위해 다시 삭제
+            int corrected = artistLikeRepository.deleteByArtistIdAndUserId(artistId, userId);
+            if (corrected == 1) {
+                artistRepository.decrementLikeCount(artistId);
+            }
+            return buildResponse(artistId, foundArtist.getArtistName(), false);
+        }
+    }
+
+    /**
+     * 좋아요 수는 DB에서 직접 +1 / -1로 변경되기 때문에
+     * 현재 엔티티 객체에 있는 값이 최신이 아닐 수 있다.
+     * 응답에 실제 최신 좋아요 수를 반환하기 위해 DB에서 다시 조회한다.
+     */
+    private ArtistLikeResponseDto buildResponse(Long artistId, String artistName, boolean liked) {
+        Long likeCount = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND))
+                .getLikeCount();
+
+        return ArtistLikeResponseDto.of(artistId, artistName, liked, likeCount);
     }
 }
