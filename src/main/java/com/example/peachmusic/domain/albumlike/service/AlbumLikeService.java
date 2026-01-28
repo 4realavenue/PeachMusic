@@ -11,6 +11,7 @@ import com.example.peachmusic.domain.albumlike.repository.AlbumLikeRepository;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,37 +27,50 @@ public class AlbumLikeService {
      * 앨범 좋아요 토글 기능
      *
      * @param authUser 인증된 사용자 정보
-     * @param albumId 좋아요 토글할 앨범 ID
+     * @param albumId  좋아요 토글할 앨범 ID
      * @return 토글 처리 결과(최종 좋아요 상태 및 좋아요 수)
      */
     @Transactional
     public AlbumLikeResponseDto likeAlbum(AuthUser authUser, Long albumId) {
 
         User findUser = userService.findUser(authUser);
-
-        // AuthUser에서 사용자 ID 추출
         Long userId = authUser.getUserId();
 
-        // 좋아요 대상 앨범 조회 (삭제된 앨범은 좋아요 불가)
         Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 
-        // 요청 전 좋아요 상태 확인
-        boolean alreadyLiked = albumLikeRepository.existsByAlbum_AlbumIdAndUser_UserId(albumId, userId);
 
-        // 이미 좋아요 상태면 취소
-        if (alreadyLiked) {
-            albumLikeRepository.deleteByAlbum_AlbumIdAndUser_UserId(albumId, userId);
-            foundAlbum.decreaseLikeCount();
-        } else {
-            // 좋아요 상태가 아니면 등록
-            albumLikeRepository.save(new AlbumLike(findUser, foundAlbum));
-            foundAlbum.increaseLikeCount();
+        int deleted = albumLikeRepository.deleteByAlbumIdAndUserId(albumId, userId);
+
+        if (deleted == 1) {
+            albumRepository.decrementLikeCount(albumId);
+
+            return buildResponse(albumId, foundAlbum.getAlbumName(), false);
         }
 
-        // 처리 후 최종 좋아요 상태
-        boolean liked = !alreadyLiked;
+        try {
+            albumLikeRepository.save(new AlbumLike(findUser, foundAlbum));
+            albumRepository.incrementLikeCount(albumId);
 
-        return AlbumLikeResponseDto.of(foundAlbum.getAlbumId(), foundAlbum.getAlbumName(), liked, foundAlbum.getLikeCount());
+            return buildResponse(albumId, foundAlbum.getAlbumName(), true);
+
+        } catch (DataIntegrityViolationException e) {
+
+            int corrected = albumLikeRepository.deleteByAlbumIdAndUserId(albumId, userId);
+            if (corrected == 1) {
+                albumRepository.decrementLikeCount(albumId);
+            }
+            return buildResponse(albumId, foundAlbum.getAlbumName(), false);
+        }
+    }
+
+    private AlbumLikeResponseDto buildResponse(Long albumId, String albumName, boolean liked) {
+        Long likeCount = albumRepository.findLikeCountByAlbumId(albumId);
+
+        if (likeCount == null) {
+            throw new CustomException(ErrorCode.ALBUM_NOT_FOUND);
+        }
+
+        return AlbumLikeResponseDto.of(albumId, albumName, liked, likeCount);
     }
 }
