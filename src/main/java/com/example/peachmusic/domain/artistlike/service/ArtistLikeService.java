@@ -65,14 +65,15 @@ public class ArtistLikeService {
     }
 
     /**
-     * 좋아요 수는 DB에서 직접 +1 / -1로 변경되기 때문에
-     * 현재 엔티티 객체에 있는 값이 최신이 아닐 수 있다.
-     * 응답에 실제 최신 좋아요 수를 반환하기 위해 DB에서 다시 조회한다.
+     * 좋아요 수는 DB에서 직접 업데이트되므로
+     * 응답 시점에 최신 값을 가져오기 위해 likeCount만 다시 조회
      */
     private ArtistLikeResponseDto buildResponse(Long artistId, String artistName, boolean liked) {
-        Long likeCount = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND))
-                .getLikeCount();
+        Long likeCount = artistRepository.findLikeCountByArtistId(artistId);
+
+        if (likeCount == null) {
+            throw new CustomException(ErrorCode.ARTIST_NOT_FOUND);
+        }
 
         return ArtistLikeResponseDto.of(artistId, artistName, liked, likeCount);
     }
