@@ -3,6 +3,9 @@ package com.example.peachmusic.domain.artist.service;
 import com.example.peachmusic.common.enums.FileType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
+import com.example.peachmusic.common.model.AuthUser;
+import com.example.peachmusic.common.model.Cursor;
+import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.common.storage.FileStorageService;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.artist.dto.response.ArtistImageUpdateResponseDto;
@@ -17,17 +20,15 @@ import com.example.peachmusic.domain.artistalbum.repository.ArtistAlbumRepositor
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static com.example.peachmusic.common.enums.UserRole.ADMIN;
+import static com.example.peachmusic.common.enums.SortDirection.DESC;
+import static com.example.peachmusic.common.enums.SortType.LIKE;
 
 @Service
 @RequiredArgsConstructor
@@ -64,12 +65,26 @@ public class ArtistAdminService {
 
     /**
      * 전체 아티스트 조회 기능 (관리자 전용)
-     * @param pageable 페이지네이션 및 정렬 정보 (기본 정렬: artistId ASC)
      * @return 아티스트 목록 페이징 조회 결과
      */
     @Transactional(readOnly = true)
-    public Page<ArtistSearchResponseDto> getArtistList(String word, Pageable pageable) {
-        return artistRepository.findArtistPageByWord(word, pageable, ADMIN);
+    public KeysetResponse<ArtistSearchResponseDto> getArtistList(AuthUser authUser, String word, Long lastId) {
+        final int size = 10;
+
+        List<ArtistSearchResponseDto> result = artistRepository.findArtistKeysetPageByWord(word, authUser.getRole(), size, LIKE, DESC, lastId, null, null);
+
+        boolean hasNext = result.size() > size; // 다음 페이지 존재 여부
+        Cursor nextCursor = null; // 다음 커서
+        if (hasNext) {
+            result.remove(size); // 다음 페이지 삭제
+
+            // 다음 커서에 마지막 데이터 저장
+            ArtistSearchResponseDto last = result.get(result.size() - 1);
+            Long nextLastId = last.getArtistId();
+            nextCursor = new Cursor(nextLastId, null, null);
+        }
+
+        return new KeysetResponse<>(result, hasNext, nextCursor);
     }
 
     /**
