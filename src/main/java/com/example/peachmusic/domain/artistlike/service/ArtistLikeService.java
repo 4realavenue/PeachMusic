@@ -5,15 +5,16 @@ import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
-import com.example.peachmusic.domain.artistlike.entity.ArtistLike;
 import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikeResponseDto;
 import com.example.peachmusic.domain.artistlike.repository.ArtistLikeRepository;
-import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.hibernate.AssertionFailure;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -32,8 +33,12 @@ public class ArtistLikeService {
      */
     @Transactional
     public ArtistLikeResponseDto likeArtist(AuthUser authUser, Long artistId) {
+        return retryOnLock(() -> doLikeArtist(authUser, artistId));
+    }
 
-        User findUser = userService.findUser(authUser);
+    private ArtistLikeResponseDto doLikeArtist(AuthUser authUser, Long artistId) {
+
+        userService.findUser(authUser);
         Long userId = authUser.getUserId();
 
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
@@ -44,24 +49,19 @@ public class ArtistLikeService {
         if (deleted == 1) {
             // 취소 성공 -> 카운트 -1 (원자 업데이트)
             artistRepository.decrementLikeCount(artistId);
+
             return buildResponse(artistId, foundArtist.getArtistName(), false);
         }
 
-        // delete가 0이면 insert 시도
-        try {
-            artistLikeRepository.save(new ArtistLike(findUser, foundArtist));
+        int inserted = artistLikeRepository.insertIgnore(userId, artistId);
+
+        if (inserted == 1) {
             artistRepository.incrementLikeCount(artistId);
 
             return buildResponse(artistId, foundArtist.getArtistName(), true);
-
-        } catch (DataIntegrityViolationException e) {
-            // 동시 insert로 유니크 충돌 -> 토글 상태를 맞추기 위해 다시 삭제
-            int corrected = artistLikeRepository.deleteByArtistIdAndUserId(artistId, userId);
-            if (corrected == 1) {
-                artistRepository.decrementLikeCount(artistId);
-            }
-            return buildResponse(artistId, foundArtist.getArtistName(), false);
         }
+
+        return buildResponse(artistId, foundArtist.getArtistName(), true);
     }
 
     /**
@@ -76,5 +76,20 @@ public class ArtistLikeService {
         }
 
         return ArtistLikeResponseDto.of(artistId, artistName, liked, likeCount);
+    }
+
+    private ArtistLikeResponseDto retryOnLock(Supplier<ArtistLikeResponseDto> action) {
+        int maxRetry = 2;
+
+        for (int i = 0; i <= maxRetry; i++) {
+            try {
+                return action.get();
+            } catch (PessimisticLockingFailureException e) {
+                if (i == maxRetry) {
+                    throw e;
+                }
+            }
+        }
+        throw new AssertionFailure("unreachable");
     }
 }
