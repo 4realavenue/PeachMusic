@@ -1,17 +1,18 @@
 package com.example.peachmusic.domain.artist.repository;
 
+import com.example.peachmusic.common.enums.SortDirection;
+import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.util.StringUtils;
 import java.util.List;
+import java.util.Objects;
 import static com.example.peachmusic.common.enums.UserRole.USER;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
 
@@ -25,55 +26,45 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
 
     /**
      * 검색 - 자세히 보기
-     * @param word 검색어
-     * @param pageable 페이징 정보
-     * @return 페이징 처리된 아티스트 검색 결과
      */
     @Override
-    public Page<ArtistSearchResponseDto> findArtistPageByWord(String word, Pageable pageable, UserRole role) {
-
-        List<ArtistSearchResponseDto> content = baseQuery(word, role)
-                .offset(pageable.getOffset()) // 시작 위치
-                .limit(pageable.getPageSize()) // 개수
-                .fetch();
-
-        Long total = queryFactory
-                .select(artist.count())
-                .from(artist)
-                .where(searchCondition(word, role))
-                .fetchOne();
-
-        return new PageImpl<>(content, pageable, total == null ? 0 : total);
+    public List<ArtistSearchResponseDto> findArtistKeysetPageByWord(String word, UserRole role, int size, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
+        return baseQuery(word, role, sortType, direction, lastId, lastLike, lastName)
+                .limit(size+1).fetch(); // 요청한 사이즈보다 하나 더 많은 데이터를 조회
     }
 
     /**
      * 검색 - 미리보기
-     * @param word 검색어
-     * @param limit 검색 개수
-     * @return 아티스트 검색 미리보기
      */
     @Override
-    public List<ArtistSearchResponseDto> findArtistListByWord(String word, int limit) {
-        return baseQuery(word, USER).limit(limit).fetch();
+    public List<ArtistSearchResponseDto> findArtistListByWord(String word, UserRole role, int size, SortType sortType, SortDirection direction) {
+        return baseQuery(word, role, sortType, direction, null, null, null).limit(size).fetch();
     }
 
     /**
      * 기본 쿼리
      */
-    private JPAQuery<ArtistSearchResponseDto> baseQuery(String word, UserRole role) {
+    private JPAQuery<ArtistSearchResponseDto> baseQuery(String word, UserRole role, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
+
+        // 정렬 기본 -> 좋아요 내림차순
+        sortType = sortType == null ? SortType.LIKE : sortType;
+        boolean isAsc = direction == SortDirection.ASC;
+
+        OrderSpecifier<?> main = mainOrder(sortType, isAsc);
 
         return queryFactory
                 .select(Projections.constructor(ArtistSearchResponseDto.class, artist.artistId, artist.artistName, artist.likeCount, artist.isDeleted))
                 .from(artist)
-                .where(searchCondition(word, role));
+                .where(searchCondition(word, role), keysetCondition(sortType, isAsc, lastId, lastLike, lastName))
+                .orderBy(main, idOrder(isAsc));
     }
 
     /**
      * 검색 조건
      */
     private BooleanExpression searchCondition(String word, UserRole role) {
-        if (role.equals(USER)) {
-            return artistNameEquals(word).and(isActive());
+        if (role == USER) {
+            return Objects.requireNonNull(artistNameEquals(word)).and(isActive());
         }
         return artistNameEquals(word);
     }
@@ -92,5 +83,61 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
      */
     private BooleanExpression isActive() {
         return artist.isDeleted.isFalse();
+    }
+
+    /**
+     * Keyset 조건
+     */
+    private BooleanExpression keysetCondition(SortType sortType, boolean asc, Long lastId, Long lastLike, String lastName) {
+
+        if (lastId == null) {
+            return null;
+        }
+
+        if (sortType == SortType.LIKE && lastLike != null) {
+            return likeCountKeyset(asc, lastId, lastLike);
+        } else if (sortType == SortType.NAME && lastName != null) {
+            return nameKeyset(asc, lastId, lastName);
+        }
+        return null;
+    }
+
+    /**
+     * 좋아요 수가 Keyset이 되는 경우
+     */
+    private BooleanExpression likeCountKeyset(boolean asc, Long lastId, Long lastLike) {
+        BooleanExpression likeCondition = asc ? artist.likeCount.gt(lastLike) : artist.likeCount.lt(lastLike);
+        BooleanExpression idCondition = asc ? artist.artistId.gt(lastId) : artist.artistId.lt(lastId);
+        return likeCondition.or(artist.likeCount.eq(lastLike).and(idCondition));
+    }
+
+    /**
+     * 이름이 Keyset이 되는 경우
+     */
+    private BooleanExpression nameKeyset(boolean asc, Long lastId, String lastName) {
+        BooleanExpression nameCondition = asc ? artist.artistName.gt(lastName) : artist.artistName.lt(lastName);
+        BooleanExpression idCondition = asc ? artist.artistId.gt(lastId) : artist.artistId.lt(lastId);
+        return nameCondition.or(artist.artistName.eq(lastName).and(idCondition));
+    }
+
+    /**
+     * 메인 정렬
+     */
+    private OrderSpecifier<?> mainOrder(SortType sortType, boolean asc) {
+        if (sortType == null) {
+            return asc ? artist.artistId.asc(): artist.artistId.desc();
+        }
+
+        return switch (sortType) {
+            case LIKE -> asc ? artist.likeCount.asc() : artist.likeCount.desc();
+            case NAME -> asc ? artist.artistName.asc() : artist.artistName.desc();
+        };
+    }
+
+    /**
+     * id 정렬 - 항상 ASC로 고정
+     */
+    private OrderSpecifier<Long> idOrder(boolean asc) {
+        return asc ? artist.artistId.asc(): artist.artistId.desc();
     }
 }
