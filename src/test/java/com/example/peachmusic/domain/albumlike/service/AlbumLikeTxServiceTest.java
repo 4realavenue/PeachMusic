@@ -37,15 +37,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * 좋아요 동시성 상황에서 insertIgnore 방식의 안정성을 검증하는 테스트
  * - 서로 다른 유저 100명이 동시에 좋아요 요청
+ * - 단일 유저의 중복 좋아요 요청
  * - likeCount와 실제 row 수 정합성 확인
  */
 @DataJpaTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(AlbumLikeServiceTest.TestBeans.class)
-class AlbumLikeServiceTest {
+@Import(AlbumLikeTxServiceTest.TestBeans.class)
+class AlbumLikeTxServiceTest {
 
-    private static final Logger log = LoggerFactory.getLogger(AlbumLikeServiceTest.class);
+    private static final Logger log = LoggerFactory.getLogger(AlbumLikeTxServiceTest.class);
 
     @Autowired
     AlbumRepository albumRepository;
@@ -54,7 +55,7 @@ class AlbumLikeServiceTest {
     UserRepository userRepository;
 
     @Autowired
-    AlbumLikeService albumLikeService;
+    AlbumLikeTxService albumLikeTxService;
 
     @Autowired
     PlatformTransactionManager transactionManager;
@@ -70,14 +71,14 @@ class AlbumLikeServiceTest {
         }
 
         @Bean
-        AlbumLikeService albumLikeService(AlbumLikeRepository albumLikeRepository, AlbumRepository albumRepository, UserService userService) {
-            return new AlbumLikeService(albumLikeRepository, albumRepository, userService);
+        AlbumLikeTxService albumLikeTxService(AlbumLikeRepository albumLikeRepository, AlbumRepository albumRepository) {
+            return new AlbumLikeTxService(albumLikeRepository, albumRepository);
         }
     }
 
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    void likeAlbum_concurrency_test() throws Exception {
+    void likeAlbum_concurrency_with_multiple_users_test() throws Exception {
 
         TransactionTemplate tx = new TransactionTemplate(transactionManager);
         tx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
@@ -117,8 +118,8 @@ class AlbumLikeServiceTest {
         for (Long userId : userIdList) {
             executor.submit(() -> {
                 try {
-                    AuthUser authUser = new AuthUser(userId, "test" + userId +"@test.com", UserRole.USER, 0L);
-                    retryOnLock(() -> albumLikeService.likeAlbum(authUser, albumId));
+                    AuthUser authUser = new AuthUser(userId, "test" + userId + "@test.com", UserRole.USER, 0L);
+                    retryOnLock(() -> albumLikeTxService.doLikeAlbum(authUser, albumId));
 
                     successCount.incrementAndGet();
                 } catch (Exception e) {
@@ -136,6 +137,7 @@ class AlbumLikeServiceTest {
         // 결과 조회
         Long likeCount = albumRepository.findLikeCountByAlbumId(albumId);
 
+        // 전체 좋아요 row 수
         Long pairCount = em.createQuery("""
              select count(al) from AlbumLike al
              where al.album.albumId = :albumId
@@ -167,10 +169,93 @@ class AlbumLikeServiceTest {
                 action.run();
                 return;
             } catch (org.springframework.dao.CannotAcquireLockException e) {
-                if (i == maxRetry - 1) throw e;
+                if (i == maxRetry - 1) {
+                    throw e;
+                }
                 try { Thread.sleep(10L + ThreadLocalRandom.current().nextLong(20)); }
                 catch (InterruptedException ignored) {}
             }
         }
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void likeAlbum_duplicate_request_by_same_user_test() throws InterruptedException {
+
+        TransactionTemplate tx = new TransactionTemplate(transactionManager);
+        tx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+
+        Long userId = tx.execute(status -> {
+            User user = userRepository.save(new User("test-name", "test-nickname", "test@test.com", "test1234!"));
+            userRepository.flush();
+            return user.getUserId();
+        });
+
+        Long albumId = tx.execute(status -> {
+            Album album = albumRepository.save(new Album(
+                    "테스트 앨범",
+                    LocalDate.of(2024, 1, 1),
+                    "https://image.test/" + UUID.randomUUID()
+            ));
+            albumRepository.flush();
+            return album.getAlbumId();
+        });
+
+        AuthUser authUser = new AuthUser(userId, "test@test.com", UserRole.USER, 0L);
+
+        int threadCount = 5;
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+        ConcurrentHashMap<String, AtomicInteger> errMap = new ConcurrentHashMap<>();
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger errorCount = new AtomicInteger(0);
+
+        for (int i = 0; i < threadCount; i++) {
+            executor.submit(() -> {
+                try {
+                    albumLikeTxService.doLikeAlbum(authUser, albumId);
+                    successCount.incrementAndGet();
+                } catch (Exception e) {
+                    errorCount.incrementAndGet();
+                    errMap.computeIfAbsent(e.getClass().getSimpleName(), k -> new AtomicInteger()).incrementAndGet();
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+        executor.shutdown();
+
+        Long likeCount = albumRepository.findLikeCountByAlbumId(albumId);
+
+        // 특정 유저-앨범 조합 row 수
+        Long pairCount = em.createQuery("""
+             select count(al) from AlbumLike al
+             where al.album.albumId = :albumId
+             and al.user.userId = :userId
+        """, Long.class)
+                .setParameter("albumId", albumId)
+                .setParameter("userId", userId)
+                .getSingleResult();
+
+        int total = threadCount;
+        int success = successCount.get();
+        int fail = errorCount.get();
+
+        errMap.forEach((k,v) -> log.info("err {} = {}", k, v.get()));
+
+        log.info("Album total = {}", total);
+        log.info("Album success = {}", success);
+        log.info("Album fail = {}", fail);
+        log.info("Album final likeCount = {}", likeCount);
+        log.info("Album pairCount = {}", pairCount);
+
+        // 토글 API 특성상 동시 요청 시 최종 상태는 0 또는 1이 될 수 있음
+        // 현재 구현에서는 테스트 결과가 대부분 1로 나오지만,
+        // 중요한 것은 중복 row가 생성되지 않는지와 likeCount 정합성임
+        assertThat(pairCount).isBetween(0L, 1L);
+        assertThat(likeCount).isEqualTo(pairCount);
     }
 }

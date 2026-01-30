@@ -39,10 +39,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(SongLikeServiceTest.TestBeans.class)
-class SongLikeServiceTest {
+@Import(SongLikeTxServiceTest.TestBeans.class)
+class SongLikeTxServiceTest {
 
-    private static final Logger log = LoggerFactory.getLogger(SongLikeServiceTest.class);
+    private static final Logger log = LoggerFactory.getLogger(SongLikeTxServiceTest.class);
 
     @Autowired
     SongRepository songRepository;
@@ -54,7 +54,7 @@ class SongLikeServiceTest {
     AlbumRepository albumRepository;
 
     @Autowired
-    private SongLikeService songLikeService;
+    private SongLikeTxService songLikeTxService;
 
     @Autowired
     PlatformTransactionManager transactionManager;
@@ -70,14 +70,14 @@ class SongLikeServiceTest {
         }
 
         @Bean
-        SongLikeService songLikeService(SongLikeRepository songLikeRepository, SongRepository songRepository, UserService userService) {
-            return new SongLikeService(songLikeRepository, songRepository, userService);
+        SongLikeTxService songLikeTxService(SongLikeRepository songLikeRepository, SongRepository songRepository) {
+            return new SongLikeTxService(songLikeRepository, songRepository);
         }
     }
 
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    void likeSong_concurrency_test() throws Exception {
+    void likeSong_concurrency_with_multiple_users_test() throws Exception {
 
         TransactionTemplate tx = new TransactionTemplate(transactionManager);
         tx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
@@ -135,8 +135,8 @@ class SongLikeServiceTest {
         for (Long userId : userIdList) {
             executor.submit(() -> {
                 try {
-                    AuthUser authUser = new AuthUser(userId, "test" + userId +"@test.com", UserRole.USER, 0L);
-                    retryOnLock(() -> songLikeService.likeSong(authUser, songId));
+                    AuthUser authUser = new AuthUser(userId, "test" + userId + "@test.com", UserRole.USER, 0L);
+                    retryOnLock(() -> songLikeTxService.doLikeSong(authUser, songId));
 
                     successCount.incrementAndGet();
                 } catch (Exception e) {
@@ -184,10 +184,110 @@ class SongLikeServiceTest {
                 action.run();
                 return;
             } catch (org.springframework.dao.CannotAcquireLockException e) {
-                if (i == maxRetry - 1) throw e;
+                if (i == maxRetry - 1) {
+                    throw e;
+                }
                 try { Thread.sleep(10L + ThreadLocalRandom.current().nextLong(20)); }
                 catch (InterruptedException ignored) {}
             }
         }
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void likeSong_duplicate_request_by_same_user_test() throws InterruptedException {
+
+        TransactionTemplate tx = new TransactionTemplate(transactionManager);
+        tx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+
+        Long userId = tx.execute(status -> {
+            User user = userRepository.save(new User("test-name", "test-nickname", "test@test.com", "test1234!"));
+            userRepository.flush();
+            return user.getUserId();
+        });
+
+        Long albumId = tx.execute(status -> {
+            Album album = albumRepository.save(new Album(
+                    "테스트 앨범",
+                    LocalDate.of(2024, 1, 1),
+                    "https://image.test/" + UUID.randomUUID()
+            ));
+            albumRepository.flush();
+            return album.getAlbumId();
+        });
+
+        Long songId = tx.execute(status -> {
+            Album managedAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
+                    .orElseThrow();
+
+            Song song = songRepository.save(new Song(
+                    managedAlbum,
+                    "Test Song Title",
+                    210L,
+                    "https://license.test",
+                    1L,
+                    "https://audio.test/" + UUID.randomUUID() + ".mp3",
+                    "VOCAL",
+                    "en",
+                    "120",
+                    "guitar, drums",
+                    "pop, test"
+            ));
+
+            songRepository.flush();
+            return song.getSongId();
+        });
+
+        AuthUser authUser = new AuthUser(userId, "test@test.com", UserRole.USER, 0L);
+
+        int threadCount = 5;
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger errorCount = new AtomicInteger(0);
+        ConcurrentHashMap<String, AtomicInteger> errMap = new ConcurrentHashMap<>();
+
+        for (int i = 0; i < threadCount; i++) {
+            executor.submit(() -> {
+                try {
+                    songLikeTxService.doLikeSong(authUser, songId);
+                    successCount.incrementAndGet();
+                } catch (Exception e) {
+                    errorCount.incrementAndGet();
+                    errMap.computeIfAbsent(e.getClass().getSimpleName(), k -> new AtomicInteger()).incrementAndGet();
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+        executor.shutdown();
+
+        Long likeCount = songRepository.findLikeCountBySongId(songId);
+        Long pairCount = em.createQuery("""
+             select count(sl) from SongLike sl
+             where sl.song.songId = :songId
+             and sl.user.userId = :userId
+        """, Long.class)
+                .setParameter("songId", songId)
+                .setParameter("userId", userId)
+                .getSingleResult();
+
+        int total = threadCount;
+        int success = successCount.get();
+        int fail = errorCount.get();
+
+        errMap.forEach((k,v) -> log.info("err {} = {}", k, v.get()));
+
+        log.info("Song total = {}", total);
+        log.info("Song success = {}", success);
+        log.info("Song fail = {}", fail);
+        log.info("Song final likeCount = {}", likeCount);
+        log.info("Song pairCount = {}", pairCount);
+
+        assertThat(pairCount).isBetween(0L, 1L);
+        assertThat(likeCount).isEqualTo(pairCount);
     }
 }
