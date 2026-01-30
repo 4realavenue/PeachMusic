@@ -7,7 +7,6 @@ import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
 import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikeResponseDto;
 import com.example.peachmusic.domain.artistlike.repository.ArtistLikeRepository;
-import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.AssertionFailure;
 import org.springframework.dao.PessimisticLockingFailureException;
@@ -22,7 +21,6 @@ public class ArtistLikeService {
 
     private final ArtistLikeRepository artistLikeRepository;
     private final ArtistRepository artistRepository;
-    private final UserService userService;
 
     /**
      * 아티스트 좋아요 토글 기능
@@ -38,7 +36,6 @@ public class ArtistLikeService {
 
     private ArtistLikeResponseDto doLikeArtist(AuthUser authUser, Long artistId) {
 
-        userService.findUser(authUser);
         Long userId = authUser.getUserId();
 
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
@@ -47,7 +44,6 @@ public class ArtistLikeService {
         int deleted = artistLikeRepository.deleteByArtistIdAndUserId(artistId, userId);
 
         if (deleted == 1) {
-            // 취소 성공 -> 카운트 -1 (원자 업데이트)
             artistRepository.decrementLikeCount(artistId);
 
             return buildResponse(artistId, foundArtist.getArtistName(), false);
@@ -60,21 +56,15 @@ public class ArtistLikeService {
 
             return buildResponse(artistId, foundArtist.getArtistName(), true);
         }
-
         return buildResponse(artistId, foundArtist.getArtistName(), true);
     }
 
-    /**
-     * 좋아요 수는 DB에서 직접 업데이트되므로
-     * 응답 시점에 최신 값을 가져오기 위해 likeCount만 다시 조회
-     */
     private ArtistLikeResponseDto buildResponse(Long artistId, String artistName, boolean liked) {
         Long likeCount = artistRepository.findLikeCountByArtistId(artistId);
 
         if (likeCount == null) {
             throw new CustomException(ErrorCode.ARTIST_NOT_FOUND);
         }
-
         return ArtistLikeResponseDto.of(artistId, artistName, liked, likeCount);
     }
 

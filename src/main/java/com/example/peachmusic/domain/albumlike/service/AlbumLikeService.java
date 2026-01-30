@@ -7,7 +7,6 @@ import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.albumlike.dto.response.AlbumLikeResponseDto;
 import com.example.peachmusic.domain.albumlike.repository.AlbumLikeRepository;
-import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.AssertionFailure;
 import org.springframework.dao.PessimisticLockingFailureException;
@@ -22,7 +21,6 @@ public class AlbumLikeService {
 
     private final AlbumLikeRepository albumLikeRepository;
     private final AlbumRepository albumRepository;
-    private final UserService userService;
 
     /**
      * 앨범 좋아요 토글 기능
@@ -36,9 +34,12 @@ public class AlbumLikeService {
         return retryOnLock(() -> doLikeAlbum(authUser, albumId));
     }
 
+    /**
+     * 재시도 로직과 실제 좋아요 토글 로직을 분리하기 위한 메서드
+     * 락 실패 시 안전하게 재실행 가능하도록 구조 분리
+     */
     private AlbumLikeResponseDto doLikeAlbum(AuthUser authUser, Long albumId) {
 
-        userService.findUser(authUser);
         Long userId = authUser.getUserId();
 
         Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
@@ -47,6 +48,7 @@ public class AlbumLikeService {
         int deleted = albumLikeRepository.deleteByAlbumIdAndUserId(albumId, userId);
 
         if (deleted == 1) {
+            // 취소 성공 -> 카운트 -1 (원자 업데이트)
             albumRepository.decrementLikeCount(albumId);
 
             return buildResponse(albumId, foundAlbum.getAlbumName(), false);
@@ -59,17 +61,20 @@ public class AlbumLikeService {
 
             return buildResponse(albumId, foundAlbum.getAlbumName(), true);
         }
-
+        // inserted == 0: 이미 좋아요가 존재함 (동시 요청으로 다른 요청이 먼저 생성했을 수 있음)
         return buildResponse(albumId, foundAlbum.getAlbumName(), true);
     }
 
+    /**
+     * 좋아요 수는 DB에서 직접 업데이트되므로
+     * 응답 시점에 최신 값을 가져오기 위해 likeCount만 다시 조회
+     */
     private AlbumLikeResponseDto buildResponse(Long albumId, String albumName, boolean liked) {
         Long likeCount = albumRepository.findLikeCountByAlbumId(albumId);
 
         if (likeCount == null) {
             throw new CustomException(ErrorCode.ALBUM_NOT_FOUND);
         }
-
         return AlbumLikeResponseDto.of(albumId, albumName, liked, likeCount);
     }
 
@@ -85,6 +90,7 @@ public class AlbumLikeService {
                 }
             }
         }
+        // 논리적으로 도달 불가: 성공 시 return, 실패 시 위에서 예외 throw
         throw new AssertionFailure("unreachable");
     }
 }
