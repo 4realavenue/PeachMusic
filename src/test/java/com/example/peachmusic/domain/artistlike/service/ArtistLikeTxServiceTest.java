@@ -38,10 +38,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(ArtistLikeServiceTest.TestBeans.class)
-class ArtistLikeServiceTest {
+@Import(ArtistLikeTxServiceTest.TestBeans.class)
+class ArtistLikeTxServiceTest {
 
-    private static final Logger log = LoggerFactory.getLogger(ArtistLikeServiceTest.class);
+    private static final Logger log = LoggerFactory.getLogger(ArtistLikeTxServiceTest.class);
 
     @Autowired
     ArtistRepository artistRepository;
@@ -50,7 +50,7 @@ class ArtistLikeServiceTest {
     UserRepository userRepository;
 
     @Autowired
-    ArtistLikeService artistLikeService;
+    ArtistLikeTxService artistLikeTxService;
 
     @Autowired
     PlatformTransactionManager transactionManager;
@@ -66,14 +66,14 @@ class ArtistLikeServiceTest {
         }
 
         @Bean
-        ArtistLikeService artistLikeService(ArtistLikeRepository artistLikeRepository, ArtistRepository artistRepository, UserService userService) {
-            return new ArtistLikeService(artistLikeRepository, artistRepository, userService);
+        ArtistLikeTxService artistLikeTxService(ArtistLikeRepository artistLikeRepository, ArtistRepository artistRepository) {
+            return new ArtistLikeTxService(artistLikeRepository, artistRepository);
         }
     }
 
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    void likeArtist_concurrency_test() throws Exception {
+    void likeArtist_concurrency_with_multiple_users_test() throws Exception {
 
         TransactionTemplate tx = new TransactionTemplate(transactionManager);
         tx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
@@ -112,8 +112,8 @@ class ArtistLikeServiceTest {
         for (Long userId : userIdList) {
             executor.submit(() -> {
                 try {
-                    AuthUser authUser = new AuthUser(userId, "test" + userId +"@test.com", UserRole.USER, 0L);
-                    retryOnLock(() -> artistLikeService.likeArtist(authUser, artistId));
+                    AuthUser authUser = new AuthUser(userId, "test" + userId + "@test.com", UserRole.USER, 0L);
+                    retryOnLock(() -> artistLikeTxService.doLikeArtist(authUser, artistId));
 
                     successCount.incrementAndGet();
                 } catch (Exception e) {
@@ -128,7 +128,6 @@ class ArtistLikeServiceTest {
         latch.await();
         executor.shutdown();
 
-        // 결과 조회
         Long likeCount = artistRepository.findLikeCountByArtistId(artistId);
 
         Long pairCount = em.createQuery("""
@@ -162,10 +161,91 @@ class ArtistLikeServiceTest {
                 action.run();
                 return;
             } catch (org.springframework.dao.CannotAcquireLockException e) {
-                if (i == maxRetry - 1) throw e;
+                if (i == maxRetry - 1) {
+                    throw e;
+                }
                 try { Thread.sleep(10L + ThreadLocalRandom.current().nextLong(20)); }
                 catch (InterruptedException ignored) {}
             }
         }
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void likeArtist_duplicate_request_by_same_user_test() throws InterruptedException {
+
+        TransactionTemplate tx = new TransactionTemplate(transactionManager);
+        tx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+
+        Long userId = tx.execute(status -> {
+            User user = userRepository.save(new User("test-name", "test-nickname", "test@test.com", "test1234!"));
+            userRepository.flush();
+            return user.getUserId();
+        });
+
+        Long artistId = tx.execute(status -> {
+            Artist artist = artistRepository.save(new Artist(
+                    "테스트 이름",
+                    "https://image.test/" + UUID.randomUUID(),
+                    "대한민국",
+                    ArtistType.SOLO,
+                    LocalDate.of(2024, 1, 1),
+                    "안녕하세요."
+            ));
+            artistRepository.flush();
+            return artist.getArtistId();
+        });
+
+        AuthUser authUser = new AuthUser(userId, "test@test.com", UserRole.USER, 0L);
+
+        int threadCount = 5;
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger errorCount = new AtomicInteger(0);
+        ConcurrentHashMap<String, AtomicInteger> errMap = new ConcurrentHashMap<>();
+
+        for (int i = 0; i < threadCount; i++) {
+            executor.submit(() -> {
+                try {
+                    artistLikeTxService.doLikeArtist(authUser, artistId);
+                    successCount.incrementAndGet();
+                } catch (Exception e) {
+                    errorCount.incrementAndGet();
+                    errMap.computeIfAbsent(e.getClass().getSimpleName(), k -> new AtomicInteger()).incrementAndGet();
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+        executor.shutdown();
+
+        Long likeCount = artistRepository.findLikeCountByArtistId(artistId);
+        Long pairCount = em.createQuery("""
+             select count(al) from ArtistLike al
+             where al.artist.artistId = :artistId
+             and al.user.userId = :userId
+        """, Long.class)
+                .setParameter("artistId", artistId)
+                .setParameter("userId", userId)
+                .getSingleResult();
+
+        int total = threadCount;
+        int success = successCount.get();
+        int fail = errorCount.get();
+
+        errMap.forEach((k,v) -> log.info("err {} = {}", k, v.get()));
+
+        log.info("Artist total = {}", total);
+        log.info("Artist success = {}", success);
+        log.info("Artist fail = {}", fail);
+        log.info("Artist final likeCount = {}", likeCount);
+        log.info("Artist pairCount = {}", pairCount);
+
+        assertThat(pairCount).isBetween(0L, 1L);
+        assertThat(likeCount).isEqualTo(pairCount);
     }
 }
