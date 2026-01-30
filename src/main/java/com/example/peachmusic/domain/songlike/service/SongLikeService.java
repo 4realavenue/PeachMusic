@@ -7,7 +7,6 @@ import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songlike.dto.response.SongLikeResponseDto;
 import com.example.peachmusic.domain.songlike.repository.SongLikeRepository;
-import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.AssertionFailure;
 import org.springframework.dao.PessimisticLockingFailureException;
@@ -22,7 +21,6 @@ public class SongLikeService {
 
     private final SongLikeRepository songLikeRepository;
     private final SongRepository songRepository;
-    private final UserService userService;
 
     /**
      * 음원 좋아요/좋아요 취소 기능
@@ -34,7 +32,6 @@ public class SongLikeService {
 
     private SongLikeResponseDto doLikeSong(AuthUser authUser, Long songId) {
 
-        userService.findUser(authUser); // 유저 유효성 검증
         Long userId = authUser.getUserId();
 
         Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
@@ -55,8 +52,6 @@ public class SongLikeService {
 
             return buildResponse(songId, findSong.getName(), true);
         }
-
-        // inserted == 0: 이미 좋아요가 존재함 (동시 요청으로 다른 요청이 먼저 생성했을 수 있음)
         return buildResponse(songId, findSong.getName(), true);
     }
 
@@ -66,7 +61,6 @@ public class SongLikeService {
         if (likeCount == null) {
             throw new CustomException(ErrorCode.SONG_NOT_FOUND);
         }
-
         return SongLikeResponseDto.of(songId, songName, liked, likeCount);
     }
 
@@ -82,7 +76,6 @@ public class SongLikeService {
                 }
             }
         }
-        // 논리적으로 도달 불가: 성공 시 return, 실패 시 위에서 예외 throw
         throw new AssertionFailure("unreachable");
     }
 }
