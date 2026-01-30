@@ -9,8 +9,12 @@ import com.example.peachmusic.domain.songlike.dto.response.SongLikeResponseDto;
 import com.example.peachmusic.domain.songlike.repository.SongLikeRepository;
 import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.AssertionFailure;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +29,10 @@ public class SongLikeService {
      */
     @Transactional
     public SongLikeResponseDto likeSong(AuthUser authUser, Long songId) {
+        return retryOnLock(() -> doLikeSong(authUser, songId));
+    }
+
+    private SongLikeResponseDto doLikeSong(AuthUser authUser, Long songId) {
 
         userService.findUser(authUser); // 유저 유효성 검증
         Long userId = authUser.getUserId();
@@ -60,5 +68,21 @@ public class SongLikeService {
         }
 
         return SongLikeResponseDto.of(songId, songName, liked, likeCount);
+    }
+
+    private SongLikeResponseDto retryOnLock(Supplier<SongLikeResponseDto> action) {
+        int maxRetry = 2;
+
+        for (int i = 0; i <= maxRetry; i++) {
+            try {
+                return action.get();
+            } catch (PessimisticLockingFailureException e) {
+                if (i == maxRetry) {
+                    throw e;
+                }
+            }
+        }
+        // 논리적으로 도달 불가: 성공 시 return, 실패 시 위에서 예외 throw
+        throw new AssertionFailure("unreachable");
     }
 }

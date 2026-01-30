@@ -17,4 +17,8 @@ public interface ArtistLikeRepository extends JpaRepository<ArtistLike, Long> {
         and al.user.userId = :userId
         """)
     int deleteByArtistIdAndUserId(@Param("artistId") Long artistId, @Param("userId") Long userId);
+
+    @Modifying
+    @Query(value = "INSERT IGNORE INTO artist_likes (user_id, artist_id) VALUES (:userId, :artistId)", nativeQuery = true)
+    int insertIgnore(@Param("userId") Long userId, @Param("artistId") Long artistId);
 }

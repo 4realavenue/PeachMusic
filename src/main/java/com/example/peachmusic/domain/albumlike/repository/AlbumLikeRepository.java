@@ -17,4 +17,8 @@ public interface AlbumLikeRepository extends JpaRepository<AlbumLike, Long> {
         and al.user.userId = :userId
         """)
     int deleteByAlbumIdAndUserId(@Param("albumId") Long albumId, @Param("userId") Long userId);
+
+    @Modifying
+    @Query(value = "INSERT IGNORE INTO album_likes (user_id, album_id) VALUES (:userId, :albumId)", nativeQuery = true)
+    int insertIgnore(@Param("userId") Long userId, @Param("albumId") Long albumId);
 }
