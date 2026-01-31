@@ -110,7 +110,7 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
     }
 
     /**
-     * 좋아요 수가 Keyset이 되는 경우
+     * id가 Keyset이 되는 경우
      */
     private BooleanExpression idKeyset(boolean asc, Long lastId) {
         return asc ? artist.artistId.gt(lastId) : artist.artistId.lt(lastId);

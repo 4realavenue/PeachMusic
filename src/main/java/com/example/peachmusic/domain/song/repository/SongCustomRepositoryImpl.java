@@ -123,7 +123,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
     }
 
     /**
-     * 좋아요 수가 Keyset이 되는 경우
+     * id가 Keyset이 되는 경우
      */
     private BooleanExpression idKeyset(boolean asc, Long lastId) {
         return asc ? song.songId.gt(lastId) : song.songId.lt(lastId);

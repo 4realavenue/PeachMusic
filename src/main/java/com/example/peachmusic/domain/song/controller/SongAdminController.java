@@ -45,7 +45,7 @@ public class SongAdminController {
     ) {
         KeysetResponse<SongSearchResponseDto> responseDtoPage = songAdminService.getSongList(word, lastId);
 
-        return ResponseEntity.ok(CommonResponse.success("음원 목록 조회에 성공했습니다", responseDtoPage));
+        return ResponseEntity.ok(CommonResponse.success("음원 목록 조회에 성공했습니다.", responseDtoPage));
     }
 
     /**
