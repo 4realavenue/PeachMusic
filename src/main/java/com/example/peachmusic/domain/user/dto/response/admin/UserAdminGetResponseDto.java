@@ -1,10 +1,8 @@
 package com.example.peachmusic.domain.user.dto.response.admin;
 
-
-import com.example.peachmusic.domain.user.entity.User;
+import com.example.peachmusic.common.enums.UserRole;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import java.time.LocalDateTime;
 
 @Getter
@@ -12,15 +10,11 @@ import java.time.LocalDateTime;
 public class UserAdminGetResponseDto {
 
     private final Long userId;
+    private final UserRole role;
     private final String name;
     private final String nickname;
     private final String email;
     private final LocalDateTime createdAt;
     private final LocalDateTime modifiedAt;
     private final boolean isDeleted;
-
-    public static UserAdminGetResponseDto from(User user) {
-        return new UserAdminGetResponseDto(user.getUserId(), user.getName(), user.getNickname(), user.getEmail(), user.getCreatedAt(), user.getModifiedAt(), user.isDeleted()
-        );
-    }
 }
