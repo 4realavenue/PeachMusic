@@ -42,6 +42,7 @@ public class ArtistController {
     /**
      * 아티스트 검색
      * - Keyset 페이징 적용
+     * - 좋아요 많은 순이 기본 정렬
      * @param word 검색어
      * @param sortType 정렬 기준
      * @param direction 정렬 방향
@@ -54,7 +55,7 @@ public class ArtistController {
     public ResponseEntity<CommonResponse<KeysetResponse<ArtistSearchResponseDto>>> searchArtist(
             @RequestParam String word,
             @RequestParam(defaultValue = "LIKE") SortType sortType,
-            @RequestParam(defaultValue = "DESC") SortDirection direction,
+            @RequestParam(required = false) SortDirection direction,
             @RequestParam(required = false) Long lastId,
             @RequestParam(required = false) Long lastLike,
             @RequestParam(required = false) String lastName

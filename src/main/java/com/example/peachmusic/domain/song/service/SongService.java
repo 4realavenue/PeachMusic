@@ -2,8 +2,13 @@ package com.example.peachmusic.domain.song.service;
 
 import com.example.peachmusic.common.annotation.RedisLock;
 import com.example.peachmusic.common.enums.ErrorCode;
+import com.example.peachmusic.common.enums.SortDirection;
+import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.AuthUser;
+import com.example.peachmusic.common.model.Cursor;
+import com.example.peachmusic.common.model.KeysetResponse;
+import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.song.dto.response.SongGetDetailResponseDto;
@@ -16,19 +21,17 @@ import com.example.peachmusic.domain.songlike.repository.SongLikeRepository;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
-
-import static com.example.peachmusic.common.enums.UserRole.USER;
+import java.util.function.Function;
+import static com.example.peachmusic.common.enums.SortDirection.DESC;
+import static com.example.peachmusic.common.enums.SortType.LIKE;
 
 @Service
 @RequiredArgsConstructor
-public class SongService {
+public class SongService extends AbstractKeysetService {
 
     private final SongRepository songRepository;
     private final SongGenreRepository songGenreRepository;
@@ -71,26 +74,36 @@ public class SongService {
 
     /**
      * 음원 검색 - 자세히 보기
-     *
-     * @param word     검색어
-     * @param pageable 페이징 정보 - 인기순 정렬
-     * @return 페이징된 음원 검색 응답 DTO
      */
     @Transactional(readOnly = true)
-    public Page<SongSearchResponseDto> searchSongPage(String word, Pageable pageable) {
-        return songRepository.findSongPageByWord(word, pageable, USER);
+    public KeysetResponse<SongSearchResponseDto> searchSongPage(String word, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
+        // 커서 검증
+        validate(sortType, lastId, lastLike, lastName);
+
+        final int size = 10;
+        final boolean isAdmin = false;
+        direction = resolveSortDirection(sortType, direction);
+
+        // 음원 조회
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(word, size, isAdmin, sortType, direction, lastId, lastLike, lastName);
+
+        // 정렬 기준에 따라 커서 결정
+        Function<SongSearchResponseDto, Cursor> cursorExtractor = switch (sortType) {
+            case LIKE -> last -> new Cursor(last.getSongId(), last.getLikeCount());
+            case NAME -> last -> new Cursor(last.getSongId(), last.getName());
+        };
+
+        return toKeysetResponse(content, size, cursorExtractor);
     }
 
     /**
      * 음원 검색 - 미리보기
-     *
-     * @param word 검색어
-     * @return 음원 검색 응답 DTO 리스트
      */
     @Transactional(readOnly = true)
     public List<SongSearchResponseDto> searchSongList(String word) {
-        final int limit = 5;
-        return songRepository.findSongListByWord(word, limit);
+        final int size = 5;
+        final boolean isAdmin = false;
+        return songRepository.findSongListByWord(word, size, isAdmin, LIKE, DESC); // 좋아요 많은 순
     }
 
     /**

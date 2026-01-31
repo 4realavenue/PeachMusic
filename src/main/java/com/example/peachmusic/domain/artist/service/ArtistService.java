@@ -7,6 +7,7 @@ import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.Cursor;
 import com.example.peachmusic.common.model.KeysetResponse;
+import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.dto.response.ArtistGetDetailResponseDto;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
@@ -16,14 +17,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.util.function.Function;
 import static com.example.peachmusic.common.enums.SortDirection.DESC;
-import static com.example.peachmusic.common.enums.SortType.NAME;
 import static com.example.peachmusic.common.enums.SortType.LIKE;
-import static com.example.peachmusic.common.enums.UserRole.USER;
 
 @Service
 @RequiredArgsConstructor
-public class ArtistService {
+public class ArtistService extends AbstractKeysetService {
 
     private final ArtistRepository artistRepository;
     private final ArtistLikeRepository artistLikeRepository;
@@ -54,32 +54,23 @@ public class ArtistService {
      */
     @Transactional(readOnly = true)
     public KeysetResponse<ArtistSearchResponseDto> searchArtistPage(String word, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
-        final int size = 10;
-
         // 커서 검증
-        boolean missingLastLike = sortType == LIKE && lastId != null && lastLike == null;
-        boolean missingLastName = sortType == NAME && lastId != null && lastName == null;
-        if (missingLastLike || missingLastName) {
-            throw new CustomException(ErrorCode.MISSING_CURSOR_PARAMETER);
-        }
+        validate(sortType, lastId, lastLike, lastName);
+
+        final int size = 10;
+        final boolean isAdmin = false;
+        direction = resolveSortDirection(sortType, direction);
 
         // 아티스트 조회
-        List<ArtistSearchResponseDto> result = artistRepository.findArtistKeysetPageByWord(word, USER, size, sortType, direction, lastId, lastLike, lastName);
+        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(word, size, isAdmin, sortType, direction, lastId, lastLike, lastName);
 
-        boolean hasNext = result.size() > size; // 다음 페이지 존재 여부
-        Cursor nextCursor = null; // 다음 커서
-        if (hasNext) {
-            result.remove(size); // 다음 페이지 삭제
+        // 정렬 기준에 따라 커서 결정
+        Function<ArtistSearchResponseDto, Cursor> cursorExtractor = switch (sortType) {
+            case LIKE -> last -> new Cursor(last.getArtistId(), last.getLikeCount());
+            case NAME -> last -> new Cursor(last.getArtistId(), last.getArtistName());
+        };
 
-            // 다음 커서에 마지막 데이터 저장
-            ArtistSearchResponseDto last = result.get(result.size() - 1);
-            Long nextLastId = last.getArtistId();
-            Long nextLastLike = sortType == LIKE ? last.getLikeCount() : null;
-            String nextLastName = sortType == NAME ? last.getArtistName() : null;
-            nextCursor = new Cursor(nextLastId, nextLastLike, nextLastName);
-        }
-
-        return new KeysetResponse<>(result, hasNext, nextCursor);
+        return toKeysetResponse(content, size, cursorExtractor);
     }
 
     /**
@@ -90,6 +81,7 @@ public class ArtistService {
     @Transactional(readOnly = true)
     public List<ArtistSearchResponseDto> searchArtistList(String word) {
         final int size = 5;
-        return artistRepository.findArtistListByWord(word, USER, size, LIKE, DESC); // 좋아요 많은 순
+        final boolean isAdmin = false;
+        return artistRepository.findArtistListByWord(word, size, isAdmin, LIKE, DESC);
     }
 }

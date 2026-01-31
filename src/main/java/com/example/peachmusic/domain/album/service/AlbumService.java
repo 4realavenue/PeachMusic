@@ -1,8 +1,13 @@
 package com.example.peachmusic.domain.album.service;
 
+import com.example.peachmusic.common.enums.SortDirection;
+import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.model.AuthUser;
+import com.example.peachmusic.common.model.Cursor;
+import com.example.peachmusic.common.model.KeysetResponse;
+import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.dto.response.AlbumGetDetailResponseDto;
@@ -16,17 +21,17 @@ import com.example.peachmusic.domain.artistalbum.repository.ArtistAlbumRepositor
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
-import static com.example.peachmusic.common.enums.UserRole.USER;
+import java.util.function.Function;
+import static com.example.peachmusic.common.enums.SortDirection.DESC;
+import static com.example.peachmusic.common.enums.SortType.LIKE;
 
 @Service
 @RequiredArgsConstructor
-public class AlbumService {
+public class AlbumService extends AbstractKeysetService {
 
     private final AlbumRepository albumRepository;
     private final ArtistAlbumRepository artistAlbumRepository;
@@ -71,13 +76,26 @@ public class AlbumService {
 
     /**
      * 앨범 검색 - 자세히 보기
-     * @param word 검색어
-     * @param pageable 페이징 정보 - 인기순 정렬
-     * @return 페이징된 앨범 검색 응답 DTO
      */
     @Transactional(readOnly = true)
-    public Page<AlbumSearchResponseDto> searchAlbumPage(String word, Pageable pageable) {
-        return albumRepository.findAlbumPageByWord(word, pageable, USER);
+    public KeysetResponse<AlbumSearchResponseDto> searchAlbumPage(String word, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
+        // 커서 검증
+        validate(sortType, lastId, lastLike, lastName);
+
+        final int size = 10;
+        final boolean isAdmin = false;
+        direction = resolveSortDirection(sortType, direction);
+
+        // 앨범 조회
+        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(word, size, isAdmin, sortType, direction, lastId, lastLike, lastName);
+
+        // 정렬 기준에 따라 커서 결정
+        Function<AlbumSearchResponseDto, Cursor> cursorExtractor = switch (sortType) {
+            case LIKE -> last -> new Cursor(last.getAlbumId(), last.getLikeCount());
+            case NAME -> last -> new Cursor(last.getAlbumId(), last.getAlbumName());
+        };
+
+        return toKeysetResponse(content, size, cursorExtractor);
     }
 
     /**
@@ -87,7 +105,8 @@ public class AlbumService {
      */
     @Transactional(readOnly = true)
     public List<AlbumSearchResponseDto> searchAlbumList(String word) {
-        final int limit = 5;
-        return albumRepository.findAlbumListByWord(word, limit);
+        final int size = 5;
+        final boolean isAdmin = false;
+        return albumRepository.findAlbumListByWord(word, size, isAdmin, LIKE, DESC); // 좋아요 많은 순
     }
 }

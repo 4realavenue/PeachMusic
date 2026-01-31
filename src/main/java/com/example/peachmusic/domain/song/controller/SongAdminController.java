@@ -1,7 +1,7 @@
 package com.example.peachmusic.domain.song.controller;
 
 import com.example.peachmusic.common.model.CommonResponse;
-import com.example.peachmusic.common.model.PageResponse;
+import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.domain.song.dto.request.AdminSongCreateRequestDto;
 import com.example.peachmusic.domain.song.dto.request.AdminSongUpdateRequestDto;
 import com.example.peachmusic.domain.song.dto.response.AdminSongAudioUpdateResponseDto;
@@ -11,10 +11,6 @@ import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.example.peachmusic.domain.song.service.SongAdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,7 +30,6 @@ public class SongAdminController {
             @RequestPart("request") @Valid AdminSongCreateRequestDto requestDto,
             @RequestPart("audio") MultipartFile audio
     ) {
-
         AdminSongCreateResponseDto responseDto = songAdminService.createSong(requestDto, audio);
 
         return ResponseEntity.ok(CommonResponse.success("음원이 생성 되었습니다.", responseDto));
@@ -44,14 +39,13 @@ public class SongAdminController {
      * 음원 전체 조회 API
      */
     @GetMapping("/admin/songs")
-    public ResponseEntity<PageResponse<SongSearchResponseDto>> getSongAll(
+    public ResponseEntity<CommonResponse<KeysetResponse<SongSearchResponseDto>>> getSongList(
             @RequestParam(required = false) String word,
-            @PageableDefault(size = 10, sort = "songId", direction = Sort.Direction.ASC) Pageable pageable
+            @RequestParam(required = false) Long lastId
     ) {
+        KeysetResponse<SongSearchResponseDto> responseDtoPage = songAdminService.getSongList(word, lastId);
 
-        Page<SongSearchResponseDto> responseDtoPage = songAdminService.getSongAll(word, pageable);
-
-        return ResponseEntity.ok(PageResponse.success("음원 목록 조회에 성공했습니다", responseDtoPage));
+        return ResponseEntity.ok(CommonResponse.success("음원 목록 조회에 성공했습니다", responseDtoPage));
     }
 
     /**
@@ -62,7 +56,6 @@ public class SongAdminController {
             @PathVariable("songId") Long songId,
             @Valid @RequestBody AdminSongUpdateRequestDto requestDto
     ) {
-
         AdminSongUpdateResponseDto responseDto = songAdminService.updateSong(requestDto, songId);
 
         return ResponseEntity.ok(CommonResponse.success("음원 정보가 수정되었습니다.", responseDto));
@@ -85,10 +78,9 @@ public class SongAdminController {
      * 음원 삭제 (비활성화) API
      */
     @DeleteMapping("/admin/songs/{songId}")
-    public ResponseEntity<CommonResponse> deleteSong(
+    public ResponseEntity<CommonResponse<Void>> deleteSong(
             @PathVariable("songId") Long songId
     ) {
-
         songAdminService.deleteSong(songId);
 
         return ResponseEntity.ok(CommonResponse.success("음원이 비활성화 되었습니다."));
@@ -98,10 +90,9 @@ public class SongAdminController {
      * 음원 복구 (활성화) API
      */
     @PatchMapping("/admin/songs/{songId}/restore")
-    public ResponseEntity<CommonResponse> restoreSong(
+    public ResponseEntity<CommonResponse<Void>> restoreSong(
             @PathVariable("songId") Long songId
     ) {
-
         songAdminService.restoreSong(songId);
 
         return ResponseEntity.ok(CommonResponse.success("음원이 활성화 되었습니다."));

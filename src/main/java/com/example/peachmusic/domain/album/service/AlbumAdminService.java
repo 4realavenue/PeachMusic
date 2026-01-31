@@ -3,6 +3,9 @@ package com.example.peachmusic.domain.album.service;
 import com.example.peachmusic.common.enums.FileType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
+import com.example.peachmusic.common.model.Cursor;
+import com.example.peachmusic.common.model.KeysetResponse;
+import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.common.storage.FileStorageService;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.dto.request.AlbumCreateRequestDto;
@@ -17,21 +20,16 @@ import com.example.peachmusic.domain.artistalbum.repository.ArtistAlbumRepositor
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static com.example.peachmusic.common.enums.UserRole.ADMIN;
-
 @Service
 @RequiredArgsConstructor
-public class AlbumAdminService {
+public class AlbumAdminService extends AbstractKeysetService {
 
     private final AlbumRepository albumRepository;
     private final ArtistRepository artistRepository;
@@ -81,12 +79,16 @@ public class AlbumAdminService {
 
     /**
      * 전체 앨범 조회 기능 (관리자 전용)
-     * @param pageable 페이지네이션 및 정렬 정보 (기본 정렬: albumId ASC)
      * @return 앨범 목록 페이징 조회 결과
      */
     @Transactional(readOnly = true)
-    public Page<AlbumSearchResponseDto> getAlbumList(String word, Pageable pageable) {
-        return albumRepository.findAlbumPageByWord(word, pageable, ADMIN);
+    public KeysetResponse<AlbumSearchResponseDto> getAlbumList(String word, Long lastId) {
+        final int size = 10;
+        final boolean isAdmin = true;
+
+        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(word, size, isAdmin, null, null, lastId, null, null);
+
+        return toKeysetResponse(content, size, last -> new Cursor(last.getAlbumId(), null));
     }
 
     /**

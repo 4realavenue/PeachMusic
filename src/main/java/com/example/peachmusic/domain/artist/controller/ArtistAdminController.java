@@ -1,6 +1,5 @@
 package com.example.peachmusic.domain.artist.controller;
 
-import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.CommonResponse;
 import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.domain.artist.dto.request.ArtistCreateRequestDto;
@@ -14,7 +13,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,8 +33,8 @@ public class ArtistAdminController {
     @PostMapping("/admin/artists")
     public ResponseEntity<CommonResponse<ArtistCreateResponseDto>> createArtist(
             @RequestPart("request") @Valid ArtistCreateRequestDto requestDto,
-            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
-
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage
+    ) {
         ArtistCreateResponseDto responseDto = artistAdminService.createArtist(requestDto, profileImage);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("아티스트가 생성되었습니다.", responseDto));
@@ -48,11 +46,10 @@ public class ArtistAdminController {
      */
     @GetMapping("/admin/artists")
     public ResponseEntity<CommonResponse<KeysetResponse<ArtistSearchResponseDto>>> getArtistList(
-            @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(required = false) String word,
             @RequestParam(required = false) Long lastId
     ) {
-        KeysetResponse<ArtistSearchResponseDto> responseDto = artistAdminService.getArtistList(authUser, word, lastId);
+        KeysetResponse<ArtistSearchResponseDto> responseDto = artistAdminService.getArtistList(word, lastId);
 
         return ResponseEntity.ok(CommonResponse.success("아티스트 목록 조회에 성공했습니다.", responseDto));
     }
@@ -67,8 +64,8 @@ public class ArtistAdminController {
     @PatchMapping("/admin/artists/{artistId}")
     public ResponseEntity<CommonResponse<ArtistUpdateResponseDto>> updateArtist(
             @PathVariable("artistId") Long artistId,
-            @Valid @RequestBody ArtistUpdateRequestDto requestDto) {
-
+            @Valid @RequestBody ArtistUpdateRequestDto requestDto
+    ) {
         ArtistUpdateResponseDto responseDto = artistAdminService.updateArtist(artistId, requestDto);
 
         return ResponseEntity.ok(CommonResponse.success("아티스트 정보가 수정되었습니다.", responseDto));
@@ -84,8 +81,8 @@ public class ArtistAdminController {
     @PatchMapping("/admin/artists/{artistId}/profile-image")
     public ResponseEntity<CommonResponse<ArtistImageUpdateResponseDto>> updateProfileImage(
             @PathVariable("artistId") Long artistId,
-            @RequestParam MultipartFile profileImage) {
-
+            @RequestParam MultipartFile profileImage
+    ) {
         ArtistImageUpdateResponseDto responseDto = artistAdminService.updateProfileImage(artistId, profileImage);
 
         return ResponseEntity.ok(CommonResponse.success("아티스트 이미지가 수정되었습니다.", responseDto));
@@ -99,8 +96,8 @@ public class ArtistAdminController {
      */
     @DeleteMapping("/admin/artists/{artistId}")
     public ResponseEntity<CommonResponse<Void>> deleteArtist(
-            @PathVariable("artistId") Long artistId) {
-
+            @PathVariable("artistId") Long artistId
+    ) {
         artistAdminService.deleteArtist(artistId);
 
         return ResponseEntity.ok(CommonResponse.success("아티스트가 비활성화 되었습니다."));
@@ -114,8 +111,8 @@ public class ArtistAdminController {
      */
     @PatchMapping("/admin/artists/{artistId}/restore")
     public ResponseEntity<CommonResponse<Void>> restoreArtist(
-            @PathVariable("artistId") Long artistId) {
-
+            @PathVariable("artistId") Long artistId
+    ) {
         artistAdminService.restoreArtist(artistId);
 
         return ResponseEntity.ok(CommonResponse.success("아티스트가 활성화 되었습니다."));
