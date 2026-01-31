@@ -22,8 +22,7 @@ public class RecommendationService {
     private final SongRepository songRepository;
     private final SongLikeRepository songLikeRepository;
     private final PlaylistSongRepository playlistSongRepository;
-    private final SongFeatureVectorizer songFeatureVectorizer;
-    private final UserFeatureVectorizer userFeatureVectorizer;
+    private final FeatureVectorizer featureVectorizer;
 
     @Transactional(readOnly = true)
     public Slice<SongRecommendationResponseDto> getRecommendedSongs(AuthUser authUser, Pageable pageable) {
@@ -41,13 +40,13 @@ public class RecommendationService {
 
         // songId, 장르, 스피드, 태그, 악기 조회 리스트 -> User vector/User Profile 생성
         Map<Long, SongFeatureDto> seedFeatureMap = songRepository.findFeatureBySongIdList(mergedSongIdList);
-        Map<String, Double> userVector = userFeatureVectorizer.vectorizeUser(new ArrayList<>(seedFeatureMap.values()));
+        Map<String, Double> userVector = featureVectorizer.vectorizeUser(new ArrayList<>(seedFeatureMap.values()));
 
         Map<Long, SongFeatureDto> candidateFeatureMap = songRepository.findCandidateFeatureList(mergedSongIdList);
 
         List<SongRecommendationScoreDto> scoredSongList = new ArrayList<>();
         for(SongFeatureDto candidateDto : candidateFeatureMap.values()) {
-            Map<String, Double> candidateVector = songFeatureVectorizer.vectorizeSong(candidateDto);
+            Map<String, Double> candidateVector = featureVectorizer.vectorizeSong(candidateDto);
 
             // 코사인 유사도 계산 (두 벡터가 이미 정규화되었으므로 단순 내적만 수행)
             double score = 0.0;

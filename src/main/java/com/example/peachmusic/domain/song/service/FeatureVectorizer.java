@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class SongFeatureVectorizer {
+public class FeatureVectorizer {
 
     // 휴리스틱 기반 가중치 -> 장르 > 스피드 > 태그 > 악기 순으로 중요 => 총 합 1.0
     private static final double GENRE_WEIGHT = 0.4;
@@ -20,23 +20,38 @@ public class SongFeatureVectorizer {
     // 반환되는 Map은 <key, value> -> key:(ex. g:rock, t:happy, i:guitar), value:해당 feature 가중치
     public Map<String, Double> vectorizeSong(SongFeatureDto songFeatureDto) {
         // 반환하는 feature 벡터
-        Map<String, Double> vector = new HashMap<>();
+        Map<String, Double> songVector = new HashMap<>();
 
         // Genre 정보 벡터화(g:), 장르가 여러개면 가중치를 균등하게 분배
-        addGenres(vector, songFeatureDto.getGenreNameList());
+        addGenres(songVector, songFeatureDto.getGenreNameList());
 
         // Tags 벡터화(t:), vartags: "happy, upbeat, summer" 같은 문자열을 쉼표로 분리 후 각 태기에 동일하게 가중치 분배
-        addTokens(vector, songFeatureDto.getVartags(), "t:", TAG_WEIGHT);
+        addTokens(songVector, songFeatureDto.getVartags(), "t:", TAG_WEIGHT);
 
         // Instruments (i:), 기타, 피아노, 드럼 등, 태그랑 똑같이 처리
-        addTokens(vector, songFeatureDto.getInstruments(), "i:", INSTRUMENT_WEIGHT);
+        addTokens(songVector, songFeatureDto.getInstruments(), "i:", INSTRUMENT_WEIGHT);
 
         // Speed (s:), verylow / low / normal / high / veryhigh, 단일 값이라 전체를 그대로 부여
-        addSpeed(vector, songFeatureDto.getSpeed());
+        addSpeed(songVector, songFeatureDto.getSpeed());
 
         // L2 정규화 (코사인 유사도를 하려면 필수) 벡터의 크기를 1로 정규화 -> 코사인 유사도 계산의 전제 조건
-        l2Normalize(vector);
-        return vector;
+        l2Normalize(songVector);
+        return songVector;
+    }
+
+    public Map<String, Double> vectorizeUser(List<SongFeatureDto> seedSongList) {
+        Map<String, Double> userVector = new HashMap<>();
+
+        for(SongFeatureDto songfeaturedto : seedSongList) {
+            Map<String, Double> songVector = vectorizeSong(songfeaturedto);
+            for(String key : songVector.keySet()) {
+                double songValue = songVector.get(key);
+                double songUserValue = userVector.getOrDefault(key, 0.0);
+                userVector.put(key, songValue + songUserValue);
+            }
+        }
+        l2Normalize(userVector);
+        return userVector;
     }
 
     // 장르 벡터화 -> 장르가 2개면 각 장르에 GENRE_WEIGHT / 2씩 분재
