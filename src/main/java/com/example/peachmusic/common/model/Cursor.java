@@ -8,6 +8,5 @@ import lombok.RequiredArgsConstructor;
 public class Cursor {
 
     private final Long lastId;
-    private final Long lastLike;
-    private final String lastName;
+    private final Object lastSortValue;
 }

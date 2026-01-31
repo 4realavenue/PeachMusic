@@ -3,6 +3,9 @@ package com.example.peachmusic.domain.song.service;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.FileType;
 import com.example.peachmusic.common.exception.CustomException;
+import com.example.peachmusic.common.model.Cursor;
+import com.example.peachmusic.common.model.KeysetResponse;
+import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.common.storage.FileStorageService;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
@@ -24,21 +27,17 @@ import com.example.peachmusic.domain.songgenre.entity.SongGenre;
 import com.example.peachmusic.domain.songgenre.repository.SongGenreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import static com.example.peachmusic.common.enums.UserRole.ADMIN;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SongAdminService {
+public class SongAdminService extends AbstractKeysetService {
 
     private final SongRepository songRepository;
     private final AlbumRepository albumRepository;
@@ -105,8 +104,13 @@ public class SongAdminService {
      * 음원 전체 조회
      */
     @Transactional(readOnly = true)
-    public Page<SongSearchResponseDto> getSongAll(String word, Pageable pageable) {
-        return songRepository.findSongPageByWord(word, pageable, ADMIN);
+    public KeysetResponse<SongSearchResponseDto> getSongList(String word, Long lastId) {
+        final int size = 10;
+        final boolean isAdmin = true;
+
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(word, size, isAdmin, null, null, lastId, null, null);
+
+        return toKeysetResponse(content, size, last -> new Cursor(last.getSongId(), null));
     }
 
     /**
