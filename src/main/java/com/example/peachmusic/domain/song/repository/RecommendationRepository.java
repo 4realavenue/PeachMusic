@@ -10,7 +10,7 @@ import java.util.Map;
 
 public interface RecommendationRepository {
     Map<Long, SongFeatureDto> findFeatureBySongIdList(List<Long> songIdList);
-    Map<Long, SongFeatureDto> findCandidateFeatureList(List<Long> songIdList);
+    Map<Long, SongFeatureDto> findRecommendFeatureList(List<Long> songIdList);
     Slice<SongRecommendationResponseDto> getRecommendationSong(List<Long> orderBySongIdList, Pageable pageable);
 
 }

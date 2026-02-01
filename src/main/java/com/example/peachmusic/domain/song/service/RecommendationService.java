@@ -41,7 +41,7 @@ public class RecommendationService {
         Map<String, Double> userVector = createUserVector(mergedSongIdList);
 
         // 후보곡과 User Vector 간 유사도 계산
-        List<SongRecommendationScoreDto> scoredSongList = rankCandidateSongList(mergedSongIdList, userVector);
+        List<SongRecommendationScoreDto> scoredSongList = rankRecommendSongList(mergedSongIdList, userVector);
 
         // 점수 기준 상위 50곡 ID 추출
         List<Long> orderBySongIdList = getTopSongIdList(scoredSongList);
@@ -79,22 +79,22 @@ public class RecommendationService {
     /**
      * 후보곡 랭킹 계산
      */
-    private List<SongRecommendationScoreDto> rankCandidateSongList(List<Long> mergedSongIdList, Map<String, Double> userVector) {
+    private List<SongRecommendationScoreDto> rankRecommendSongList(List<Long> mergedSongIdList, Map<String, Double> userVector) {
         // seed에 포함되지 않은 후보곡 Feature 조회
-        Map<Long, SongFeatureDto> candidateFeatureMap = songRepository.findCandidateFeatureList(mergedSongIdList);
+        Map<Long, SongFeatureDto> recommendFeatureMap = songRepository.findRecommendFeatureList(mergedSongIdList);
 
         List<SongRecommendationScoreDto> scoredSongList = new ArrayList<>();
 
-        for(SongFeatureDto candidateDto : candidateFeatureMap.values()) {
+        for(SongFeatureDto songFeatureDto : recommendFeatureMap.values()) {
             // 후보곡 Feature -> Vector 변환
-            Map<String, Double> candidateVector = featureVectorizer.vectorizeSong(candidateDto);
+            Map<String, Double> recommendVector = featureVectorizer.vectorizeSong(songFeatureDto);
 
             // 코사인 유사도 계산 (두 벡터가 이미 정규화되었으므로 단순 내적만 수행)
-            double score = CosineSimilarity.compute(userVector, candidateVector);
+            double score = CosineSimilarity.compute(userVector, recommendVector);
 
             // 점수가 0 초과인 후보곡만 저장
             if (score > 0) {
-                scoredSongList.add(new SongRecommendationScoreDto(candidateDto, score));
+                scoredSongList.add(new SongRecommendationScoreDto(songFeatureDto, score));
             }
         }
         return scoredSongList;

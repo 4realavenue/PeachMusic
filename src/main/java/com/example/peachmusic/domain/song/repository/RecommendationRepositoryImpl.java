@@ -2,12 +2,9 @@ package com.example.peachmusic.domain.song.repository;
 
 import com.example.peachmusic.domain.song.dto.SongFeatureDto;
 import com.example.peachmusic.domain.song.dto.response.SongRecommendationResponseDto;
-import com.example.peachmusic.domain.song.entity.Song;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.CaseBuilder;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberExpression;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Pageable;
@@ -37,16 +34,18 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
     // 사용자가 좋아요/플레이리스트 시드 곡 정보 조회(User Profile 생성을 위해서)
     @Override
     public Map<Long, SongFeatureDto> findFeatureBySongIdList(List<Long> songIdList) {
+        // Seed 데이터가 없으면 종료
         if(songIdList == null || songIdList.isEmpty()) {
             return Collections.emptyMap();
         }
 
+        // feature 조회
         List<Tuple> results = queryFactory
                 .select(song.songId, genre.genreName, song.speed, song.vartags, song.instruments)
                 .from(song)
                 .leftJoin(songGenre).on(song.songId.eq(songGenre.song.songId))
                 .leftJoin(genre).on(genre.genreId.eq(songGenre.genre.genreId))
-                .where(song.songId.in(songIdList), song.speed.isNotNull(), song.vartags.isNotNull(), song.instruments.isNotNull())
+                .where(inSeed(songIdList), hasAllFeature())
                 .fetch();
 
         return convertMap(results);
@@ -54,7 +53,8 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
 
     // 추천 후보군 500개
     @Override
-    public Map<Long, SongFeatureDto> findCandidateFeatureList(List<Long> songIdList) {
+    public Map<Long, SongFeatureDto> findRecommendFeatureList(List<Long> songIdList) {
+        // Seed 데이터가 없으면 종료
         if(songIdList == null || songIdList.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -64,7 +64,7 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
                 .from(song)
                 .leftJoin(songGenre).on(song.songId.eq(songGenre.song.songId))
                 .leftJoin(genre).on(genre.genreId.eq(songGenre.genre.genreId))
-                .where(song.songId.notIn(songIdList), song.speed.isNotNull(), song.vartags.isNotNull(), song.instruments.isNotNull())
+                .where(notInSeed(songIdList), hasAllFeature())
                 .orderBy(song.likeCount.desc())
                 .limit(500)
                 .fetch();
@@ -72,8 +72,12 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
         return convertMap(results);
     }
 
+    /**
+     * 최종 추천 결과 조회
+     */
     @Override
     public Slice<SongRecommendationResponseDto> getRecommendationSong(List<Long> orderBySongIdList, Pageable pageable) {
+        // 추천 대상 음원 상세 조회
         List<SongRecommendationResponseDto> result = queryFactory
                 .select(Projections.constructor(
                         SongRecommendationResponseDto.class,
@@ -89,12 +93,14 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
                 .leftJoin(song.album, album)
                 .leftJoin(artistSong).on(artistSong.song.eq(song))
                 .leftJoin(artistSong.artist, artist)
-                .where(song.songId.in(orderBySongIdList))
+                .where(inOrder(orderBySongIdList))
                 .fetch();
 
+        // songId기준 Map변환
         Map<Long, SongRecommendationResponseDto> songMap = result.stream()
                 .collect(Collectors.toMap(SongRecommendationResponseDto::getSongId, s -> s));
 
+        // 추천 순서 유지(높은 순위부터 반환) 및 페이징 처리
         List<SongRecommendationResponseDto> sortedResult = orderBySongIdList.stream()
                 .map(songMap::get)
                 .filter(Objects::nonNull)
@@ -105,6 +111,7 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
         return checkEndPage(sortedResult, pageable);
     }
 
+    // 타음페이지 존재 여부 계산
     private <T> Slice<T> checkEndPage(List<T> commentList, Pageable pageable) {
         boolean hasNext = false;
         if (commentList.size() > pageable.getPageSize()) {
@@ -114,6 +121,7 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
         return new SliceImpl<>(commentList, pageable, hasNext);
     }
 
+    // Tuple -> SongFeatureDto Map으로 변환(.transfrom 사용시 오류 발생)
     private Map<Long, SongFeatureDto> convertMap(List<Tuple> results) {
         Map<Long, SongFeatureDto> resultMap = new LinkedHashMap<>();
 
@@ -121,8 +129,10 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
             Long songId = row.get(song.songId);
             String genreName = row.get(genre.genreName);
 
+            // 이미 존재하는 dto 조회
             SongFeatureDto songInResultMap = resultMap.get(songId);
 
+            // 최초 생성 시
             if(songInResultMap == null) {
 
                 List<String> genreList = new ArrayList<>();
@@ -140,10 +150,29 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
                 songInResultMap = newSong;
             }
 
+            // 장르 누적
             if(genreName != null) {
                 songInResultMap.getGenreNameList().add(genreName);
             }
         }
         return resultMap;
+    }
+
+    private BooleanExpression inOrder(List<Long> songIdList) {
+        return (songIdList == null || songIdList.isEmpty()) ? null : song.songId.in(songIdList);
+    }
+
+    private BooleanExpression inSeed(List<Long> songIdList) {
+        return (songIdList == null || songIdList.isEmpty()) ? null : song.songId.in(songIdList);
+    }
+
+    private BooleanExpression notInSeed(List<Long> songIdList) {
+        return (songIdList == null || songIdList.isEmpty()) ? null : song.songId.notIn(songIdList);
+    }
+
+    private BooleanExpression hasAllFeature() {
+        return song.speed.isNotNull()
+                .and(song.vartags.isNotNull())
+                .and(song.instruments.isNotNull());
     }
 }
