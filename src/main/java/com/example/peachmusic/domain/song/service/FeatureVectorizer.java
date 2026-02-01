@@ -7,6 +7,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 콘텐츠 기반 추천 Feature Vector 변환 컴포넌트
+ * 1. 음원과 사용자의 데이터를 벡터 형태로 변환
+ * 2. 코사인 유사도 기반 추천을 위한 전처리
+ * 3. 휴리스틱 가중치를 적용한 벡터화 방식
+ */
 @Component
 public class FeatureVectorizer {
 
@@ -39,17 +45,24 @@ public class FeatureVectorizer {
         return songVector;
     }
 
+    // User Feature vector 변환 메서드 -> 좋아요와 플레이리스트 음원들의 벡터를 합산 후 사용자 취향 프로파일 생성
     public Map<String, Double> vectorizeUser(List<SongFeatureDto> seedSongList) {
+        // User 취향 백터
         Map<String, Double> userVector = new HashMap<>();
 
+        // 각 음원 벡터 누적
         for(SongFeatureDto songfeaturedto : seedSongList) {
             Map<String, Double> songVector = vectorizeSong(songfeaturedto);
             for(String key : songVector.keySet()) {
                 double songValue = songVector.get(key);
                 double songUserValue = userVector.getOrDefault(key, 0.0);
+
+                // 기존 값 + 현재 음원 값 누적
                 userVector.put(key, songValue + songUserValue);
             }
         }
+
+        // 최종 유저 벡터 정규화
         l2Normalize(userVector);
         return userVector;
     }
@@ -63,6 +76,7 @@ public class FeatureVectorizer {
 
         List<String> validGenreList = new ArrayList<>();
 
+        // 유효한 장르만 필터링
         for(String name : genreNameList) {
             if(name != null && !name.isBlank()) {
                 validGenreList.add(name.toLowerCase().trim());
@@ -107,6 +121,7 @@ public class FeatureVectorizer {
         // 토큰 가중치
         double tokenWeight = totalWeight / validTokeList.size();
 
+        // 벡터에 최종 저장
         for (String validToken : validTokeList) {
             vector.put(prefix + validToken, tokenWeight);
         }
@@ -128,14 +143,15 @@ public class FeatureVectorizer {
             return;
         }
 
-        double sumSquares = 0.0;
+        double l2NormSquared = 0.0;
+
         // 각 feature값의 제곱합 계산
         for (double value : vector.values()) {
-            sumSquares += value * value;
+            l2NormSquared += value * value;
         }
 
         // 백터의 크기 계산
-        double vectorSize = Math.sqrt(sumSquares);
+        double vectorSize = Math.sqrt(l2NormSquared);
         if (vectorSize == 0.0) {
             return;
         }
