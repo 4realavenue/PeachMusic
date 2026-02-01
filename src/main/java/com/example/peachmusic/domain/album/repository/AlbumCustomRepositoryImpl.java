@@ -6,6 +6,8 @@ import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.StringTemplate;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -55,13 +57,17 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
         }
         orders.add(idOrder(isAsc)); // id 정렬은 항상 함
 
-        return queryFactory // todo - artist.artistName List를 String으로 가공하기
-                .selectDistinct(Projections.constructor(AlbumSearchResponseDto.class, album.albumId, album.albumName, artist.artistName, album.albumReleaseDate, album.albumImage, album.likeCount, album.isDeleted))
+        // 아티스트 이름을 문자열로 합치기
+        StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
+
+        return queryFactory
+                .select(Projections.constructor(AlbumSearchResponseDto.class, album.albumId, album.albumName, artistNames, album.albumReleaseDate, album.albumImage, album.likeCount, album.isDeleted))
                 .from(album)
                 .join(artistAlbum).on(artistAlbum.album.eq(album))
                 .join(artist).on(artistAlbum.artist.eq(artist))
-                .where(searchCondition(word, isAdmin), keysetCondition(sortType, isAsc, lastId, lastLike, lastName)) // 검색어 포함 조건
-                .orderBy(orders.toArray(OrderSpecifier[]::new));
+                .where(searchCondition(word, isAdmin), keysetCondition(sortType, isAsc, lastId, lastLike, lastName)) // 검색어 조건, Keyset 조건
+                .groupBy(album.albumId) // 아티스트 이름을 문자열로 합치는데 앨범 id를 기준으로 함
+                .orderBy(orders.toArray(OrderSpecifier[]::new)); // Keyset 조건에 사용되는 커서 순서대로 정렬
     }
 
     /**
