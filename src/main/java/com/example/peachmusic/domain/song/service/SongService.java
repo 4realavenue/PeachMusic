@@ -75,8 +75,9 @@ public class SongService extends AbstractKeysetService {
      */
     @Transactional(readOnly = true)
     public KeysetResponse<SongSearchResponseDto> searchSongPage(String word, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
-        // 커서 검증
-        validate(sortType, lastId, lastLike, lastName);
+
+        validateWord(word); // 단어 검증
+        validateCursor(sortType, lastId, lastLike, lastName); // 커서 검증
 
         final int size = 10;
         final boolean isAdmin = false;

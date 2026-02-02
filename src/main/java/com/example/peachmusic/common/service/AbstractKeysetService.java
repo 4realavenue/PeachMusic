@@ -6,6 +6,7 @@ import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.Cursor;
 import com.example.peachmusic.common.model.KeysetResponse;
+import org.springframework.util.StringUtils;
 import java.util.List;
 import java.util.function.Function;
 import static com.example.peachmusic.common.enums.SortType.LIKE;
@@ -14,13 +15,22 @@ import static com.example.peachmusic.common.enums.SortType.NAME;
 public abstract class AbstractKeysetService {
 
     /**
+     * 검색어 유효성 검사
+     * @param word 검색어
+     */
+    protected void validateWord(String word) {
+        if (!StringUtils.hasText(word)) {
+            throw new CustomException(ErrorCode.SEARCH_KEYWORD_INVALID);
+        }
+    }
+    /**
      * 커서가 정렬 기준에 맞게 입력됐는지 검증
      * @param sortType 정렬 기준
      * @param lastId 커서 - 마지막 ID
      * @param lastLike 커서 - 마지막 좋아요 수
      * @param lastName 커서 - 마지막 이름
      */
-    protected void validate(SortType sortType, Long lastId, Long lastLike, String lastName) {
+    protected void validateCursor(SortType sortType, Long lastId, Long lastLike, String lastName) {
         boolean missingLastLike = sortType == LIKE && lastId != null && lastLike == null;
         boolean missingLastName = sortType == NAME && lastId != null && lastName == null;
         if (missingLastLike || missingLastName) {

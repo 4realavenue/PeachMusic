@@ -105,6 +105,9 @@ public class SongAdminService extends AbstractKeysetService {
      */
     @Transactional(readOnly = true)
     public KeysetResponse<SongSearchResponseDto> getSongList(String word, Long lastId) {
+
+        validateWord(word); // 단어 검증
+
         final int size = 10;
         final boolean isAdmin = true;
 

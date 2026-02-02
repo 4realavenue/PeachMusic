@@ -25,6 +25,9 @@ public class UserAdminService extends AbstractKeysetService {
      */
     @Transactional(readOnly = true)
     public KeysetResponse<UserAdminGetResponseDto> getUserList(String word, Long lastId) {
+
+        validateWord(word); // 단어 검증
+
         final int size = 10;
         List<UserAdminGetResponseDto> content = userRepository.findUserKeysetPageByWord(word, size, lastId);
 
