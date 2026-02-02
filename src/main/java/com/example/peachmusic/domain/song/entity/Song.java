@@ -62,6 +62,9 @@ public class Song extends BaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
+    @Column(name = "playcount", nullable = false)
+    private Long playcount = 0L;
+
     public Song(Album album, String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags) {
         this.album = album;
         this.name = name;
@@ -114,5 +117,9 @@ public class Song extends BaseEntity {
 
     public void updateAudio(String audio) {
         this.audio = audio;
+    }
+
+    public void playcount() {
+        this.playcount++;
     }
 }
