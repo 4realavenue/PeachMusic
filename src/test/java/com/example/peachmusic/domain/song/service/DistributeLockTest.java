@@ -50,8 +50,6 @@ public class DistributeLockTest {
             }
         };
 
-        // 실행 환경 박스가 충분히 실행완료 될 때까지 기다리기
-        // 동시 인입 10명
         for (int i = 0; i < num; i++) {
             executor.submit(task);
         }
