@@ -1,5 +1,6 @@
 package com.example.peachmusic.domain.song.service;
 
+import com.example.peachmusic.common.annotation.RedisLock;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.AuthUser;
@@ -15,13 +16,16 @@ import com.example.peachmusic.domain.songlike.repository.SongLikeRepository;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import static com.example.peachmusic.common.enums.UserRole.USER;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SongService {
@@ -87,5 +91,18 @@ public class SongService {
     public List<SongSearchResponseDto> searchSongList(String word) {
         final int limit = 5;
         return songRepository.findSongListByWord(word, limit);
+    }
+
+    /**
+     * 음원 재생
+     */
+    @RedisLock(key = "song")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void play(Long songId) {
+
+        Song song = songRepository.findById(songId).orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
+
+        song.playcount();
+        songRepository.save(song);
     }
 }

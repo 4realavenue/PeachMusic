@@ -62,6 +62,10 @@ public class Song extends BaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
+    // 재생 횟수 추가
+    @Column(name = "playcount", nullable = false)
+    private Long playcount = 0L;
+
     public Song(Album album, String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags) {
         this.album = album;
         this.name = name;
@@ -74,6 +78,7 @@ public class Song extends BaseEntity {
         this.speed = speed;
         this.instruments = instruments;
         this.vartags = vartags;
+        this.playcount = 0L;
     }
 
     public Song(Long jamendoSongId, Album album, String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags) {
@@ -115,4 +120,7 @@ public class Song extends BaseEntity {
     public void updateAudio(String audio) {
         this.audio = audio;
     }
+
+    public void playcount() { this.playcount++; }
+
 }
