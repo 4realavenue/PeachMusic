@@ -10,7 +10,6 @@ import com.example.peachmusic.domain.songlike.repository.SongLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
@@ -34,7 +33,7 @@ public class RecommendationService {
 
         // 신규 회원이거나 Seed 데이터가 없으면 추천 불가능
         if(mergedSongIdList.isEmpty()) {
-            return new SliceImpl<>(List.of(), pageable, false);
+            return songRepository.findRecommendedSongsForColdStart(pageable);
         }
 
         // songId, 장르, 스피드, 태그, 악기 등 음원 기반 User Profile Vector 생성
@@ -47,7 +46,7 @@ public class RecommendationService {
         List<Long> orderBySongIdList = getTopSongIdList(scoredSongList);
 
         // 추천 결과 DB 조회
-        return songRepository.getRecommendationSong(orderBySongIdList, pageable);
+        return songRepository.findRecommendedSongList(orderBySongIdList, pageable);
     }
 
     /**

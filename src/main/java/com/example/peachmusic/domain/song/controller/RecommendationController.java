@@ -27,6 +27,5 @@ public class RecommendationController {
     ) {
         Slice<SongRecommendationResponseDto> result = recommendationService.getRecommendedSongs(authUser, pageable);
         return ResponseEntity.ok(SliceResponse.success("음원 추천이 완료되었습니다.", result));
-
     }
 }

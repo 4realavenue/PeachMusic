@@ -7,21 +7,18 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
-
 import java.util.*;
 import java.util.stream.Collectors;
-
 import static com.example.peachmusic.domain.album.entity.QAlbum.album;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
 import static com.example.peachmusic.domain.artistsong.entity.QArtistSong.artistSong;
 import static com.example.peachmusic.domain.genre.entity.QGenre.genre;
 import static com.example.peachmusic.domain.song.entity.QSong.song;
 import static com.example.peachmusic.domain.songgenre.entity.QSongGenre.songGenre;
-import static com.querydsl.core.group.GroupBy.groupBy;
-import static com.querydsl.core.types.Projections.list;
 
 public class RecommendationRepositoryImpl implements RecommendationRepository {
 
@@ -76,7 +73,7 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
      * 최종 추천 결과 조회
      */
     @Override
-    public Slice<SongRecommendationResponseDto> getRecommendationSong(List<Long> orderBySongIdList, Pageable pageable) {
+    public Slice<SongRecommendationResponseDto> findRecommendedSongList(List<Long> orderBySongIdList, Pageable pageable) {
         // 추천 대상 음원 상세 조회
         List<SongRecommendationResponseDto> result = queryFactory
                 .select(Projections.constructor(
@@ -109,6 +106,35 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
                 .collect(Collectors.toCollection(ArrayList::new));
 
         return checkEndPage(sortedResult, pageable);
+    }
+
+    /**
+     * cold-start일 경우 likeCount기준으로 추천 반환
+     */
+    @Override
+    public Slice<SongRecommendationResponseDto> findRecommendedSongsForColdStart(Pageable pageable) {
+        Pageable fixePageable = PageRequest.of(0, 50);
+
+        List<SongRecommendationResponseDto> result = queryFactory
+                .select(Projections.constructor(
+                        SongRecommendationResponseDto.class,
+                        song.songId,
+                        song.name,
+                        artist.artistId,
+                        artist.artistName,
+                        album.albumId,
+                        album.albumName,
+                        album.albumImage,
+                        song.likeCount))
+                .from(song)
+                .leftJoin(song.album, album)
+                .leftJoin(artistSong).on(artistSong.song.eq(song))
+                .leftJoin(artistSong.artist, artist)
+                .orderBy(song.likeCount.desc())
+                .limit(50)
+                .fetch();
+
+        return new SliceImpl<>(result, fixePageable, false);
     }
 
     // 타음페이지 존재 여부 계산
