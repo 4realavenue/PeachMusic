@@ -1,0 +1,125 @@
+package com.example.peachmusic.domain.song.service;
+
+import com.example.peachmusic.common.enums.UserRole;
+import com.example.peachmusic.common.model.AuthUser;
+import com.example.peachmusic.domain.playlistsong.repository.PlaylistSongRepository;
+import com.example.peachmusic.domain.song.dto.SongFeatureDto;
+import com.example.peachmusic.domain.song.dto.response.SongRecommendationResponseDto;
+import com.example.peachmusic.domain.song.repository.SongRepository;
+import com.example.peachmusic.domain.songlike.repository.SongLikeRepository;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.given;
+
+@ExtendWith(MockitoExtension.class)
+class RecommendationServiceTest {
+
+    @Mock
+    private SongRepository songRepository;
+
+    @Mock
+    private SongLikeRepository songLikeRepository;
+
+    @Mock
+    private PlaylistSongRepository playlistSongRepository;
+
+    @Mock
+    private FeatureVectorizer featureVectorizer;
+
+    @InjectMocks
+    private RecommendationService recommendationService;
+
+    @Test
+    @DisplayName("추천 조회 성공 - Seed가 없으면 Cold Start 추천을 반환")
+    void success_getRecommendedSongs_coldStart() {
+        // given 로그인한 유저 정보와 페이지 정보
+        AuthUser authUser = new AuthUser(1L, "test@test.com", UserRole.USER, 1L);
+        Pageable pageable = Pageable.ofSize(10);
+
+        // 사용자가 좋아요/플레이리스트에 아무 음원도 없을 때
+        given(songLikeRepository.findSongsLikedByUser(authUser.getUserId())).willReturn(Collections.emptyList());
+        given(playlistSongRepository.findSongsPlaylistByUser(authUser.getUserId())).willReturn(Collections.emptyList());
+
+        // cold-start 추천 결과를 미리 정의
+        Slice<SongRecommendationResponseDto> expected = new SliceImpl<>(Collections.emptyList(), pageable, false);
+        given(songRepository.findRecommendedSongsForColdStart(pageable)).willReturn(expected);
+
+        // when 추천 서비스 호출
+        Slice<SongRecommendationResponseDto> result = recommendationService.getRecommendedSongs(authUser, pageable);
+
+        // then cold-start 추천이 정상적으로 반환
+        assertNotNull(result);
+    }
+
+    @Test
+    @DisplayName("추천 조회 성공 - Seed가 있으면 추천 로직을 수행")
+    void success_getRecommendedSongs_withSeed() {
+        // given
+        AuthUser authUser = new AuthUser(1L, "test@test.com", UserRole.USER, 1L);
+        Pageable pageable = Pageable.ofSize(10);
+
+        // 좋아요한 곡이 1번 곡 하나 있다고 가정
+        given(songLikeRepository.findSongsLikedByUser(authUser.getUserId())).willReturn(List.of(1L));
+        given(playlistSongRepository.findSongsPlaylistByUser(authUser.getUserId())).willReturn(Collections.emptyList());
+
+        // Seed 곡 feature 정보
+        SongFeatureDto seedFeature = new SongFeatureDto(1L, List.of("Pop"), "high", null, null);
+        given(songRepository.findFeatureBySongIdList(List.of(1L))).willReturn(Map.of(1L, seedFeature));
+        given(featureVectorizer.vectorizeUser(List.of(seedFeature))).willReturn(Map.of("g:pop", 1.0));
+
+        // 추천 후보 곡 feature
+        SongFeatureDto recommendFeature = new SongFeatureDto(2L, List.of("Pop"), "high", null, null);
+        given(songRepository.findRecommendFeatureList(List.of(1L))).willReturn(Map.of(2L, recommendFeature));
+        given(featureVectorizer.vectorizeSong(recommendFeature)).willReturn(Map.of("g:pop", 1.0));
+
+        // 최종 추천 결과
+        Slice<SongRecommendationResponseDto> expected = new SliceImpl<>(Collections.emptyList(), pageable, false);
+        given(songRepository.findRecommendedSongList(List.of(2L), pageable)).willReturn(expected);
+
+        // when
+        Slice<SongRecommendationResponseDto> result = recommendationService.getRecommendedSongs(authUser, pageable);
+
+        // then 추천 로직이 정상 종료
+        assertNotNull(result);
+    }
+
+    @Test
+    @DisplayName("실패 - 추천 후보가 없으면 빈 추천 결과를 반환")
+    void fail_getRecommendedSongs_noCandidateSongs() {
+        // given
+        AuthUser authUser = new AuthUser(1L, "test@test.com", UserRole.USER, 1L);
+        Pageable pageable = Pageable.ofSize(10);
+
+        given(songLikeRepository.findSongsLikedByUser(authUser.getUserId())).willReturn(List.of(1L));
+        given(playlistSongRepository.findSongsPlaylistByUser(authUser.getUserId())).willReturn(Collections.emptyList());
+
+        SongFeatureDto seedFeature = new SongFeatureDto(1L, List.of("Pop"), "high", null, null);
+        given(songRepository.findFeatureBySongIdList(List.of(1L))).willReturn(Map.of(1L, seedFeature));
+        given(featureVectorizer.vectorizeUser(List.of(seedFeature))).willReturn(Map.of("g:pop", 1.0));
+
+        // 추천 후보가 없는 상황
+        given(songRepository.findRecommendFeatureList(List.of(1L))).willReturn(Collections.emptyMap());
+
+        Slice<SongRecommendationResponseDto> expected = new SliceImpl<>(Collections.emptyList(), pageable, false);
+        given(songRepository.findRecommendedSongList(Collections.emptyList(), pageable)).willReturn(expected);
+
+        // when
+        Slice<SongRecommendationResponseDto> result = recommendationService.getRecommendedSongs(authUser, pageable);
+
+        // then 에러 없이 빈 결과 반환
+        assertNotNull(result);
+    }
+}
