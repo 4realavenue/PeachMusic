@@ -122,5 +122,4 @@ public class Song extends BaseEntity {
     public void playcount() {
         this.playcount++;
     }
-
 }
