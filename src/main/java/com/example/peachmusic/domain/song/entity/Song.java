@@ -112,16 +112,6 @@ public class Song extends BaseEntity {
         this.isDeleted = false;
     }
 
-    public void unlikeSong() {
-        if (this.likeCount > 0) {
-            this.likeCount--;
-        }
-    }
-
-    public void likeSong() {
-        this.likeCount++;
-    }
-
     public void updateAudio(String audio) {
         this.audio = audio;
     }

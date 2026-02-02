@@ -1,6 +1,5 @@
 package com.example.peachmusic.domain.songlike.dto.response;
 
-import com.example.peachmusic.domain.song.entity.Song;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -13,7 +12,7 @@ public class SongLikeResponseDto {
     private final boolean liked;
     private final Long likeCount;
 
-    public static SongLikeResponseDto from(Song song, boolean isLiked) {
-        return new SongLikeResponseDto(song.getSongId(), song.getName(), isLiked, song.getLikeCount());
+    public static SongLikeResponseDto of(Long songId, String songName, boolean liked, Long likeCount) {
+        return new SongLikeResponseDto(songId, songName, liked, likeCount);
     }
 }
