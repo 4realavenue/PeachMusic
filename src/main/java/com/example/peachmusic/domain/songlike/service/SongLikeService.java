@@ -1,57 +1,36 @@
 package com.example.peachmusic.domain.songlike.service;
 
-import com.example.peachmusic.common.enums.ErrorCode;
-import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.AuthUser;
-import com.example.peachmusic.domain.song.entity.Song;
-import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songlike.dto.response.SongLikeResponseDto;
-import com.example.peachmusic.domain.songlike.entity.SongLike;
-import com.example.peachmusic.domain.songlike.repository.SongLikeRepository;
-import com.example.peachmusic.domain.user.entity.User;
-import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.AssertionFailure;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
 public class SongLikeService {
 
-    private final SongLikeRepository songLikeRepository;
-    private final SongRepository songRepository;
-    private final UserService userService;
+    private final SongLikeTxService songLikeTxService;
 
-    /**
-     * 음원 좋아요/좋아요 취소 기능
-     */
-    @Transactional
     public SongLikeResponseDto likeSong(AuthUser authUser, Long songId) {
+        return retryOnLock(() -> songLikeTxService.doLikeSong(authUser, songId));
+    }
 
-        User findUser = userService.findUser(authUser);
+    private SongLikeResponseDto retryOnLock(Supplier<SongLikeResponseDto> action) {
+        int maxRetry = 2;
 
-        Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
-                .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
-
-        boolean liked = songLikeRepository.existsSongLikeByUserAndSong(findUser, findSong);
-
-        if (liked) {
-            songLikeRepository.deleteSongLikeByUserAndSong(findUser, findSong);
-
-            liked = false;
-
-            findSong.unlikeSong();
-        } else {
-            SongLike songLike = new SongLike(findUser, findSong);
-
-            songLikeRepository.save(songLike);
-
-            liked = true;
-
-            findSong.likeSong();
+        for (int i = 0; i <= maxRetry; i++) {
+            try {
+                return action.get();
+            } catch (PessimisticLockingFailureException e) {
+                if (i == maxRetry) {
+                    throw e;
+                }
+            }
         }
-
-        return SongLikeResponseDto.from(findSong, liked);
-
+        throw new AssertionFailure("unreachable");
     }
 }
