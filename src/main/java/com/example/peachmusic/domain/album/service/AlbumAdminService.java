@@ -83,6 +83,9 @@ public class AlbumAdminService extends AbstractKeysetService {
      */
     @Transactional(readOnly = true)
     public KeysetResponse<AlbumSearchResponseDto> getAlbumList(String word, Long lastId) {
+
+        validateWord(word); // 단어 검증
+
         final int size = 10;
         final boolean isAdmin = true;
 

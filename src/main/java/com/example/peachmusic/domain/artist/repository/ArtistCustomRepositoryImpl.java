@@ -6,10 +6,10 @@ import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
@@ -46,18 +46,18 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
 
         boolean isAsc = sortType == null || direction == SortDirection.ASC;
 
-        List<OrderSpecifier<?>> orders = new ArrayList<>();
+        List<OrderSpecifier<?>> orderList = new ArrayList<>();
         OrderSpecifier<?> main = mainOrder(sortType, isAsc);
         if (main != null) {
-            orders.add(main);
+            orderList.add(main);
         }
-        orders.add(idOrder(isAsc)); // id 정렬은 항상 함
+        orderList.add(idOrder(isAsc)); // id 정렬은 항상 함
 
         return queryFactory
                 .select(Projections.constructor(ArtistSearchResponseDto.class, artist.artistId, artist.artistName, artist.likeCount, artist.isDeleted))
                 .from(artist)
                 .where(searchCondition(word, isAdmin), keysetCondition(sortType, isAsc, lastId, lastLike, lastName)) // 검색어 조건, Keyset 조건
-                .orderBy(orders.toArray(OrderSpecifier[]::new)); // Keyset 조건에 사용되는 커서 순서대로 정렬
+                .orderBy(orderList.toArray(OrderSpecifier[]::new)); // Keyset 조건에 사용되는 커서 순서대로 정렬
     }
 
     /**
@@ -65,19 +65,34 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
      */
     private BooleanExpression searchCondition(String word, boolean isAdmin) {
 
-        if (isAdmin) { // 관리자용은 삭제된 아티스트도 조회되어야 함
-            return artistNameEquals(word);
+        String[] words = word.split(" ");
+        BooleanExpression condition = null;
+
+        for (String w : words) { // 검색 단어가 여러개인 경우 하나씩 조건에 넣어서 and로 묶음
+            condition = addCondition(condition, artistNameContains(w));
         }
 
-        return artistNameEquals(word).and(isActive());
+        if (!isAdmin) {
+            condition = addCondition(condition, isActive());
+        }
+
+        return condition;
+    }
+
+    /**
+     * 검색 조건 더하기
+     */
+    private BooleanExpression addCondition(BooleanExpression condition1, BooleanExpression condition2) {
+        return condition1 == null ? condition2 : condition1.and(condition2);
     }
 
     /**
      * 검색 조건 1
-     * - 검색어가 아티스트 이름에 포함하는 경우
+     * - 검색어가 아티스트 이름에 포함된 경우
      */
-    private BooleanExpression artistNameEquals(String word) {
-        return StringUtils.hasText(word) ? artist.artistName.startsWith(word) : null;
+    private BooleanExpression artistNameContains(String word) {
+        return Expressions.stringTemplate("concat(' ', {0}, ' ')", artist.artistName)
+                .like(Expressions.stringTemplate("concat('% ', {0}, ' %')", word));
     }
 
     /**
