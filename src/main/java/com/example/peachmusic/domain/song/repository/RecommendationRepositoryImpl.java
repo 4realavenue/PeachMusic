@@ -7,7 +7,6 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -30,62 +29,53 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
 
     // 사용자가 좋아요/플레이리스트 시드 곡 정보 조회(User Profile 생성을 위해서)
     @Override
-    public Map<Long, SongFeatureDto> findFeatureBySongIdList(List<Long> songIdList) {
+    public Map<Long, SongFeatureDto> findFeatureBySongIdMap(List<Long> songIdList) {
         // Seed 데이터가 없으면 종료
         if(songIdList == null || songIdList.isEmpty()) {
             return Collections.emptyMap();
         }
 
         // feature 조회
-        List<Tuple> results = queryFactory
+        List<Tuple> result = queryFactory
                 .select(song.songId, genre.genreName, song.speed, song.vartags, song.instruments)
                 .from(song)
                 .leftJoin(songGenre).on(song.songId.eq(songGenre.song.songId))
                 .leftJoin(genre).on(genre.genreId.eq(songGenre.genre.genreId))
-                .where(inSeed(songIdList), hasAllFeature())
+                .where(song.songId.in(songIdList), hasAllFeature())
                 .fetch();
 
-        return convertMap(results);
+        return convertMap(result);
     }
 
     // 추천 후보군 500개
     @Override
-    public Map<Long, SongFeatureDto> findRecommendFeatureList(List<Long> songIdList) {
+    public Map<Long, SongFeatureDto> findRecommendFeatureMap(List<Long> songIdList, List<Long> genreId) {
         // Seed 데이터가 없으면 종료
-        if(songIdList == null || songIdList.isEmpty()) {
+        if(songIdList == null || songIdList.isEmpty() || genreId == null || genreId.isEmpty()) {
             return Collections.emptyMap();
         }
 
-        List<Tuple> results = queryFactory
+        List<Tuple> result = queryFactory
                 .select(song.songId, genre.genreName, song.speed, song.vartags, song.instruments)
                 .from(song)
                 .leftJoin(songGenre).on(song.songId.eq(songGenre.song.songId))
                 .leftJoin(genre).on(genre.genreId.eq(songGenre.genre.genreId))
-                .where(notInSeed(songIdList), hasAllFeature())
+                .where(song.songId.notIn(songIdList), hasAllFeature(), genre.genreId.in(genreId))
                 .orderBy(song.likeCount.desc())
                 .limit(500)
                 .fetch();
 
-        return convertMap(results);
+        return convertMap(result);
     }
 
     /**
      * 최종 추천 결과 조회
      */
     @Override
-    public Slice<SongRecommendationResponseDto> findRecommendedSongList(List<Long> orderBySongIdList, Pageable pageable) {
+    public Slice<SongRecommendationResponseDto> findRecommendedSongSlice(List<Long> orderBySongIdList, Pageable pageable) {
         // 추천 대상 음원 상세 조회
         List<SongRecommendationResponseDto> result = queryFactory
-                .select(Projections.constructor(
-                        SongRecommendationResponseDto.class,
-                        song.songId,
-                        song.name,
-                        artist.artistId,
-                        artist.artistName,
-                        album.albumId,
-                        album.albumName,
-                        album.albumImage,
-                        song.likeCount))
+                .select(Projections.constructor(SongRecommendationResponseDto.class, song.songId, song.name, artist.artistId, artist.artistName, album.albumId, album.albumName, album.albumImage, song.likeCount))
                 .from(song)
                 .leftJoin(song.album, album)
                 .leftJoin(artistSong).on(artistSong.song.eq(song))
@@ -93,18 +83,19 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
                 .where(inOrder(orderBySongIdList))
                 .fetch();
 
-        // songId기준 Map변환
+        // songId기준 Map 변환
         Map<Long, SongRecommendationResponseDto> songMap = result.stream()
                 .collect(Collectors.toMap(SongRecommendationResponseDto::getSongId, s -> s));
 
         // 추천 순서 유지(높은 순위부터 반환) 및 페이징 처리
-        List<SongRecommendationResponseDto> sortedResult = orderBySongIdList.stream()
-                .map(songMap::get)
-                .filter(Objects::nonNull)
-                .skip(pageable.getOffset())             // 시작 지점 무시 (offset)
-                .limit(pageable.getPageSize() + 1)      // 필요한 개수만큼만 (pageSize + 1)
+        List<SongRecommendationResponseDto> sortedResult = orderBySongIdList.stream() // 추천 순서 기준
+                .map(songMap::get) // ID -> DTO 변환
+                .filter(Objects::nonNull) // 없는 데이터 필터링
+                .skip(pageable.getOffset()) // offset만큼 건너뛴
+                .limit(pageable.getPageSize() + 1) // size + 1
                 .collect(Collectors.toCollection(ArrayList::new));
 
+        // Slice 생성
         return checkEndPage(sortedResult, pageable);
     }
 
@@ -112,20 +103,11 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
      * cold-start일 경우 likeCount기준으로 추천 반환
      */
     @Override
-    public Slice<SongRecommendationResponseDto> findRecommendedSongsForColdStart(Pageable pageable) {
-        Pageable fixePageable = PageRequest.of(0, 50);
+    public Slice<SongRecommendationResponseDto> findRecommendedSongSliceForColdStart(Pageable pageable) {
 
+        // 인기순 음원 50건 조회
         List<SongRecommendationResponseDto> result = queryFactory
-                .select(Projections.constructor(
-                        SongRecommendationResponseDto.class,
-                        song.songId,
-                        song.name,
-                        artist.artistId,
-                        artist.artistName,
-                        album.albumId,
-                        album.albumName,
-                        album.albumImage,
-                        song.likeCount))
+                .select(Projections.constructor(SongRecommendationResponseDto.class, song.songId, song.name, artist.artistId, artist.artistName, album.albumId, album.albumName, album.albumImage, song.likeCount))
                 .from(song)
                 .leftJoin(song.album, album)
                 .leftJoin(artistSong).on(artistSong.song.eq(song))
@@ -134,66 +116,81 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
                 .limit(50)
                 .fetch();
 
-        return new SliceImpl<>(result, fixePageable, false);
+        // 페이징 처리
+        List<SongRecommendationResponseDto> pageResult = result.stream()
+                .skip(pageable.getOffset()) // 앞에서 offset만큼 스킵
+                .limit(pageable.getPageSize() + 1) // size + 1개 가져오기(다음 페이지 확인용)
+                .collect(Collectors.toCollection(ArrayList::new)); // list로 변환
+
+        // Slice 생성
+        return checkEndPage(pageResult, pageable);
     }
 
-    // 타음페이지 존재 여부 계산
+    @Override
+    public List<Long> findSeedGenreList(List<Long> mergedSongIdList) {
+        // Seed 데이터가 없으면 종료
+        if(mergedSongIdList == null || mergedSongIdList.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return queryFactory
+                .select(genre.genreId).distinct()
+                .from(song)
+                .join(songGenre).on(song.songId.eq(songGenre.song.songId))
+                .join(genre).on(genre.genreId.eq(songGenre.genre.genreId))
+                .where(song.songId.in(mergedSongIdList))
+                .fetch();
+    }
+
+    // 다음페이지 존재 여부 계산
     private <T> Slice<T> checkEndPage(List<T> commentList, Pageable pageable) {
         boolean hasNext = false;
+        // size 보다 하나 더 있으면 다음 페이지 존재
         if (commentList.size() > pageable.getPageSize()) {
             hasNext = true;
-            commentList.remove(pageable.getPageSize());
+            commentList.remove(pageable.getPageSize()); // 마지막 제거
         }
         return new SliceImpl<>(commentList, pageable, hasNext);
     }
 
     // Tuple -> SongFeatureDto Map으로 변환(.transfrom 사용시 오류 발생)
-    private Map<Long, SongFeatureDto> convertMap(List<Tuple> results) {
+    private Map<Long, SongFeatureDto> convertMap(List<Tuple> result) {
+        // 결과를 저장할 Map -> Key : songId, Value : 해당 곡의 FeatureDto
         Map<Long, SongFeatureDto> resultMap = new LinkedHashMap<>();
 
-        for(Tuple row : results) {
+        // Db에서 조회한 모든 열을 하나씩 반복
+        for(Tuple row : result) {
+            // 현재 row의 곡 id
             Long songId = row.get(song.songId);
+            // 현재 row의 장르 이름(Join 결과)
             String genreName = row.get(genre.genreName);
 
-            // 이미 존재하는 dto 조회
+            // 이미 해당 곡의 DTO가 생성되어 있는지 확인
             SongFeatureDto songInResultMap = resultMap.get(songId);
 
             // 최초 생성 시
             if(songInResultMap == null) {
-
+                // 장르 누적용 리스트(여러 장르가 한곡에 존재)
                 List<String> genreList = new ArrayList<>();
-
-                SongFeatureDto newSong = new SongFeatureDto(
-                        songId,
-                        genreList,
-                        row.get(song.speed),
-                        row.get(song.vartags),
-                        row.get(song.instruments)
-                );
-
+                // SongFeatureDto 생성
+                SongFeatureDto newSong = new SongFeatureDto(songId, genreList, row.get(song.speed), row.get(song.vartags), row.get(song.instruments));
+                // Map에 저장
                 resultMap.put(songId, newSong);
-
+                // 이후 누적 처리를 위해서 참조로 연결
                 songInResultMap = newSong;
             }
 
-            // 장르 누적
+            // 장르 정보가 있으면 기존 Dto에 누적
             if(genreName != null) {
                 songInResultMap.getGenreNameList().add(genreName);
             }
         }
+        // songId 기준으로 묶인 FeatureMap 반환
         return resultMap;
     }
 
     private BooleanExpression inOrder(List<Long> songIdList) {
         return (songIdList == null || songIdList.isEmpty()) ? null : song.songId.in(songIdList);
-    }
-
-    private BooleanExpression inSeed(List<Long> songIdList) {
-        return (songIdList == null || songIdList.isEmpty()) ? null : song.songId.in(songIdList);
-    }
-
-    private BooleanExpression notInSeed(List<Long> songIdList) {
-        return (songIdList == null || songIdList.isEmpty()) ? null : song.songId.notIn(songIdList);
     }
 
     private BooleanExpression hasAllFeature() {

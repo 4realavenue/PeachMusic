@@ -8,8 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 public interface RecommendationRepository {
-    Map<Long, SongFeatureDto> findFeatureBySongIdList(List<Long> songIdList);
-    Map<Long, SongFeatureDto> findRecommendFeatureList(List<Long> songIdList);
-    Slice<SongRecommendationResponseDto> findRecommendedSongList(List<Long> orderBySongIdList, Pageable pageable);
-    Slice<SongRecommendationResponseDto> findRecommendedSongsForColdStart(Pageable pageable);
+    Map<Long, SongFeatureDto> findFeatureBySongIdMap(List<Long> songIdList);
+    Map<Long, SongFeatureDto> findRecommendFeatureMap(List<Long> songIdList, List<Long> genreIdList);
+    Slice<SongRecommendationResponseDto> findRecommendedSongSlice(List<Long> orderBySongIdList, Pageable pageable);
+    Slice<SongRecommendationResponseDto> findRecommendedSongSliceForColdStart(Pageable pageable);
+    List<Long> findSeedGenreList(List<Long> mergedSongIdList);
 }

@@ -24,51 +24,51 @@ public class FeatureVectorizer {
 
     // Song -> Feature vector 변환 메서드
     // 반환되는 Map은 <key, value> -> key:(ex. g:rock, t:happy, i:guitar), value:해당 feature 가중치
-    public Map<String, Double> vectorizeSong(SongFeatureDto songFeatureDto) {
+    public Map<String, Double> vectorizeSongMap(SongFeatureDto songFeatureDto) {
         // 반환하는 feature 벡터
-        Map<String, Double> songVector = new HashMap<>();
+        Map<String, Double> songVectorMap = new HashMap<>();
 
         // Genre 정보 벡터화(g:), 장르가 여러개면 가중치를 균등하게 분배
-        addGenres(songVector, songFeatureDto.getGenreNameList());
+        addGenreList(songVectorMap, songFeatureDto.getGenreNameList());
 
         // Tags 벡터화(t:), vartags: "happy, upbeat, summer" 같은 문자열을 쉼표로 분리 후 각 태기에 동일하게 가중치 분배
-        addTokens(songVector, songFeatureDto.getVartags(), "t:", TAG_WEIGHT);
+        addTokenList(songVectorMap, songFeatureDto.getVartags(), "t:", TAG_WEIGHT);
 
         // Instruments (i:), 기타, 피아노, 드럼 등, 태그랑 똑같이 처리
-        addTokens(songVector, songFeatureDto.getInstruments(), "i:", INSTRUMENT_WEIGHT);
+        addTokenList(songVectorMap, songFeatureDto.getInstruments(), "i:", INSTRUMENT_WEIGHT);
 
         // Speed (s:), verylow / low / normal / high / veryhigh, 단일 값이라 전체를 그대로 부여
-        addSpeed(songVector, songFeatureDto.getSpeed());
+        addSpeed(songVectorMap, songFeatureDto.getSpeed());
 
         // L2 정규화 (코사인 유사도를 하려면 필수) 벡터의 크기를 1로 정규화 -> 코사인 유사도 계산의 전제 조건
-        l2Normalize(songVector);
-        return songVector;
+        l2Normalize(songVectorMap);
+        return songVectorMap;
     }
 
     // User Feature vector 변환 메서드 -> 좋아요와 플레이리스트 음원들의 벡터를 합산 후 사용자 취향 프로파일 생성
-    public Map<String, Double> vectorizeUser(List<SongFeatureDto> seedSongList) {
+    public Map<String, Double> vectorizeUserMap(List<SongFeatureDto> seedSongList) {
         // User 취향 백터
-        Map<String, Double> userVector = new HashMap<>();
+        Map<String, Double> userVectorMap = new HashMap<>();
 
         // 각 음원 벡터 누적
-        for(SongFeatureDto songfeaturedto : seedSongList) {
-            Map<String, Double> songVector = vectorizeSong(songfeaturedto);
-            for(String key : songVector.keySet()) {
-                double songValue = songVector.get(key);
-                double songUserValue = userVector.getOrDefault(key, 0.0);
+        for (SongFeatureDto songfeaturedto : seedSongList) {
+            Map<String, Double> songVectorMap = vectorizeSongMap(songfeaturedto);
+            for (String key : songVectorMap.keySet()) {
+                double songValue = songVectorMap.get(key);
+                double songUserValue = userVectorMap.getOrDefault(key, 0.0);
 
                 // 기존 값 + 현재 음원 값 누적
-                userVector.put(key, songValue + songUserValue);
+                userVectorMap.put(key, songValue + songUserValue);
             }
         }
 
         // 최종 유저 벡터 정규화
-        l2Normalize(userVector);
-        return userVector;
+        l2Normalize(userVectorMap);
+        return userVectorMap;
     }
 
     // 장르 벡터화 -> 장르가 2개면 각 장르에 GENRE_WEIGHT / 2씩 분재
-    private void addGenres(Map<String, Double> vector, List<String> genreNameList) {
+    private void addGenreList(Map<String, Double> vector, List<String> genreNameList) {
         // 장르 정보가 비어있으면 장르 feature 추가 안함
         if (genreNameList == null || genreNameList.isEmpty()) {
             return;
@@ -77,13 +77,13 @@ public class FeatureVectorizer {
         List<String> validGenreList = new ArrayList<>();
 
         // 유효한 장르만 필터링
-        for(String name : genreNameList) {
-            if(name != null && !name.isBlank()) {
+        for (String name : genreNameList) {
+            if (name != null && !name.isBlank()) {
                 validGenreList.add(name.toLowerCase().trim());
             }
         }
 
-        if(validGenreList.isEmpty()) {
+        if (validGenreList.isEmpty()) {
             return;
         }
 
@@ -97,7 +97,7 @@ public class FeatureVectorizer {
     }
 
     // 태그, 악기 공통 처리 -> 문자열 기반 데이터여서 쉼표로 분리, 전체 가중치를 토큰의 수만큼 균등하게 분재
-    private void addTokens(Map<String, Double> vector, String raw, String prefix, double totalWeight) {
+    private void addTokenList(Map<String, Double> vector, String raw, String prefix, double totalWeight) {
         // 정보가 비어있으면 feature 추가 안함
         if (raw == null || raw.isBlank()) {
             return;
@@ -107,14 +107,14 @@ public class FeatureVectorizer {
         String[] tokens = raw.split(",");
         List<String> validTokeList = new ArrayList<>();
 
-        for(String token : tokens) {
+        for (String token : tokens) {
             String trimmed = token.toLowerCase().trim();
-            if(!trimmed.isEmpty()) {
+            if (!trimmed.isEmpty()) {
                 validTokeList.add(trimmed);
             }
         }
 
-        if(validTokeList.isEmpty()) {
+        if (validTokeList.isEmpty()) {
             return;
         }
 
@@ -139,7 +139,7 @@ public class FeatureVectorizer {
     // 정규화 -> 벡터의 길이를 1로 맞추는 메서드 -> 그러면 코사인 유사도는 단순하게 구현 가능
     // 공식 : v = v / ||v||
     private void l2Normalize(Map<String, Double> vector) {
-        if(vector.isEmpty()) {
+        if (vector.isEmpty()) {
             return;
         }
 

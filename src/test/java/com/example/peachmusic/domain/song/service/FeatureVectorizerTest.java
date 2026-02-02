@@ -15,7 +15,7 @@ class FeatureVectorizerTest {
 
     @Test
     @DisplayName("성공 - 장르 정보가 있으면 장르 feature가 생성")
-    void vectorizeSong_genreFeature() {
+    void vectorizeSong_Map_genreFeature() {
         // given
         SongFeatureDto dto = new SongFeatureDto(
                 1L,
@@ -26,7 +26,7 @@ class FeatureVectorizerTest {
         );
 
         // when
-        Map<String, Double> vector = featureVectorizer.vectorizeSong(dto);
+        Map<String, Double> vector = featureVectorizer.vectorizeSongMap(dto);
 
         // then
         assertTrue(vector.containsKey("g:pop"));
@@ -34,7 +34,7 @@ class FeatureVectorizerTest {
 
     @Test
     @DisplayName("성공 - 스피드 정보가 있으면 스피드 feature가 생성")
-    void vectorizeSong_speedFeature() {
+    void vectorizeSong_Map_speedFeature() {
         // given
         SongFeatureDto dto = new SongFeatureDto(
                 1L,
@@ -45,7 +45,7 @@ class FeatureVectorizerTest {
         );
 
         // when
-        Map<String, Double> vector = featureVectorizer.vectorizeSong(dto);
+        Map<String, Double> vector = featureVectorizer.vectorizeSongMap(dto);
 
         // then
         assertTrue(vector.containsKey("s:high"));
@@ -53,7 +53,7 @@ class FeatureVectorizerTest {
 
     @Test
     @DisplayName("성공 - 태그 정보가 있으면 태그 feature가 생성")
-    void vectorizeSong_tagFeature() {
+    void vectorizeSong_Map_tagFeature() {
         // given
         SongFeatureDto dto = new SongFeatureDto(
                 1L,
@@ -64,7 +64,7 @@ class FeatureVectorizerTest {
         );
 
         // when
-        Map<String, Double> vector = featureVectorizer.vectorizeSong(dto);
+        Map<String, Double> vector = featureVectorizer.vectorizeSongMap(dto);
 
         // then
         assertTrue(
@@ -75,7 +75,7 @@ class FeatureVectorizerTest {
 
     @Test
     @DisplayName("실패 - feature 정보가 없으면 빈 벡터를 반환")
-    void vectorizeSong_empty() {
+    void vectorizeSong_Map_empty() {
         // given
         SongFeatureDto dto = new SongFeatureDto(
                 1L,
@@ -86,7 +86,7 @@ class FeatureVectorizerTest {
         );
 
         // when
-        Map<String, Double> vector = featureVectorizer.vectorizeSong(dto);
+        Map<String, Double> vector = featureVectorizer.vectorizeSongMap(dto);
 
         // then
         assertTrue(vector.isEmpty());
@@ -94,7 +94,7 @@ class FeatureVectorizerTest {
 
     @Test
     @DisplayName("성공 - 여러 음원이 있으면 사용자 벡터가 생성된다")
-    void vectorizeUser_success() {
+    void vectorizeUser_Map_success() {
         // given
         SongFeatureDto song1 = new SongFeatureDto(
                 1L,
@@ -115,7 +115,7 @@ class FeatureVectorizerTest {
         List<SongFeatureDto> seedSongList = List.of(song1, song2);
 
         // when
-        Map<String, Double> userVector = featureVectorizer.vectorizeUser(seedSongList);
+        Map<String, Double> userVector = featureVectorizer.vectorizeUserMap(seedSongList);
 
         // then
         assertTrue(userVector.containsKey("g:pop"));

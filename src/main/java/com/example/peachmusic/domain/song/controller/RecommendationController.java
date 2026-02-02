@@ -25,7 +25,7 @@ public class RecommendationController {
             @AuthenticationPrincipal AuthUser authUser,
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        Slice<SongRecommendationResponseDto> result = recommendationService.getRecommendedSongs(authUser, pageable);
+        Slice<SongRecommendationResponseDto> result = recommendationService.getRecommendedSongSlice(authUser, pageable);
         return ResponseEntity.ok(SliceResponse.success("음원 추천이 완료되었습니다.", result));
     }
 }

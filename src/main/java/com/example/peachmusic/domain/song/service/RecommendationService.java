@@ -27,41 +27,44 @@ public class RecommendationService {
      * 음원 추천 기능 메인 메서드
      */
     @Transactional(readOnly = true)
-    public Slice<SongRecommendationResponseDto> getRecommendedSongs(AuthUser authUser, Pageable pageable) {
+    public Slice<SongRecommendationResponseDto> getRecommendedSongSlice(AuthUser authUser, Pageable pageable) {
         // 사용자의 좋아요 / 플레이리스트 음원 ID 병합
-        List<Long> mergedSongIdList = mergeLikeAndPlaylistSongIdList(authUser);
+        List<Long> mergedSongIdList = mergeLikeAndPlaylistSongIdList(authUser.getUserId());
 
-        // 신규 회원이거나 Seed 데이터가 없으면 추천 불가능
-        if(mergedSongIdList.isEmpty()) {
-            return songRepository.findRecommendedSongsForColdStart(pageable);
+        // 사용자의 좋아요 / 플레이리스트 음원의 장르 아이디 조회
+        List<Long> seedGenreIdList = songRepository.findSeedGenreList(mergedSongIdList);
+
+        // 신규 회원이거나 Seed 데이터가 없으면 추천 likeCount가 높은 음원부터 50건 반환
+        if (mergedSongIdList.isEmpty() || seedGenreIdList.isEmpty()) {
+            return songRepository.findRecommendedSongSliceForColdStart(pageable);
         }
 
         // songId, 장르, 스피드, 태그, 악기 등 음원 기반 User Profile Vector 생성
-        Map<String, Double> userVector = createUserVector(mergedSongIdList);
+        Map<String, Double> userVectorMap = createUserVector(mergedSongIdList);
 
         // 후보곡과 User Vector 간 유사도 계산
-        List<SongRecommendationScoreDto> scoredSongList = rankRecommendSongList(mergedSongIdList, userVector);
+        List<SongRecommendationScoreDto> scoredSongList = rankRecommendSongList(mergedSongIdList, userVectorMap, seedGenreIdList);
 
         // 점수 기준 상위 50곡 ID 추출
         List<Long> orderBySongIdList = getTopSongIdList(scoredSongList);
 
         // 추천 결과 DB 조회
-        return songRepository.findRecommendedSongList(orderBySongIdList, pageable);
+        return songRepository.findRecommendedSongSlice(orderBySongIdList, pageable);
     }
 
     /**
      * Seed 음원 병합
      */
-    private List<Long> mergeLikeAndPlaylistSongIdList(AuthUser authUser) {
+    private List<Long> mergeLikeAndPlaylistSongIdList(Long userId) {
         // 좋아요한 음원 목록 조회
-        List<Long> likeSongIdList = songLikeRepository.findSongsLikedByUser(authUser.getUserId());
+        List<Long> likeSongIdList = songLikeRepository.findSongsLikedByUser(userId);
         // 플레이리스트 음원 목록 조회
-        List<Long> playlistSongIdList = playlistSongRepository.findSongsPlaylistByUser(authUser.getUserId());
+        List<Long> playlistSongIdList = playlistSongRepository.findSongsPlaylistByUser(userId);
 
         // 중복 제거
-        Set<Long> seedSongIdList = new LinkedHashSet<>(likeSongIdList);
-        seedSongIdList.addAll(playlistSongIdList);
-        return new ArrayList<>(seedSongIdList);
+        Set<Long> seedSongIdSet = new LinkedHashSet<>(likeSongIdList);
+        seedSongIdSet.addAll(playlistSongIdList);
+        return new ArrayList<>(seedSongIdSet);
     }
 
     /**
@@ -69,27 +72,27 @@ public class RecommendationService {
      */
     private Map<String, Double> createUserVector(List<Long> mergedSongIdList) {
         // Seed 음원의 Feature 정보 조회
-        Map<Long, SongFeatureDto> seedFeatureMap = songRepository.findFeatureBySongIdList(mergedSongIdList);
+        Map<Long, SongFeatureDto> seedFeatureMap = songRepository.findFeatureBySongIdMap(mergedSongIdList);
 
         // FeatureVectorizer를 통해서 User Vector 생성
-        return featureVectorizer.vectorizeUser(new ArrayList<>(seedFeatureMap.values()));
+        return featureVectorizer.vectorizeUserMap(new ArrayList<>(seedFeatureMap.values()));
     }
 
     /**
      * 후보곡 랭킹 계산
      */
-    private List<SongRecommendationScoreDto> rankRecommendSongList(List<Long> mergedSongIdList, Map<String, Double> userVector) {
+    private List<SongRecommendationScoreDto> rankRecommendSongList(List<Long> mergedSongIdList, Map<String, Double> userVector, List<Long> genreIdList) {
         // seed에 포함되지 않은 후보곡 Feature 조회
-        Map<Long, SongFeatureDto> recommendFeatureMap = songRepository.findRecommendFeatureList(mergedSongIdList);
+        Map<Long, SongFeatureDto> recommendFeatureMap = songRepository.findRecommendFeatureMap(mergedSongIdList, genreIdList);
 
         List<SongRecommendationScoreDto> scoredSongList = new ArrayList<>();
 
-        for(SongFeatureDto songFeatureDto : recommendFeatureMap.values()) {
+        for (SongFeatureDto songFeatureDto : recommendFeatureMap.values()) {
             // 후보곡 Feature -> Vector 변환
-            Map<String, Double> recommendVector = featureVectorizer.vectorizeSong(songFeatureDto);
+            Map<String, Double> recommendVectorMap = featureVectorizer.vectorizeSongMap(songFeatureDto);
 
             // 코사인 유사도 계산 (두 벡터가 이미 정규화되었으므로 단순 내적만 수행)
-            double score = CosineSimilarity.compute(userVector, recommendVector);
+            double score = CosineSimilarity.compute(userVector, recommendVectorMap);
 
             // 점수가 0 초과인 후보곡만 저장
             if (score > 0) {
