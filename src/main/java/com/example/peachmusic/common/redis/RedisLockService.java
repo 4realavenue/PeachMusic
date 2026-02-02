@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
-
 import java.time.Duration;
 import java.util.Collections;
 
@@ -18,9 +17,7 @@ public class RedisLockService {
     public boolean tryLock(String key, Object value, long timeOutSecond) {
 
         // key 체크
-        Boolean result = redisTemplate.opsForValue()
-                .setIfAbsent(key, value, Duration.ofSeconds(timeOutSecond));
-
+        Boolean result = redisTemplate.opsForValue().setIfAbsent(key, value, Duration.ofSeconds(timeOutSecond));
         return Boolean.TRUE.equals(result);
     }
 
@@ -33,13 +30,6 @@ public class RedisLockService {
                         "else " +
                         "   return 0 " +
                         "end";
-
-        redisTemplate.execute(
-                new DefaultRedisScript<>(script, Long.class),
-                Collections.singletonList(key),
-                value
-        );
+        redisTemplate.execute(new DefaultRedisScript<>(script, Long.class), Collections.singletonList(key), value);
     }
-
-
 }

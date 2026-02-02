@@ -7,7 +7,6 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
-
 import java.util.UUID;
 
 @Aspect
@@ -16,7 +15,6 @@ import java.util.UUID;
 public class RedisLockAspect {
 
     private final RedisLockService lockService;
-
 
     @Around("@annotation(redisLock)")
     public Object run(ProceedingJoinPoint joinPoint, RedisLock redisLock) throws Throwable {
@@ -46,4 +44,3 @@ public class RedisLockAspect {
         }
     }
 }
-

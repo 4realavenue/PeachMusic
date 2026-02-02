@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-
 import java.time.LocalDate;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -33,7 +32,6 @@ public class DistributeLockTest {
     void redis_분산락_테스트() throws InterruptedException {
 
         Album album = albumRepository.save(new Album( "테스트 앨범", LocalDate.of(2024, 1, 1), "https://image.test/" + UUID.randomUUID()));
-
         Song song = songRepository.save(new Song(album, "Test Song Title", 210L, "https://license.test", 1L, "https://audio.test/" + UUID.randomUUID() + ".mp3", "VOCAL", "en", "120", "guitar, drums", "pop, test"));
 
         int num = 10;
@@ -42,7 +40,6 @@ public class DistributeLockTest {
         ExecutorService executor = Executors.newFixedThreadPool(num);
 
         Runnable task = () -> {
-
             try {
                 songService.play(song.getSongId());
             } catch (Exception e) {
@@ -55,15 +52,10 @@ public class DistributeLockTest {
         }
 
         executor.shutdown();
-
-        // 실행 환경이 충분히 실행완료 될때까지
         Thread.sleep(5000);
-
         Song result = songRepository.findById(song.getSongId()).orElseThrow();
-
         assertThat(result.getPlaycount()).isEqualTo(num);
 
         System.out.println("최종 결과 : " + result.getPlaycount());
-
     }
 }

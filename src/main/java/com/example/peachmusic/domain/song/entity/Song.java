@@ -115,9 +115,7 @@ public class Song extends BaseEntity {
         this.isDeleted = false;
     }
 
-    public void updateAudio(String audio) {
-        this.audio = audio;
-    }
+    public void updateAudio(String audio) { this.audio = audio; }
 
     public void playcount() { this.playcount++; }
 
