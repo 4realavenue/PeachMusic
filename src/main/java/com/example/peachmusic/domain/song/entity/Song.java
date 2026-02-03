@@ -59,6 +59,9 @@ public class Song extends BaseEntity {
     @Column(name = "like_count", nullable = false)
     private Long likeCount = 0L;
 
+    @Column(name = "streaming_status")
+    private boolean streamingStatus = false;
+
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
