@@ -39,9 +39,9 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
         List<Tuple> result = queryFactory
                 .select(song.songId, genre.genreName, song.speed, song.vartags, song.instruments)
                 .from(song)
-                .leftJoin(songGenre).on(song.songId.eq(songGenre.song.songId))
-                .leftJoin(genre).on(genre.genreId.eq(songGenre.genre.genreId))
-                .where(song.songId.in(songIdList), hasAllFeature())
+                .leftJoin(songGenre).on(songGenre.song.eq(song))
+                .leftJoin(genre).on(songGenre.genre.eq(genre))
+                .where(song.songId.in(songIdList), hasAllFeature(), isStreamingSuccessStatus())
                 .fetch();
 
         return convertMap(result);
@@ -58,9 +58,9 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
         List<Tuple> result = queryFactory
                 .select(song.songId, genre.genreName, song.speed, song.vartags, song.instruments)
                 .from(song)
-                .leftJoin(songGenre).on(song.songId.eq(songGenre.song.songId))
-                .leftJoin(genre).on(genre.genreId.eq(songGenre.genre.genreId))
-                .where(song.songId.notIn(songIdList), hasAllFeature(), genre.genreId.in(genreId))
+                .leftJoin(songGenre).on(songGenre.song.eq(song))
+                .leftJoin(genre).on(songGenre.genre.eq(genre))
+                .where(song.songId.notIn(songIdList), hasAllFeature(), genre.genreId.in(genreId), isStreamingSuccessStatus())
                 .orderBy(song.likeCount.desc())
                 .limit(500)
                 .fetch();
@@ -80,7 +80,7 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
                 .leftJoin(song.album, album)
                 .leftJoin(artistSong).on(artistSong.song.eq(song))
                 .leftJoin(artistSong.artist, artist)
-                .where(inOrder(orderBySongIdList))
+                .where(inOrder(orderBySongIdList), isStreamingSuccessStatus())
                 .fetch();
 
         // songId기준 Map 변환
@@ -112,6 +112,7 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
                 .leftJoin(song.album, album)
                 .leftJoin(artistSong).on(artistSong.song.eq(song))
                 .leftJoin(artistSong.artist, artist)
+                .where(isStreamingSuccessStatus())
                 .orderBy(song.likeCount.desc())
                 .limit(50)
                 .fetch();
@@ -136,9 +137,9 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
         return queryFactory
                 .select(genre.genreId).distinct()
                 .from(song)
-                .join(songGenre).on(song.songId.eq(songGenre.song.songId))
-                .join(genre).on(genre.genreId.eq(songGenre.genre.genreId))
-                .where(song.songId.in(mergedSongIdList))
+                .join(songGenre).on(songGenre.song.eq(song))
+                .join(genre).on(songGenre.genre.eq(genre))
+                .where(song.songId.in(mergedSongIdList), isStreamingSuccessStatus())
                 .fetch();
     }
 
@@ -197,5 +198,9 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
         return song.speed.isNotNull()
                 .and(song.vartags.isNotNull())
                 .and(song.instruments.isNotNull());
+    }
+
+    private BooleanExpression isStreamingSuccessStatus() {
+        return song.streamingStatus.isFalse();
     }
 }
