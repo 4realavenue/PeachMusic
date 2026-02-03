@@ -1,11 +1,18 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   datasource:
-    url: jdbc:mysql://localhost:3306/peach_music_test?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
-    username: root
-    password: ${TEST_DB_PASSWORD}
+    url: ${DB_URL_TEST}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
   jpa:
+    show-sql: true
     hibernate:
       ddl-auto: create-drop
     properties:
@@ -13,6 +20,32 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         show_sql: true
         format_sql: true
+    defer-datasource-initialization: true
+  web:
+    resources:
+      add-mappings: false
+  servlet:
+    multipart:
+      max-file-size: 30MB
+      max-request-size: 30MB
+
+  mail:
+    host: ${MAIL_HOST}
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY}
+
+jamendo:
+  api:
+    url: ${JAMENDO_API_BASE_URL}
+    key: ${JAMENDO_CLIENT_ID}
 
 logging:
   level:

@@ -1,5 +1,6 @@
 package com.example.peachmusic.domain.song.service;
 
+import com.example.peachmusic.common.annotation.RedisLock;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
@@ -21,11 +22,13 @@ import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.function.Function;
 import static com.example.peachmusic.common.enums.SortDirection.DESC;
 import static com.example.peachmusic.common.enums.SortType.LIKE;
+import static com.example.peachmusic.common.enums.UserRole.USER;
 
 @Service
 @RequiredArgsConstructor
@@ -103,5 +106,18 @@ public class SongService extends AbstractKeysetService {
         final int size = 5;
         final boolean isAdmin = false;
         return songRepository.findSongListByWord(word, size, isAdmin, LIKE, DESC); // 좋아요 많은 순
+    }
+
+    /**
+     * 음원 재생
+     */
+    @RedisLock(key = "song")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void play(Long songId) {
+
+        Song song = songRepository.findById(songId).orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
+
+        song.playcount();
+        songRepository.save(song);
     }
 }

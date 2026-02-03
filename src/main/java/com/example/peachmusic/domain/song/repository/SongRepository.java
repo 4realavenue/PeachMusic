@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.List;
 import java.util.Set;
 
-public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRepository {
+public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRepository, RecommendationRepository {
 
     Optional<Song> findBySongIdAndIsDeletedFalse(Long songId);
 
