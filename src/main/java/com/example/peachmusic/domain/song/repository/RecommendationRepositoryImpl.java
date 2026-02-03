@@ -1,6 +1,5 @@
 package com.example.peachmusic.domain.song.repository;
 
-import com.example.peachmusic.common.enums.JobStatus;
 import com.example.peachmusic.domain.song.dto.SongFeatureDto;
 import com.example.peachmusic.domain.song.dto.response.SongRecommendationResponseDto;
 import com.querydsl.core.Tuple;
@@ -19,7 +18,6 @@ import static com.example.peachmusic.domain.artistsong.entity.QArtistSong.artist
 import static com.example.peachmusic.domain.genre.entity.QGenre.genre;
 import static com.example.peachmusic.domain.song.entity.QSong.song;
 import static com.example.peachmusic.domain.songgenre.entity.QSongGenre.songGenre;
-import static com.example.peachmusic.domain.streamingjob.entity.QStreamingJob.streamingJob;
 
 public class RecommendationRepositoryImpl implements RecommendationRepository {
 
@@ -41,10 +39,9 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
         List<Tuple> result = queryFactory
                 .select(song.songId, genre.genreName, song.speed, song.vartags, song.instruments)
                 .from(song)
-                .join(streamingJob).on(streamingJob.song.eq(song))
                 .leftJoin(songGenre).on(songGenre.song.eq(song))
                 .leftJoin(genre).on(songGenre.genre.eq(genre))
-                .where(song.songId.in(songIdList), hasAllFeature(), isStreamingSuccess())
+                .where(song.songId.in(songIdList), hasAllFeature(), isStreamingSuccessStatus())
                 .fetch();
 
         return convertMap(result);
@@ -61,10 +58,9 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
         List<Tuple> result = queryFactory
                 .select(song.songId, genre.genreName, song.speed, song.vartags, song.instruments)
                 .from(song)
-                .join(streamingJob).on(streamingJob.song.eq(song))
                 .leftJoin(songGenre).on(songGenre.song.eq(song))
                 .leftJoin(genre).on(songGenre.genre.eq(genre))
-                .where(song.songId.notIn(songIdList), hasAllFeature(), genre.genreId.in(genreId), isStreamingSuccess())
+                .where(song.songId.notIn(songIdList), hasAllFeature(), genre.genreId.in(genreId), isStreamingSuccessStatus())
                 .orderBy(song.likeCount.desc())
                 .limit(500)
                 .fetch();
@@ -81,11 +77,10 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
         List<SongRecommendationResponseDto> result = queryFactory
                 .select(Projections.constructor(SongRecommendationResponseDto.class, song.songId, song.name, artist.artistId, artist.artistName, album.albumId, album.albumName, album.albumImage, song.likeCount))
                 .from(song)
-                .join(streamingJob).on(streamingJob.song.eq(song))
                 .leftJoin(song.album, album)
                 .leftJoin(artistSong).on(artistSong.song.eq(song))
                 .leftJoin(artistSong.artist, artist)
-                .where(inOrder(orderBySongIdList), isStreamingSuccess())
+                .where(inOrder(orderBySongIdList), isStreamingSuccessStatus())
                 .fetch();
 
         // songId기준 Map 변환
@@ -114,11 +109,10 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
         List<SongRecommendationResponseDto> result = queryFactory
                 .select(Projections.constructor(SongRecommendationResponseDto.class, song.songId, song.name, artist.artistId, artist.artistName, album.albumId, album.albumName, album.albumImage, song.likeCount))
                 .from(song)
-                .join(streamingJob).on(streamingJob.song.eq(song))
                 .leftJoin(song.album, album)
                 .leftJoin(artistSong).on(artistSong.song.eq(song))
                 .leftJoin(artistSong.artist, artist)
-                .where(isStreamingSuccess())
+                .where(isStreamingSuccessStatus())
                 .orderBy(song.likeCount.desc())
                 .limit(50)
                 .fetch();
@@ -143,10 +137,9 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
         return queryFactory
                 .select(genre.genreId).distinct()
                 .from(song)
-                .join(streamingJob).on(streamingJob.song.eq(song))
                 .join(songGenre).on(songGenre.song.eq(song))
                 .join(genre).on(songGenre.genre.eq(genre))
-                .where(song.songId.in(mergedSongIdList), isStreamingSuccess())
+                .where(song.songId.in(mergedSongIdList), isStreamingSuccessStatus())
                 .fetch();
     }
 
@@ -207,7 +200,7 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
                 .and(song.instruments.isNotNull());
     }
 
-    private BooleanExpression isStreamingSuccess() {
-        return streamingJob.jobStatus.eq(JobStatus.SUCCESS);
+    private BooleanExpression isStreamingSuccessStatus() {
+        return song.streamingStatus.isFalse();
     }
 }
