@@ -67,9 +67,7 @@ public class ArtistAdminService extends AbstractKeysetService {
     @Transactional(readOnly = true)
     public KeysetResponse<ArtistSearchResponseDto> getArtistList(String word, Long lastId) {
 
-        validateWord(word); // 단어 검증
-
-        String[] words = word.split("\\s+");
+        String[] words = word == null ? null : word.split("\\s+");
         final int size = 10;
         final boolean isAdmin = true; // 관리자용
 
