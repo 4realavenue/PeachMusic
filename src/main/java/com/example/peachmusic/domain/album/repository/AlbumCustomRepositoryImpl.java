@@ -78,7 +78,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
      */
     private BooleanExpression searchCondition(String[] words, boolean isAdmin) {
 
-        if(words == null) {
+        if (words == null) {
             return null;
         }
 
