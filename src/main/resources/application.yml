@@ -40,3 +40,11 @@ jamendo:
   api:
     url: ${JAMENDO_API_BASE_URL}
     key: ${JAMENDO_CLIENT_ID}
+
+peachmusic:
+  media:
+    audio-path: ${UPLOAD_PATH}
+    transcode-path: ${TRANSCODE_PATH}
+
+worker:
+  base-url: ${WORKER_URL}
