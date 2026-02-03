@@ -2,6 +2,7 @@ package com.example.peachmusic.domain.playlistsong.repository;
 
 import com.example.peachmusic.domain.playlist.entity.Playlist;
 import com.example.peachmusic.domain.playlistsong.entity.PlaylistSong;
+import com.example.peachmusic.domain.song.entity.Song;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -28,4 +29,10 @@ public interface PlaylistSongRepository extends JpaRepository<PlaylistSong, Long
     void deletePlaylistSongByPlaylist_PlaylistIdAndSong_SongId(Long playlistId, List<Long> songList);
 
 
+    @Query("""
+            select ps.song.songId
+              from PlaylistSong ps
+             where ps.playlist.user.userId = :userId
+            """)
+    List<Long> findSongsPlaylistByUser(Long userId);
 }

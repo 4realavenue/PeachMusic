@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import java.util.List;
 
 public interface SongLikeRepository extends JpaRepository<SongLike, Long> {
 
@@ -23,4 +24,11 @@ public interface SongLikeRepository extends JpaRepository<SongLike, Long> {
     @Modifying
     @Query(value = "INSERT IGNORE INTO song_likes (user_id, song_id) VALUES (:userId, :songId)", nativeQuery = true)
     int insertIgnore(@Param("userId") Long userId, @Param("songId") Long songId);
+
+    @Query("""
+        select songLike.song.songId
+          from SongLike songLike
+         where songLike.user.userId = :userId
+    """)
+    List<Long> findSongsLikedByUser(Long userId);
 }
