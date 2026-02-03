@@ -201,6 +201,6 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
     }
 
     private BooleanExpression isStreamingSuccessStatus() {
-        return song.streamingStatus.isFalse();
+        return song.streamingStatus.isTrue();
     }
 }
