@@ -17,6 +17,9 @@ public class WorkerService {
     @Value("${worker.base-url}")
     private String workerBaseUrl;
 
+    /**
+     * (Worker) 재시도 요청
+     */
     @Transactional
     public void retryWorkSong(WorkerRetryRequestDto requestDto) {
 

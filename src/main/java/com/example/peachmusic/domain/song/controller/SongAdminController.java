@@ -21,7 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin")
+@RequestMapping("/api")
 public class SongAdminController {
 
     private final SongAdminService songAdminService;
@@ -29,7 +29,7 @@ public class SongAdminController {
     /**
      * 음원 생성 API
      */
-    @PostMapping("/songs")
+    @PostMapping("/admin/songs")
     public ResponseEntity<CommonResponse<AdminSongCreateResponseDto>> createSong(
             @RequestPart("request") @Valid AdminSongCreateRequestDto requestDto,
             @RequestPart("audio") MultipartFile audio
@@ -43,7 +43,7 @@ public class SongAdminController {
     /**
      * 음원 전체 조회 API
      */
-    @GetMapping("/songs")
+    @GetMapping("/admin/songs")
     public ResponseEntity<PageResponse<SongSearchResponseDto>> getSongAll(
             @RequestParam(required = false) String word,
             @PageableDefault(size = 10, sort = "songId", direction = Sort.Direction.ASC) Pageable pageable
@@ -57,7 +57,7 @@ public class SongAdminController {
     /**
      * 음원 기본 정보 수정 API
      */
-    @PatchMapping("/songs/{songId}")
+    @PatchMapping("/admin/songs/{songId}")
     public ResponseEntity<CommonResponse<AdminSongUpdateResponseDto>> updateSong(
             @PathVariable("songId") Long songId,
             @Valid @RequestBody AdminSongUpdateRequestDto requestDto
@@ -71,7 +71,7 @@ public class SongAdminController {
     /**
      * 음원 파일 수정 API
      */
-    @PatchMapping("/songs/{songId}/audio")
+    @PatchMapping("/admin/songs/{songId}/audio")
     public ResponseEntity<CommonResponse<AdminSongAudioUpdateResponseDto>> updateAudio(
             @PathVariable("songId") Long songId,
             @RequestParam MultipartFile audio
@@ -84,7 +84,7 @@ public class SongAdminController {
     /**
      * 음원 삭제 (비활성화) API
      */
-    @DeleteMapping("/songs/{songId}")
+    @DeleteMapping("/admin/songs/{songId}")
     public ResponseEntity<CommonResponse> deleteSong(
             @PathVariable("songId") Long songId
     ) {
@@ -97,7 +97,7 @@ public class SongAdminController {
     /**
      * 음원 복구 (활성화) API
      */
-    @PatchMapping("/songs/{songId}/restore")
+    @PatchMapping("/admin/songs/{songId}/restore")
     public ResponseEntity<CommonResponse> restoreSong(
             @PathVariable("songId") Long songId
     ) {
