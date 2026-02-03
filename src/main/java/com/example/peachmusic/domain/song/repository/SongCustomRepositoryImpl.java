@@ -20,6 +20,7 @@ import java.util.List;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
 import static com.example.peachmusic.domain.artistsong.entity.QArtistSong.artistSong;
 import static com.example.peachmusic.domain.song.entity.QSong.song;
+import static com.example.peachmusic.domain.streamingjob.entity.QStreamingJob.streamingJob;
 
 public class SongCustomRepositoryImpl implements SongCustomRepository {
 
@@ -64,10 +65,11 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
 
         return queryFactory
-                .select(Projections.constructor(SongSearchResponseDto.class, song.songId, song.name, artistNames, song.likeCount, song.album.albumImage, song.isDeleted))
+                .select(Projections.constructor(SongSearchResponseDto.class, song.songId, song.name, artistNames, song.likeCount, song.album.albumImage, song.isDeleted, streamingJob.jobStatus))
                 .from(song)
                 .join(artistSong).on(artistSong.song.eq(song))
                 .join(artist).on(artistSong.artist.eq(artist))
+                .join(streamingJob).on(streamingJob.song.eq(song))
                 .where(searchCondition(words, isAdmin), keysetCondition(sortType, isAsc, lastId, lastLike, lastName)) // 검색어 조건, Keyset 조건
                 .groupBy(song.songId) // 아티스트 이름을 문자열로 합치는데 음원 id를 기준으로 함
                 .orderBy(orderList.toArray(OrderSpecifier[]::new)); // Keyset 조건에 사용되는 커서 순서대로 정렬
@@ -77,6 +79,10 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
      * 검색 조건
      */
     private BooleanExpression searchCondition(String[] words, boolean isAdmin) {
+
+        if(words == null) {
+            return null;
+        }
 
         BooleanExpression condition = null;
 
@@ -124,7 +130,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
      * - 음원이 삭제된 상태가 아닌 경우
      */
     private BooleanExpression isActive() {
-        return song.isDeleted.isFalse();
+        return song.isDeleted.isFalse().and(song.streamingStatus.isTrue());
     }
 
     /**

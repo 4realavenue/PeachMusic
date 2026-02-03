@@ -78,6 +78,10 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
      */
     private BooleanExpression searchCondition(String[] words, boolean isAdmin) {
 
+        if(words == null) {
+            return null;
+        }
+
         BooleanExpression condition = null;
 
         for (String w : words) { // 검색 단어가 여러개인 경우 하나씩 조건에 넣어서 and로 묶음
