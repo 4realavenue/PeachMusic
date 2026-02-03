@@ -1,6 +1,7 @@
 package com.example.peachmusic.domain.openapi.jamendo.service;
 
 import com.example.peachmusic.common.enums.ErrorCode;
+import com.example.peachmusic.common.enums.JobStatus;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.domain.openapi.jamendo.dto.*;
 import com.example.peachmusic.domain.openapi.jamendo.jdbc.JamendoBatchJdbcRepository;
@@ -133,11 +134,19 @@ public class JamendoSongService {
                 successCount++;
             }
 
+            List<StreamingJobRow> streamingJobRows = songList.stream()
+                    .map(song -> new StreamingJobRow(
+                            song.jamendoSongId(),
+                            JobStatus.NOT_READY.name()
+                    ))
+                    .toList();
+
             // 외부 API 기준 데이터 -> 변경 가능해서 upsert(ON DUPLICATE KEY UPDATE) 사용
             batchJdbcRepository.upsertArtists(artistRowList);
             batchJdbcRepository.upsertAlbums(albumRowList);
             batchJdbcRepository.upsertGenres(genreRowList);
             batchJdbcRepository.upsertSongs(songList);
+            batchJdbcRepository.upsertStreamingJobs(streamingJobRows);
 
             // 관계는 상태가 아니라 존재여부여서 insert ignore
             batchJdbcRepository.insertArtistSongs(artistSongRowList);
