@@ -143,14 +143,14 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
     }
 
     // 다음페이지 존재 여부 계산
-    private <T> Slice<T> checkEndPage(List<T> commentList, Pageable pageable) {
+    private <T> Slice<T> checkEndPage(List<T> songList, Pageable pageable) {
         boolean hasNext = false;
         // size 보다 하나 더 있으면 다음 페이지 존재
-        if (commentList.size() > pageable.getPageSize()) {
+        if (songList.size() > pageable.getPageSize()) {
             hasNext = true;
-            commentList.remove(pageable.getPageSize()); // 마지막 제거
+            songList.remove(pageable.getPageSize()); // 마지막 제거
         }
-        return new SliceImpl<>(commentList, pageable, hasNext);
+        return new SliceImpl<>(songList, pageable, hasNext);
     }
 
     // Tuple -> SongFeatureDto Map으로 변환(.transfrom 사용시 오류 발생)
