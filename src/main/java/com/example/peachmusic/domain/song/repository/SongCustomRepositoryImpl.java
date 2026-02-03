@@ -2,8 +2,9 @@ package com.example.peachmusic.domain.song.repository;
 
 import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
+import com.example.peachmusic.common.query.SearchWordCondition;
 import com.example.peachmusic.domain.artist.entity.QArtist;
-import com.example.peachmusic.domain.artistalbum.entity.QArtistAlbum;
+import com.example.peachmusic.domain.artistsong.entity.QArtistSong;
 import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
@@ -16,7 +17,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
-import static com.example.peachmusic.domain.album.entity.QAlbum.album;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
 import static com.example.peachmusic.domain.artistsong.entity.QArtistSong.artistSong;
 import static com.example.peachmusic.domain.song.entity.QSong.song;
@@ -33,8 +33,8 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
      * 검색 - 자세히 보기
      */
     @Override
-    public List<SongSearchResponseDto> findSongKeysetPageByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
-        return baseQuery(word, isAdmin, sortType, direction, lastId, lastLike, lastName)
+    public List<SongSearchResponseDto> findSongKeysetPageByWord(String[] words, int size, boolean isAdmin, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
+        return baseQuery(words, isAdmin, sortType, direction, lastId, lastLike, lastName)
                 .limit(size+1).fetch(); // 요청한 사이즈보다 하나 더 많은 데이터를 조회
     }
 
@@ -42,14 +42,14 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
      * 검색 - 미리보기
      */
     @Override
-    public List<SongSearchResponseDto> findSongListByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction) {
-        return baseQuery(word, isAdmin, sortType, direction, null, null, null).limit(size).fetch();
+    public List<SongSearchResponseDto> findSongListByWord(String[] words, int size, boolean isAdmin, SortType sortType, SortDirection direction) {
+        return baseQuery(words, isAdmin, sortType, direction, null, null, null).limit(size).fetch();
     }
 
     /**
      * 기본 쿼리
      */
-    private JPAQuery<SongSearchResponseDto> baseQuery(String word, boolean isAdmin, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
+    private JPAQuery<SongSearchResponseDto> baseQuery(String[] words, boolean isAdmin, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
 
         boolean isAsc = direction == SortDirection.ASC;
 
@@ -68,7 +68,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
                 .from(song)
                 .join(artistSong).on(artistSong.song.eq(song))
                 .join(artist).on(artistSong.artist.eq(artist))
-                .where(searchCondition(word, isAdmin), keysetCondition(sortType, isAsc, lastId, lastLike, lastName)) // 검색어 조건, Keyset 조건
+                .where(searchCondition(words, isAdmin), keysetCondition(sortType, isAsc, lastId, lastLike, lastName)) // 검색어 조건, Keyset 조건
                 .groupBy(song.songId) // 아티스트 이름을 문자열로 합치는데 음원 id를 기준으로 함
                 .orderBy(orderList.toArray(OrderSpecifier[]::new)); // Keyset 조건에 사용되는 커서 순서대로 정렬
     }
@@ -76,13 +76,12 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
     /**
      * 검색 조건
      */
-    private BooleanExpression searchCondition(String word, boolean isAdmin) {
+    private BooleanExpression searchCondition(String[] words, boolean isAdmin) {
 
-        String[] words = word.split(" ");
         BooleanExpression condition = null;
 
         for (String w : words) { // 검색 단어가 여러개인 경우 하나씩 조건에 넣어서 and로 묶음
-            condition = addCondition(condition, songNameContains(w).or(artistNameExists(w)));
+            condition = addCondition(condition, SearchWordCondition.wordMatch(song.name, w).or(artistNameExists(w)));
         }
 
         if (!isAdmin) {
@@ -100,28 +99,19 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
     }
 
     /**
-     * 검색 조건 1
-     * - 검색어가 음원 이름에 포함된 경우
-     */
-    private BooleanExpression songNameContains(String word) {
-        return Expressions.stringTemplate("concat(' ', {0}, ' ')", song.name)
-                .like(Expressions.stringTemplate("concat('% ', {0}, ' %')", word));
-    }
-
-    /**
-     * 검색 조건 2
+     * 검색 조건
      * - `검색어가 이름에 포함된 아티스트`가 한명이라도 존재하는 경우
      */
     private BooleanExpression artistNameExists(String word) {
         QArtist subArtist = new QArtist("subArtist");
-        QArtistAlbum subArtistAlbum = new QArtistAlbum("subArtistAlbum");
+        QArtistSong subArtistSong = new QArtistSong("subArtistSong");
 
         return JPAExpressions // EXISTS 상관 서브쿼리: 존재 여부만 중요함
                 .selectOne()
-                .from(subArtistAlbum)
-                .join(subArtistAlbum.artist, subArtist)
+                .from(subArtistSong)
+                .join(subArtistSong.artist, subArtist)
                 .where(
-                        subArtistAlbum.album.eq(album), // 메인 쿼리의 album과 연결
+                        subArtistSong.song.eq(song), // 메인 쿼리의 song과 연결
                         // 검색어가 아티스트 이름에 포함된 경우
                         Expressions.stringTemplate("concat(' ', {0}, ' ')", subArtist.artistName)
                                 .like(Expressions.stringTemplate("concat('% ', {0}, ' %')", word))
@@ -130,7 +120,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
     }
 
     /**
-     * 검색 조건 3
+     * 검색 조건
      * - 음원이 삭제된 상태가 아닌 경우
      */
     private BooleanExpression isActive() {

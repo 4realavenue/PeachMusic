@@ -58,12 +58,13 @@ public class ArtistService extends AbstractKeysetService {
         validateWord(word); // 단어 검증
         validateCursor(sortType, lastId, lastLike, lastName); // 커서 검증
 
+        String[] words = word.split("\\s+");
         final int size = 10;
         final boolean isAdmin = false;
         direction = resolveSortDirection(sortType, direction);
 
         // 아티스트 조회
-        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(word, size, isAdmin, sortType, direction, lastId, lastLike, lastName);
+        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(words, size, isAdmin, sortType, direction, lastId, lastLike, lastName);
 
         // 정렬 기준에 따라 커서 결정
         Function<ArtistSearchResponseDto, Cursor> cursorExtractor = switch (sortType) {
@@ -81,8 +82,9 @@ public class ArtistService extends AbstractKeysetService {
      */
     @Transactional(readOnly = true)
     public List<ArtistSearchResponseDto> searchArtistList(String word) {
+        String[] words = word.split("\\s+");
         final int size = 5;
         final boolean isAdmin = false;
-        return artistRepository.findArtistListByWord(word, size, isAdmin, LIKE, DESC);
+        return artistRepository.findArtistListByWord(words, size, isAdmin, LIKE, DESC);
     }
 }

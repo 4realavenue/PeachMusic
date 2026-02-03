@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.function.Function;
 import static com.example.peachmusic.common.enums.SortDirection.DESC;
 import static com.example.peachmusic.common.enums.SortType.LIKE;
-import static com.example.peachmusic.common.enums.UserRole.USER;
 
 @Service
 @RequiredArgsConstructor
@@ -82,12 +81,13 @@ public class SongService extends AbstractKeysetService {
         validateWord(word); // 단어 검증
         validateCursor(sortType, lastId, lastLike, lastName); // 커서 검증
 
+        String[] words = word.split("\\s+");
         final int size = 10;
         final boolean isAdmin = false;
         direction = resolveSortDirection(sortType, direction);
 
         // 음원 조회
-        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(word, size, isAdmin, sortType, direction, lastId, lastLike, lastName);
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(words, size, isAdmin, sortType, direction, lastId, lastLike, lastName);
 
         // 정렬 기준에 따라 커서 결정
         Function<SongSearchResponseDto, Cursor> cursorExtractor = switch (sortType) {
@@ -103,9 +103,10 @@ public class SongService extends AbstractKeysetService {
      */
     @Transactional(readOnly = true)
     public List<SongSearchResponseDto> searchSongList(String word) {
+        String[] words = word.split("\\s+");
         final int size = 5;
         final boolean isAdmin = false;
-        return songRepository.findSongListByWord(word, size, isAdmin, LIKE, DESC); // 좋아요 많은 순
+        return songRepository.findSongListByWord(words, size, isAdmin, LIKE, DESC); // 좋아요 많은 순
     }
 
     /**
