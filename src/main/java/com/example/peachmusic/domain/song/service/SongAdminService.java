@@ -116,10 +116,11 @@ public class SongAdminService extends AbstractKeysetService {
 
         validateWord(word); // 단어 검증
 
+        String[] words = word.split("\\s+");
         final int size = 10;
         final boolean isAdmin = true;
 
-        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(word, size, isAdmin, null, null, lastId, null, null);
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(words, size, isAdmin, null, null, lastId, null, null);
 
         return toKeysetResponse(content, size, last -> new Cursor(last.getSongId(), null));
     }

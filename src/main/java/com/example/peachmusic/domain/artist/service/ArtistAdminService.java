@@ -69,10 +69,11 @@ public class ArtistAdminService extends AbstractKeysetService {
 
         validateWord(word); // 단어 검증
 
+        String[] words = word.split("\\s+");
         final int size = 10;
         final boolean isAdmin = true; // 관리자용
 
-        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(word, size, isAdmin, null, null, lastId, null, null);
+        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(words, size, isAdmin, null, null, lastId, null, null);
 
         return toKeysetResponse(content, size, last -> new Cursor(last.getArtistId(), null));
     }

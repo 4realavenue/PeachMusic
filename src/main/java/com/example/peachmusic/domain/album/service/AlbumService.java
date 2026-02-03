@@ -83,12 +83,13 @@ public class AlbumService extends AbstractKeysetService {
         validateWord(word); // 단어 검증
         validateCursor(sortType, lastId, lastLike, lastName); // 커서 검증
 
+        String[] words = word.split("\\s+");
         final int size = 10;
         final boolean isAdmin = false;
         direction = resolveSortDirection(sortType, direction);
 
         // 앨범 조회
-        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(word, size, isAdmin, sortType, direction, lastId, lastLike, lastName);
+        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(words, size, isAdmin, sortType, direction, lastId, lastLike, lastName);
 
         // 정렬 기준에 따라 커서 결정
         Function<AlbumSearchResponseDto, Cursor> cursorExtractor = switch (sortType) {
@@ -106,8 +107,9 @@ public class AlbumService extends AbstractKeysetService {
      */
     @Transactional(readOnly = true)
     public List<AlbumSearchResponseDto> searchAlbumList(String word) {
+        String[] words = word.split("\\s+");
         final int size = 5;
         final boolean isAdmin = false;
-        return albumRepository.findAlbumListByWord(word, size, isAdmin, LIKE, DESC); // 좋아요 많은 순
+        return albumRepository.findAlbumListByWord(words, size, isAdmin, LIKE, DESC); // 좋아요 많은 순
     }
 }

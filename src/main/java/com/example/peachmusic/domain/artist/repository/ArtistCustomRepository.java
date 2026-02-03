@@ -7,6 +7,6 @@ import java.util.List;
 
 public interface ArtistCustomRepository {
 
-    List<ArtistSearchResponseDto> findArtistKeysetPageByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName);
-    List<ArtistSearchResponseDto> findArtistListByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction);
+    List<ArtistSearchResponseDto> findArtistKeysetPageByWord(String[] words, int size, boolean isAdmin, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName);
+    List<ArtistSearchResponseDto> findArtistListByWord(String[] words, int size, boolean isAdmin, SortType sortType, SortDirection direction);
 }

@@ -86,10 +86,11 @@ public class AlbumAdminService extends AbstractKeysetService {
 
         validateWord(word); // 단어 검증
 
+        String[] words = word.split("\\s+");
         final int size = 10;
         final boolean isAdmin = true;
 
-        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(word, size, isAdmin, null, null, lastId, null, null);
+        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(words, size, isAdmin, null, null, lastId, null, null);
 
         return toKeysetResponse(content, size, last -> new Cursor(last.getAlbumId(), null));
     }
