@@ -3,6 +3,9 @@ package com.example.peachmusic.domain.artist.service;
 import com.example.peachmusic.common.enums.FileType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
+import com.example.peachmusic.common.model.Cursor;
+import com.example.peachmusic.common.model.KeysetResponse;
+import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.common.storage.FileStorageService;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.artist.dto.response.ArtistImageUpdateResponseDto;
@@ -17,21 +20,16 @@ import com.example.peachmusic.domain.artistalbum.repository.ArtistAlbumRepositor
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static com.example.peachmusic.common.enums.UserRole.ADMIN;
-
 @Service
 @RequiredArgsConstructor
-public class ArtistAdminService {
+public class ArtistAdminService extends AbstractKeysetService {
 
     private final ArtistRepository artistRepository;
     private final SongRepository songRepository;
@@ -64,12 +62,18 @@ public class ArtistAdminService {
 
     /**
      * 전체 아티스트 조회 기능 (관리자 전용)
-     * @param pageable 페이지네이션 및 정렬 정보 (기본 정렬: artistId ASC)
      * @return 아티스트 목록 페이징 조회 결과
      */
     @Transactional(readOnly = true)
-    public Page<ArtistSearchResponseDto> getArtistList(String word, Pageable pageable) {
-        return artistRepository.findArtistPageByWord(word, pageable, ADMIN);
+    public KeysetResponse<ArtistSearchResponseDto> getArtistList(String word, Long lastId) {
+
+        String[] words = word == null ? null : word.split("\\s+");
+        final int size = 10;
+        final boolean isAdmin = true; // 관리자용
+
+        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(words, size, isAdmin, null, null, lastId, null, null);
+
+        return toKeysetResponse(content, size, last -> new Cursor(last.getArtistId(), null));
     }
 
     /**

@@ -54,8 +54,8 @@ public class DistributeLockTest {
         executor.shutdown();
         Thread.sleep(5000);
         Song result = songRepository.findById(song.getSongId()).orElseThrow();
-        assertThat(result.getPlaycount()).isEqualTo(num);
+        assertThat(result.getPlayCount()).isEqualTo(num);
 
-        System.out.println("최종 결과 : " + result.getPlaycount());
+        System.out.println("최종 결과 : " + result.getPlayCount());
     }
 }
