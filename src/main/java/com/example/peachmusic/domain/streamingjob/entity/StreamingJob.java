@@ -18,7 +18,7 @@ public class StreamingJob {
     @Column(name = "streaming_job_id")
     private Long streamingJobId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "song_id", nullable = false)
     private Song song;
 
