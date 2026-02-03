@@ -23,7 +23,7 @@ public class StreamingJob {
     private Song song;
 
     @Enumerated(value = EnumType.STRING)
-    @Column(name = "job_status")
+    @Column(name = "job_status", nullable = false)
     private JobStatus jobStatus;
 
     public StreamingJob(Song song, JobStatus jobStatus) {
