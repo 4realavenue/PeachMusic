@@ -120,11 +120,15 @@ public class JamendoSongService {
                 JamendoMusicInfoDto musicInfo = dto.getJamendoMusicInfo();
                 JamendoTagDto tags = (musicInfo != null) ? musicInfo.getTags() : null;
 
+                if (musicInfo == null || musicInfo.getSpeed() == null || tags == null || tags.getInstruments() == null || tags.getMoods() == null) {
+                    continue;
+                }
+
                 songList.add(toSongRowList(dto, musicInfo, tags));
                 artistSongRowList.add(new ArtistSongRow(jamendoArtistId, jamendoSongId));
                 artistAlbumRowList.add(new ArtistAlbumRow(jamendoArtistId, jamendoAlbumId));
 
-                if (tags != null && tags.getGenres() != null) {
+                if (tags.getGenres() != null) {
                     for (String genre : tags.getGenres()) {
                         if (genre == null || genre.isBlank()) continue;
                         genreRowList.add(new GenreRow(genre));
