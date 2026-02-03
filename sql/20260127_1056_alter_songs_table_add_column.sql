@@ -1,0 +1,2 @@
+ALTER TABLE songs
+    ADD COLUMN play_count VARCHAR(255) NULL DEFAULT 0 COMMENT '재생 횟수'

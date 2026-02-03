@@ -2,6 +2,9 @@ package com.example.peachmusic.domain.album.repository;
 
 import com.example.peachmusic.domain.album.entity.Album;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -20,4 +23,19 @@ public interface AlbumRepository extends JpaRepository<Album, Long>, AlbumCustom
     // 비활성 상태(isDeleted=true)인 앨범 조회
     Optional<Album> findByAlbumIdAndIsDeletedTrue(Long albumId);
 
+    @Query("""
+        select a.likeCount
+        from Album a
+        where a.albumId = :albumId
+        and a.isDeleted = false
+        """)
+    Long findLikeCountByAlbumId(@Param("albumId") Long albumId);
+
+    @Modifying
+    @Query("update Album a set a.likeCount = a.likeCount + 1 where a.albumId = :albumId")
+    void incrementLikeCount(@Param("albumId") Long albumId);
+
+    @Modifying
+    @Query("update Album a set a.likeCount = a.likeCount - 1 where a.albumId = :albumId and a.likeCount > 0")
+    void decrementLikeCount(@Param("albumId") Long albumId);
 }

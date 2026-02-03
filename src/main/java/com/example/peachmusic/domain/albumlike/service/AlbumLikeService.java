@@ -1,62 +1,43 @@
 package com.example.peachmusic.domain.albumlike.service;
 
-import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.model.AuthUser;
-import com.example.peachmusic.domain.album.entity.Album;
-import com.example.peachmusic.domain.album.repository.AlbumRepository;
-import com.example.peachmusic.domain.albumlike.entity.AlbumLike;
 import com.example.peachmusic.domain.albumlike.dto.response.AlbumLikeResponseDto;
-import com.example.peachmusic.domain.albumlike.repository.AlbumLikeRepository;
-import com.example.peachmusic.domain.user.entity.User;
-import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.AssertionFailure;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
 public class AlbumLikeService {
 
-    private final AlbumLikeRepository albumLikeRepository;
-    private final AlbumRepository albumRepository;
-    private final UserService userService;
+    private final AlbumLikeTxService albumLikeTxService;
 
     /**
-     * 앨범 좋아요 토글 기능
-     *
-     * @param authUser 인증된 사용자 정보
-     * @param albumId 좋아요 토글할 앨범 ID
-     * @return 토글 처리 결과(최종 좋아요 상태 및 좋아요 수)
+     * 재시도 역할만 담당하고, 실제 DB 작업은 TxService에서 처리
      */
-    @Transactional
     public AlbumLikeResponseDto likeAlbum(AuthUser authUser, Long albumId) {
+        return retryOnLock(() -> albumLikeTxService.doLikeAlbum(authUser, albumId));
+    }
 
-        User findUser = userService.findUser(authUser);
+    /**
+     * 락/데드락 발생 시 재시도하는 공통 로직
+     */
+    private AlbumLikeResponseDto retryOnLock(Supplier<AlbumLikeResponseDto> action) {
+        int maxRetry = 2;
 
-        // AuthUser에서 사용자 ID 추출
-        Long userId = authUser.getUserId();
-
-        // 좋아요 대상 앨범 조회 (삭제된 앨범은 좋아요 불가)
-        Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
-
-        // 요청 전 좋아요 상태 확인
-        boolean alreadyLiked = albumLikeRepository.existsByAlbum_AlbumIdAndUser_UserId(albumId, userId);
-
-        // 이미 좋아요 상태면 취소
-        if (alreadyLiked) {
-            albumLikeRepository.deleteByAlbum_AlbumIdAndUser_UserId(albumId, userId);
-            foundAlbum.decreaseLikeCount();
-        } else {
-            // 좋아요 상태가 아니면 등록
-            albumLikeRepository.save(new AlbumLike(findUser, foundAlbum));
-            foundAlbum.increaseLikeCount();
+        for (int i = 0; i <= maxRetry; i++) {
+            try {
+                return action.get();
+            } catch (PessimisticLockingFailureException e) {
+                if (i == maxRetry) {
+                    throw e;
+                }
+            }
         }
-
-        // 처리 후 최종 좋아요 상태
-        boolean liked = !alreadyLiked;
-
-        return AlbumLikeResponseDto.of(foundAlbum.getAlbumId(), foundAlbum.getAlbumName(), liked, foundAlbum.getLikeCount());
+        // 논리적으로 도달 불가: 성공 시 return, 실패 시 위에서 예외 throw
+        throw new AssertionFailure("unreachable");
     }
 }

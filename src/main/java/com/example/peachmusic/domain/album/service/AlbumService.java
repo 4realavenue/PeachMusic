@@ -50,7 +50,7 @@ public class AlbumService {
 
         if (authUser != null) {
             Long userId = authUser.getUserId();
-            isLiked = albumLikeRepository.existsByUser_UserIdAndAlbum_AlbumId(userId, albumId);
+            isLiked = albumLikeRepository.existsByAlbum_AlbumIdAndUser_UserId(albumId, userId);
         }
 
         List<ArtistAlbum> artistAlbumList = artistAlbumRepository.findAllByAlbum_AlbumIdAndArtist_IsDeletedFalse(albumId);

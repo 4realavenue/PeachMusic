@@ -49,4 +49,15 @@ public class SongController {
         Page<SongSearchResponseDto> result = songService.searchSongPage(word, pageable);
         return ResponseEntity.ok(PageResponse.success("음원 검색이 완료되었습니다.", result));
     }
+
+    /**
+     * 음원 재생
+     */
+    @GetMapping("/{songId}/play")
+    public ResponseEntity<CommonResponse> playSong(
+            @PathVariable Long songId
+    ) {
+        songService.play(songId);
+        return ResponseEntity.ok(CommonResponse.success("음원 재생에 성공했습니다."));
+    }
 }

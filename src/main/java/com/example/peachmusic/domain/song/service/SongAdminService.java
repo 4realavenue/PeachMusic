@@ -177,7 +177,7 @@ public class SongAdminService {
             throw e;
         }
 
-        if (oldPath != null && !oldPath.equals(newPath)) {
+        if (oldPath != null && !oldPath.equals(newPath) && isManagedFilePath(oldPath)) {
             fileStorageService.deleteFileByPath(oldPath);
         }
 
@@ -230,5 +230,9 @@ public class SongAdminService {
         String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         String baseName = "PeachMusic_song_" + name + "_" + date;
         return fileStorageService.storeFile(audio, FileType.AUDIO, baseName);
+    }
+
+    private boolean isManagedFilePath(String path) {
+        return !path.startsWith("https://");
     }
 }

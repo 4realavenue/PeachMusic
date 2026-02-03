@@ -1,9 +1,12 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   datasource:
-    url: ${DB_URL}
+    url: ${DB_URL_TEST}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
   data:
     redis:
       host: ${REDIS_HOST}
@@ -42,10 +45,7 @@ jamendo:
     url: ${JAMENDO_API_BASE_URL}
     key: ${JAMENDO_CLIENT_ID}
 
-peachmusic:
-  media:
-    audio-path: ${UPLOAD_PATH}
-    transcode-path: ${TRANSCODE_PATH}
-
-worker:
-  base-url: ${WORKER_URL}
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.tool.hbm2ddl: debug

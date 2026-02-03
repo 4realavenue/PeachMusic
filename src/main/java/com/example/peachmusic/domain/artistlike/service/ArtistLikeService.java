@@ -1,60 +1,36 @@
 package com.example.peachmusic.domain.artistlike.service;
 
-import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.model.AuthUser;
-import com.example.peachmusic.domain.artist.entity.Artist;
-import com.example.peachmusic.domain.artist.repository.ArtistRepository;
-import com.example.peachmusic.domain.artistlike.entity.ArtistLike;
 import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikeResponseDto;
-import com.example.peachmusic.domain.artistlike.repository.ArtistLikeRepository;
-import com.example.peachmusic.domain.user.entity.User;
-import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.AssertionFailure;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
 public class ArtistLikeService {
 
-    private final ArtistLikeRepository artistLikeRepository;
-    private final ArtistRepository artistRepository;
-    private final UserService userService;
+    private final ArtistLikeTxService artistLikeTxService;
 
-    /**
-     * 아티스트 좋아요 토글 기능
-     *
-     * @param authUser 인증된 사용자 정보
-     * @param artistId 좋아요 토글할 아티스트 ID
-     * @return 토글 처리 결과(최종 좋아요 상태 및 좋아요 수)
-     */
-    @Transactional
     public ArtistLikeResponseDto likeArtist(AuthUser authUser, Long artistId) {
+        return retryOnLock(() -> artistLikeTxService.doLikeArtist(authUser, artistId));
+    }
 
-        User findUser = userService.findUser(authUser);
+    private ArtistLikeResponseDto retryOnLock(Supplier<ArtistLikeResponseDto> action) {
+        int maxRetry = 2;
 
-        Long userId = authUser.getUserId();
-
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
-
-        // 요청 전 좋아요 상태 확인
-        boolean alreadyLiked = artistLikeRepository.existsByArtist_ArtistIdAndUser_UserId(artistId, userId);
-
-        // 이미 좋아요 상태면 취소
-        if (alreadyLiked) {
-            artistLikeRepository.deleteByArtist_ArtistIdAndUser_UserId(artistId, userId);
-            foundArtist.decreaseLikeCount();
-        } else {
-            // 좋아요 상태가 아니면 등록
-            artistLikeRepository.save(new ArtistLike(findUser, foundArtist));
-            foundArtist.increaseLikeCount();
+        for (int i = 0; i <= maxRetry; i++) {
+            try {
+                return action.get();
+            } catch (PessimisticLockingFailureException e) {
+                if (i == maxRetry) {
+                    throw e;
+                }
+            }
         }
-
-        // 처리 후 최종 좋아요 상태
-        boolean liked = !alreadyLiked;
-
-        return ArtistLikeResponseDto.of(foundArtist.getArtistId(), foundArtist.getArtistName(), liked, foundArtist.getLikeCount());
+        throw new AssertionFailure("unreachable");
     }
 }

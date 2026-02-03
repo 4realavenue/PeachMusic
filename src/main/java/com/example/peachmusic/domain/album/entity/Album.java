@@ -69,16 +69,6 @@ public class Album extends BaseEntity {
         this.isDeleted = false;
     }
 
-    public void increaseLikeCount() {
-        this.likeCount++;
-    }
-
-    public void decreaseLikeCount() {
-        if (this.likeCount > 0) {
-            this.likeCount--;
-        }
-    }
-
     public void updateAlbumImage(String albumImage) {
         this.albumImage = albumImage;
     }
