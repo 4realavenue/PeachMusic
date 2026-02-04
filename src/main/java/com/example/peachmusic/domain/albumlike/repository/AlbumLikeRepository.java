@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface AlbumLikeRepository extends JpaRepository<AlbumLike, Long> {
+public interface AlbumLikeRepository extends JpaRepository<AlbumLike, Long>, AlbumLikeCustomRepository {
 
     boolean existsByAlbum_AlbumIdAndUser_UserId(Long albumId, Long userId);
 
