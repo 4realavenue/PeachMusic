@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface ArtistLikeRepository extends JpaRepository<ArtistLike, Long> {
+public interface ArtistLikeRepository extends JpaRepository<ArtistLike, Long>, ArtistLikeCustomRepository {
 
     boolean existsByArtist_ArtistIdAndUser_UserId(Long artistId, Long userId);
 
