@@ -93,6 +93,7 @@ public class SongService extends AbstractKeysetService {
         Function<SongSearchResponseDto, Cursor> cursorExtractor = switch (sortType) {
             case LIKE -> last -> new Cursor(last.getSongId(), last.getLikeCount());
             case NAME -> last -> new Cursor(last.getSongId(), last.getName());
+            case RELEASE_DATE -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
         };
 
         return toKeysetResponse(content, size, cursorExtractor);

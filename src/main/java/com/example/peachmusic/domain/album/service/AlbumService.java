@@ -95,6 +95,7 @@ public class AlbumService extends AbstractKeysetService {
         Function<AlbumSearchResponseDto, Cursor> cursorExtractor = switch (sortType) {
             case LIKE -> last -> new Cursor(last.getAlbumId(), last.getLikeCount());
             case NAME -> last -> new Cursor(last.getAlbumId(), last.getAlbumName());
+            case RELEASE_DATE -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
         };
 
         return toKeysetResponse(content, size, cursorExtractor);

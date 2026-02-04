@@ -1,7 +1,9 @@
 package com.example.peachmusic.domain.artist.repository;
 
+import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
+import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.query.SearchWordCondition;
 import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
 import com.querydsl.core.types.OrderSpecifier;
@@ -115,6 +117,7 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
         return switch (sortType) {
             case LIKE -> likeCountKeyset(asc, lastId, lastLike);
             case NAME -> nameKeyset(asc, lastId, lastName);
+            case RELEASE_DATE -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
         };
     }
 
@@ -152,6 +155,7 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
         return switch (sortType) {
             case LIKE -> asc ? artist.likeCount.asc() : artist.likeCount.desc();
             case NAME -> asc ? artist.artistName.asc() : artist.artistName.desc();
+            case RELEASE_DATE -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
         };
     }
 

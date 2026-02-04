@@ -3,6 +3,7 @@ package com.example.peachmusic.domain.album.repository;
 import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.query.SearchWordCondition;
+import com.example.peachmusic.domain.album.dto.response.AlbumArtistDetailResponseDto;
 import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
 import com.example.peachmusic.domain.artist.entity.QArtist;
 import com.example.peachmusic.domain.artistalbum.entity.QArtistAlbum;
@@ -15,9 +16,12 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import static com.example.peachmusic.domain.album.entity.QAlbum.album;
+import static com.example.peachmusic.domain.albumlike.entity.QAlbumLike.albumLike;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
 import static com.example.peachmusic.domain.artistalbum.entity.QArtistAlbum.artistAlbum;
 
@@ -47,6 +51,23 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
     }
 
     /**
+     * 앨범 - 미리보기
+     */
+    @Override
+    public List<AlbumArtistDetailResponseDto> findAlbumList(Long userId, Long artistId, int size) {
+        return baseQueryByArtist(userId, artistId, SortType.RELEASE_DATE, SortDirection.DESC, null, null).limit(size).fetch();
+    }
+
+    /**
+     * 앨범 - 자세히 보기
+     */
+    @Override
+    public List<AlbumArtistDetailResponseDto> findAlbumByArtistKeyset(Long userId, Long artistId, SortType sortType, SortDirection sortDirection, Long lastId, LocalDate lastDate, int size) {
+        return baseQueryByArtist(userId, artistId, sortType, sortDirection, lastId, lastDate)
+                .limit(size + 1).fetch();
+    }
+
+    /**
      * 기본 쿼리
      */
     private JPAQuery<AlbumSearchResponseDto> baseQuery(String[] words, boolean isAdmin, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
@@ -68,10 +89,43 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
                 .from(album)
                 .join(artistAlbum).on(artistAlbum.album.eq(album))
                 .join(artist).on(artistAlbum.artist.eq(artist))
-                .where(searchCondition(words, isAdmin), keysetCondition(sortType, isAsc, lastId, lastLike, lastName)) // 검색어 조건, Keyset 조건
+                .where(searchCondition(words, isAdmin), keysetCondition(sortType, isAsc, lastId, lastLike, lastName, null)) // 검색어 조건, Keyset 조건
                 .groupBy(album.albumId) // 아티스트 이름을 문자열로 합치는데 앨범 id를 기준으로 함
                 .orderBy(orderList.toArray(OrderSpecifier[]::new)); // Keyset 조건에 사용되는 커서 순서대로 정렬
     }
+
+    /**
+     * 아티스트 상세 전용 공통 쿼리
+     */
+    private JPAQuery<AlbumArtistDetailResponseDto> baseQueryByArtist(Long userId, Long artistId, SortType sortType, SortDirection direction, Long lastId, LocalDate lastDate) {
+
+        boolean isAsc = direction == SortDirection.ASC;
+
+        List<OrderSpecifier<?>> orderList = new ArrayList<>();
+        OrderSpecifier<?> main = mainOrder(sortType, isAsc);
+        if (main != null) {
+            orderList.add(main);
+        }
+
+        if (sortType == SortType.RELEASE_DATE) {
+            orderList.add(isAsc ? album.albumId.asc() : album.albumId.desc());
+        } else {
+            orderList.add(idOrder(isAsc));
+        }
+
+        StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
+
+        return queryFactory
+                .select(Projections.constructor(AlbumArtistDetailResponseDto.class, album.albumId, album.albumName, artistNames, album.albumReleaseDate, album.albumImage, album.likeCount, album.isDeleted, albumLike.albumLikeId.isNotNull()))
+                .from(album)
+                .join(artistAlbum).on(artistAlbum.album.eq(album))
+                .join(artist).on(artistAlbum.artist.eq(artist))
+                .leftJoin(albumLike).on(albumLike.album.eq(album).and(albumLike.user.userId.eq(userId)))
+                .where(artist.artistId.eq(artistId), album.isDeleted.isFalse(), keysetCondition(sortType, isAsc, lastId, null, null, lastDate))
+                .groupBy(album.albumId)
+                .orderBy(orderList.toArray(OrderSpecifier[]::new));
+    }
+
 
     /**
      * 검색 조건
@@ -134,7 +188,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
     /**
      * Keyset 조건
      */
-    private BooleanExpression keysetCondition(SortType sortType, boolean asc, Long lastId, Long lastLike, String lastName) {
+    private BooleanExpression keysetCondition(SortType sortType, boolean asc, Long lastId, Long lastLike, String lastName, LocalDate lastDate) {
 
         // lastId가 없으면 Keyset 조건 없음
         if (lastId == null) {
@@ -149,6 +203,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
         return switch (sortType) {
             case LIKE -> likeCountKeyset(asc, lastId, lastLike);
             case NAME -> nameKeyset(asc, lastId, lastName);
+            case RELEASE_DATE -> dateKeyset(asc, lastId, lastDate);
         };
     }
 
@@ -176,6 +231,14 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
     }
 
     /**
+     * 날짜가 Keyset이 되는 경우
+     */
+    private BooleanExpression dateKeyset(boolean asc, Long lastId, LocalDate lastDate) {
+        BooleanExpression dateCondition = asc ? album.albumReleaseDate.gt(lastDate) : album.albumReleaseDate.lt(lastDate);
+        return dateCondition.or(album.albumReleaseDate.eq(lastDate).and(idKeyset(asc, lastId)));
+    }
+
+    /**
      * 메인 정렬
      */
     private OrderSpecifier<?> mainOrder(SortType sortType, boolean asc) {
@@ -186,6 +249,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
         return switch (sortType) {
             case LIKE -> asc ? album.likeCount.asc() : album.likeCount.desc();
             case NAME -> asc ? album.albumName.asc() : album.albumName.desc();
+            case RELEASE_DATE -> asc ? album.albumReleaseDate.asc() : album.albumReleaseDate.desc();
         };
     }
 
