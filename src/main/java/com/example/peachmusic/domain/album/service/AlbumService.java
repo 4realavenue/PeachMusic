@@ -65,7 +65,7 @@ public class AlbumService extends AbstractKeysetService {
             artistSummaryDtoList.add(new ArtistSummaryDto(artist.getArtistId(), artist.getArtistName()));
         }
 
-        List<Song> songList = songRepository.findAllByAlbum_AlbumIdAndIsDeletedFalse(albumId);
+        List<Song> songList = songRepository.findAllByAlbum_AlbumIdAndIsDeletedFalseAndStreamingStatusTrue(albumId);
         List<SongSummaryDto> songSummaryDtoList = new ArrayList<>();
         for (Song song : songList) {
             songSummaryDtoList.add(new SongSummaryDto(song.getPosition(), song.getSongId(), song.getName(), song.getDuration(), song.getLikeCount()));
