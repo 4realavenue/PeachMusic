@@ -1,6 +1,6 @@
 package com.example.peachmusic.domain.albumlike.repository;
 
-import com.example.peachmusic.domain.albumlike.repository.row.AlbumLikeRow;
+import com.example.peachmusic.domain.albumlike.dto.response.AlbumLikedItemDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -27,11 +27,11 @@ public class AlbumLikeCustomRepositoryImpl implements AlbumLikeCustomRepository 
      * size + 1 조회 후 다음 페이지 존재 여부(hasNext) 판단
      */
     @Override
-    public List<AlbumLikeRow> findMyLikedAlbumWithCursor(Long userId, Long lastId, Integer size) {
+    public List<AlbumLikedItemDto> findMyLikedAlbumWithCursor(Long userId, Long lastLikeId, int size) {
         return queryFactory
-                .select(Projections.constructor(AlbumLikeRow.class, albumLike.albumLikeId, albumLike.album.albumId, albumLike.album.albumName, albumLike.album.albumImage, albumLike.album.likeCount))
+                .select(Projections.constructor(AlbumLikedItemDto.class, albumLike.albumLikeId, albumLike.album.albumId, albumLike.album.albumName, albumLike.album.albumImage, albumLike.album.likeCount))
                 .from(albumLike)
-                .where(albumLike.user.userId.eq(userId), albumLike.album.isDeleted.isFalse(), lastIdCondition(lastId))
+                .where(albumLike.user.userId.eq(userId), albumLike.album.isDeleted.isFalse(), lastLikeIdCondition(lastLikeId))
                 .orderBy(albumLike.albumLikeId.desc())
                 .limit(size + 1)
                 .fetch();
@@ -41,10 +41,10 @@ public class AlbumLikeCustomRepositoryImpl implements AlbumLikeCustomRepository 
      * 첫 페이지 조회 시 lastId가 없으면
      * Keyset 조건을 적용하지 않기 위해 null 반환
      */
-    private BooleanExpression lastIdCondition(Long lastId) {
-        if (lastId == null) {
+    private BooleanExpression lastLikeIdCondition(Long lastLikeId) {
+        if (lastLikeId == null) {
             return null;
         }
-        return albumLike.albumLikeId.lt(lastId);
+        return albumLike.albumLikeId.lt(lastLikeId);
     }
 }

@@ -66,64 +66,57 @@ public class UserController {
     /**
      * 내가 좋아요한 앨범 목록 조회
      *
-     * @param lastId 이전 페이지의 마지막 albumLikeId
-     *               (첫 페이지 조회 시 null)
-     * @param size 페이지 크기
+     * @param lastLikeId 이전 페이지의 마지막 albumLikeId
+     *                  (첫 페이지 조회 시 null)
      * @return 내가 좋아요한 앨범 목록과 다음 페이지 여부 및 커서를 포함한
      *         Keyset 기반 페이징 응답
      */
     @GetMapping("/users/likes/albums")
     public ResponseEntity<CommonResponse<KeysetResponse<AlbumLikedItemDto>>> getMyLikedAlbum(
             @AuthenticationPrincipal AuthUser authUser,
-            @RequestParam(required = false) Long lastId,
-            @RequestParam(defaultValue = "10") Integer size
+            @RequestParam(required = false) Long lastLikeId
     ) {
         Long userId = authUser.getUserId();
 
-        KeysetResponse<AlbumLikedItemDto> responseDtoPage = albumLikeQueryService.getMyLikedAlbum(userId, lastId, size);
+        KeysetResponse<AlbumLikedItemDto> responseDtoPage = albumLikeQueryService.getMyLikedAlbum(userId, lastLikeId);
         return ResponseEntity.ok(CommonResponse.success("좋아요한 앨범 목록 조회에 성공했습니다.", responseDtoPage));
     }
 
     /**
      * 내가 좋아요한 아티스트 목록 조회
      *
-     * @param lastId 이전 페이지의 마지막 artistLikeId
-     *               (첫 페이지 조회 시 null)
-     * @param size 페이지 크기
+     * @param lastLikeId 이전 페이지의 마지막 artistLikeId
+     *                  (첫 페이지 조회 시 null)
      * @return 내가 좋아요한 아티스트 목록과 다음 페이지 여부 및 커서를 포함한
      *         Keyset 기반 페이징 응답
      */
     @GetMapping("/users/likes/artists")
     public ResponseEntity<CommonResponse<KeysetResponse<ArtistLikedItemDto>>> getMyLikedArtist(
             @AuthenticationPrincipal AuthUser authUser,
-            @RequestParam(required = false) Long lastId,
-            @RequestParam(defaultValue = "10") Integer size
-
+            @RequestParam(required = false) Long lastLikeId
     ) {
         Long userId = authUser.getUserId();
 
-        KeysetResponse<ArtistLikedItemDto> responseDtoPage = artistLikeQueryService.getMyLikedArtist(userId, lastId, size);
+        KeysetResponse<ArtistLikedItemDto> responseDtoPage = artistLikeQueryService.getMyLikedArtist(userId, lastLikeId);
         return ResponseEntity.ok(CommonResponse.success("좋아요한 아티스트 목록 조회에 성공했습니다.", responseDtoPage));
     }
 
     /**
      * 내가 좋아요한 음원 목록 조회
      *
-     * @param lastId 이전 페이지의 마지막 songLikeId
-     *               (첫 페이지 조회 시 null)
-     * @param size 페이지 크기
+     * @param lastLikeId 이전 페이지의 마지막 songLikeId
+     *                  (첫 페이지 조회 시 null)
      * @return 내가 좋아요한 음원 목록과 다음 페이지 여부 및 커서를 포함한
      *         Keyset 기반 페이징 응답
      */
     @GetMapping("/users/likes/songs")
     public ResponseEntity<CommonResponse<KeysetResponse<SongLikedItemDto>>> getMyLikedSong(
             @AuthenticationPrincipal AuthUser authUser,
-            @RequestParam(required = false) Long lastId,
-            @RequestParam(defaultValue = "10") Integer size
+            @RequestParam(required = false) Long lastLikeId
     ) {
         Long userId = authUser.getUserId();
 
-        KeysetResponse<SongLikedItemDto> responseDtoPage = songLikeQueryService.getMyLikedSong(userId, lastId, size);
+        KeysetResponse<SongLikedItemDto> responseDtoPage = songLikeQueryService.getMyLikedSong(userId, lastLikeId);
         return ResponseEntity.ok(CommonResponse.success("좋아요한 음원 목록 조회에 성공했습니다.", responseDtoPage));
     }
 }

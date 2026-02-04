@@ -1,6 +1,6 @@
 package com.example.peachmusic.domain.albumlike.dto.response;
 
-import com.example.peachmusic.domain.albumlike.repository.row.AlbumLikeRow;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -8,12 +8,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AlbumLikedItemDto {
 
+    @JsonIgnore
+    private final Long albumLikeId; // 커서용 (응답 제외)
+
     private final Long albumId;
     private final String albumName;
     private final String albumImage;
     private final Long likeCount;
-
-    public static AlbumLikedItemDto from(AlbumLikeRow row) {
-        return new AlbumLikedItemDto(row.albumId(), row.albumName(), row.albumImage(), row.likeCount());
-    }
 }

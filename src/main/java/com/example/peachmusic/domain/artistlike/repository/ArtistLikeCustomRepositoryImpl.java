@@ -1,6 +1,6 @@
 package com.example.peachmusic.domain.artistlike.repository;
 
-import com.example.peachmusic.domain.artistlike.repository.row.ArtistLikeRow;
+import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikedItemDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -19,21 +19,21 @@ public class ArtistLikeCustomRepositoryImpl implements ArtistLikeCustomRepositor
     }
 
     @Override
-    public List<ArtistLikeRow> findMyLikedArtistWithCursor(Long userId, Long lastId, Integer size) {
+    public List<ArtistLikedItemDto> findMyLikedArtistWithCursor(Long userId, Long lastLikeId, int size) {
         return queryFactory
-                .select(Projections.constructor(ArtistLikeRow.class, artistLike.artistLikeId, artistLike.artist.artistId, artistLike.artist.artistName, artistLike.artist.profileImage, artistLike.artist.likeCount))
+                .select(Projections.constructor(ArtistLikedItemDto.class, artistLike.artistLikeId, artistLike.artist.artistId, artistLike.artist.artistName, artistLike.artist.profileImage, artistLike.artist.likeCount))
                 .from(artistLike)
-                .where(artistLike.user.userId.eq(userId), artistLike.artist.isDeleted.isFalse(), lastIdCondition(lastId))
+                .where(artistLike.user.userId.eq(userId), artistLike.artist.isDeleted.isFalse(), lastLikeIdCondition(lastLikeId))
                 .orderBy(artistLike.artistLikeId.desc())
                 .limit(size + 1)
                 .fetch();
 
     }
 
-    private BooleanExpression lastIdCondition(Long lastId) {
-        if (lastId == null) {
+    private BooleanExpression lastLikeIdCondition(Long lastLikeId) {
+        if (lastLikeId == null) {
             return null;
         }
-        return artistLike.artistLikeId.lt(lastId);
+        return artistLike.artistLikeId.lt(lastLikeId);
     }
 }
