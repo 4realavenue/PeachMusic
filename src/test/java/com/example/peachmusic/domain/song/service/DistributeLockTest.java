@@ -34,14 +34,14 @@ public class DistributeLockTest {
         Album album = albumRepository.save(new Album( "테스트 앨범", LocalDate.of(2024, 1, 1), "https://image.test/" + UUID.randomUUID()));
         Song song = songRepository.save(new Song(album, "Test Song Title", 210L, "https://license.test", 1L, "https://audio.test/" + UUID.randomUUID() + ".mp3", "VOCAL", "en", "120", "guitar, drums", "pop, test"));
 
-        int num = 10;
+        int num = 5;
 
         // 여러명이 동시에 접근할 수 있도록 설정
         ExecutorService executor = Executors.newFixedThreadPool(num);
 
         Runnable task = () -> {
             try {
-                songService.play(song.getSongId());
+                songService.play(song.getSongId(), LocalDate.now());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
@@ -62,11 +64,12 @@ public class SongController {
     /**
      * 음원 재생
      */
-    @GetMapping("/{songId}/play")
+    @GetMapping("/songs/{songId}/play")
     public ResponseEntity<CommonResponse> playSong(
-            @PathVariable Long songId
-    ) {
-        songService.play(songId);
+            @PathVariable Long songId,
+            @RequestParam LocalDate currentDate
+            ) {
+        songService.play(songId, currentDate);
         return ResponseEntity.ok(CommonResponse.success("음원 재생에 성공했습니다."));
     }
 }
