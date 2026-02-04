@@ -9,7 +9,6 @@ import com.example.peachmusic.common.model.Cursor;
 import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.domain.album.dto.response.AlbumArtistDetailResponseDto;
-import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.artist.dto.response.ArtistPreviewResponseDto;
 import com.example.peachmusic.domain.artist.entity.Artist;
@@ -18,7 +17,6 @@ import com.example.peachmusic.domain.artist.repository.ArtistRepository;
 import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
 import com.example.peachmusic.domain.artistlike.repository.ArtistLikeRepository;
 import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
-import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -69,7 +67,7 @@ public class ArtistService extends AbstractKeysetService {
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
 
-        int size = 10;
+        int size = 5;
         List<AlbumArtistDetailResponseDto> albumList = albumRepository.findAlbumList(authUser.getUserId(), foundArtist.getArtistId(), size);
         List<SongArtistDetailResponseDto> songList = songRepository.findSongList(authUser.getUserId(), foundArtist.getArtistId(), size);
 
@@ -84,7 +82,7 @@ public class ArtistService extends AbstractKeysetService {
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
 
-        final int size = 20;
+        final int size = 10;
         SortType sortType = SortType.RELEASE_DATE;
         validateArtistCursor(sortType, lastId, lastDate);
 
@@ -101,7 +99,7 @@ public class ArtistService extends AbstractKeysetService {
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
 
-        final int size = 20;
+        final int size = 10;
         SortType sortType = SortType.RELEASE_DATE;
         validateArtistCursor(sortType, lastId, lastDate);
 
