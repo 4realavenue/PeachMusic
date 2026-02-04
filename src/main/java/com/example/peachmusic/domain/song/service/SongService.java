@@ -130,7 +130,7 @@ public class SongService extends AbstractKeysetService {
 
         Song song = songRepository.findById(songId).orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
-        // 키에 날짜 반영 ( 테스트를 위해 RequestParam 사용 )
+        // 키에 날짜 반영
         String key =  MUSIC_DAILY_KEY + currentDate.toString();
         // music:2025-02-04
 
