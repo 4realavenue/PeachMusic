@@ -13,12 +13,12 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/songs/ranking")
+@RequestMapping("/api")
 public class RankingController {
 
     private final RankingService rankingService;
 
-    @GetMapping("/Top100")
+    @GetMapping("/songs/ranking/Top100")
     public List<RankingDto> findTop100Music(
             @RequestParam(required = false) int page,
             @RequestParam(defaultValue = "10" ) int limit
