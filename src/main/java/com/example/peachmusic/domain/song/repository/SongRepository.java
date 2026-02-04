@@ -24,17 +24,15 @@ public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRep
 
     boolean existsSongByAudio(String audioUrl);
 
-    // (활성) 앨범 음원 목록 조회
+    // 앨범 음원 목록 조회
     List<Song> findAllByAlbum_AlbumIdAndIsDeletedFalse(Long albumId);
-
-    // (비활성) 앨범 음원 목록 조회
     List<Song> findAllByAlbum_AlbumIdAndIsDeletedTrue(Long albumId);
 
-    // (활성) 여러 앨범 음원 조회
-    List<Song> findAllByAlbum_AlbumIdInAndIsDeletedFalse(List<Long> albumIds);
+    List<Song> findAllByAlbum_AlbumIdAndIsDeletedFalseAndStreamingStatusTrue(Long albumId);
 
-    // (비활성) 여러 앨범 음원 조회
-    List<Song> findAllByAlbum_AlbumIdInAndIsDeletedTrue(List<Long> albumIds);
+    // 여러 앨범 음원 조회
+    List<Song> findAllByAlbum_AlbumIdInAndIsDeletedFalse(List<Long> albumIdList);
+    List<Song> findAllByAlbum_AlbumIdInAndIsDeletedTrue(List<Long> albumIdList);
 
     @Query("""
             select s.songId from Song s
