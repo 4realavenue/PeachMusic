@@ -149,6 +149,4 @@ public class ArtistService extends AbstractKeysetService {
         final boolean isAdmin = false;
         return artistRepository.findArtistListByWord(words, size, isAdmin, LIKE, DESC);
     }
-
-
 }
