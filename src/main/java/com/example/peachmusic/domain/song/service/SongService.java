@@ -139,7 +139,7 @@ public class SongService extends AbstractKeysetService {
         redisTemplate.opsForZSet().incrementScore(key, songId.toString(),1);
 
         // DB에 저장
-        song.addplayCount();
+        song.addPlayCount();
         songRepository.save(song);
     }
 }

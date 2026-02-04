@@ -63,7 +63,7 @@ public class SongController {
      * 음원 재생
      */
     @GetMapping("/songs/{songId}/play")
-    public ResponseEntity<CommonResponse> playSong(
+    public ResponseEntity<CommonResponse<Void>> playSong(
             @PathVariable Long songId
     ) {
         songService.play(songId);
