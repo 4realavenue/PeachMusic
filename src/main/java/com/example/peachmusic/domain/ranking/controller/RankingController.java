@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -23,7 +22,6 @@ public class RankingController {
             @RequestParam(required = false) int page,
             @RequestParam(defaultValue = "10" ) int limit
     ) {
-        LocalDate currentDate = LocalDate.now();
-        return rankingService.findMusicTop100(currentDate, page, limit);
+        return rankingService.findMusicTop100(page, limit);
     }
 }

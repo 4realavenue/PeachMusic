@@ -19,7 +19,9 @@ public class RankingService {
 
     private final RedisTemplate<String, String> redisTemplate;
 
-    public List<RankingResponseDto> findMusicTop100(LocalDate currentDate, int page , int limit) {
+    public List<RankingResponseDto> findMusicTop100( int page , int limit) {
+
+        LocalDate currentDate = LocalDate.now();
 
         // 현재일로부터 1주의 데이터를 리스트로 만들어 나열함
         List<String> keyList = List.of(
@@ -51,8 +53,6 @@ public class RankingService {
         }
 
         // Set<typedTuple<String>> -> List<RankingDto> 변환
-        return result.stream()
-                .map(RankingResponseDto::of)
-                .toList();
+        return result.stream().map(RankingResponseDto::of).toList();
     }
 }

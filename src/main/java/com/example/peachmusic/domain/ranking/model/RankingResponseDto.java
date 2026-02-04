@@ -13,9 +13,6 @@ public class RankingResponseDto {
 
     // Tuple을 사용하여 RankingResponseDto를 생성하는 메서드
     public static RankingResponseDto of(TypedTuple<String> tuple) {
-        return new RankingResponseDto(
-                tuple.getValue(),
-                tuple.getScore().longValue()
-        );
+        return new RankingResponseDto(tuple.getValue(), tuple.getScore().longValue());
     }
 }

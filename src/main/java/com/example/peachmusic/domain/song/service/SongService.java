@@ -126,8 +126,9 @@ public class SongService extends AbstractKeysetService {
      */
     @RedisLock(key = "song")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void play( Long songId, LocalDate currentDate) {
+    public void play( Long songId) {
 
+        LocalDate currentDate = LocalDate.now();
         Song song = songRepository.findById(songId).orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
         // 키에 날짜 반영

@@ -41,7 +41,7 @@ public class DistributeLockTest {
 
         Runnable task = () -> {
             try {
-                songService.play(song.getSongId(), LocalDate.now());
+                songService.play(song.getSongId());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
