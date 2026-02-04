@@ -117,7 +117,7 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
         return switch (sortType) {
             case LIKE -> likeCountKeyset(asc, lastId, lastLike);
             case NAME -> nameKeyset(asc, lastId, lastName);
-            case RELEASE_DATE -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
+            default -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
         };
     }
 
@@ -155,7 +155,7 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
         return switch (sortType) {
             case LIKE -> asc ? artist.likeCount.asc() : artist.likeCount.desc();
             case NAME -> asc ? artist.artistName.asc() : artist.artistName.desc();
-            case RELEASE_DATE -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
+            default ->  throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
         };
     }
 

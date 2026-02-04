@@ -63,8 +63,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
      */
     @Override
     public List<AlbumArtistDetailResponseDto> findAlbumByArtistKeyset(Long userId, Long artistId, SortType sortType, SortDirection sortDirection, Long lastId, LocalDate lastDate, int size) {
-        return baseQueryByArtist(userId, artistId, sortType, sortDirection, lastId, lastDate)
-                .limit(size + 1).fetch();
+        return baseQueryByArtist(userId, artistId, sortType, sortDirection, lastId, lastDate).limit(size + 1).fetch();
     }
 
     /**
