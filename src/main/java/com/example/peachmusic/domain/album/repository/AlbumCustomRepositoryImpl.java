@@ -105,12 +105,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
         if (main != null) {
             orderList.add(main);
         }
-
-        if (sortType == SortType.RELEASE_DATE) {
-            orderList.add(isAsc ? album.albumId.asc() : album.albumId.desc());
-        } else {
-            orderList.add(idOrder(isAsc));
-        }
+        orderList.add(idOrder(isAsc)); // id 정렬은 항상 함
 
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
 

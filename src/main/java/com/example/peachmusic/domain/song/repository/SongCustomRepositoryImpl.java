@@ -3,7 +3,6 @@ package com.example.peachmusic.domain.song.repository;
 import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.query.SearchWordCondition;
-import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
 import com.example.peachmusic.domain.artist.entity.QArtist;
 import com.example.peachmusic.domain.artistsong.entity.QArtistSong;
 import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
@@ -24,7 +23,6 @@ import java.util.List;
 
 import static com.example.peachmusic.domain.album.entity.QAlbum.album;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
-import static com.example.peachmusic.domain.artistalbum.entity.QArtistAlbum.artistAlbum;
 import static com.example.peachmusic.domain.artistsong.entity.QArtistSong.artistSong;
 import static com.example.peachmusic.domain.song.entity.QSong.song;
 import static com.example.peachmusic.domain.songlike.entity.QSongLike.songLike;
@@ -111,12 +109,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
         if (main != null) {
             orderList.add(main);
         }
-
-        if (sortType == SortType.RELEASE_DATE) {
-            orderList.add(isAsc ? song.songId.asc() : song.songId.desc());
-        } else {
-            orderList.add(idOrder(isAsc));
-        }
+        orderList.add(idOrder(isAsc)); // id 정렬은 항상 함
 
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
 
