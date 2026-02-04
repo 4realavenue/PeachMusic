@@ -66,9 +66,9 @@ public class SongController {
      */
     @GetMapping("/songs/{songId}/play")
     public ResponseEntity<CommonResponse> playSong(
-            @PathVariable Long songId,
-            @RequestParam LocalDate currentDate
+            @PathVariable Long songId
             ) {
+        LocalDate currentDate = LocalDate.now();
         songService.play(songId, currentDate);
         return ResponseEntity.ok(CommonResponse.success("음원 재생에 성공했습니다."));
     }
