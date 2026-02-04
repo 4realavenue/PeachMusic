@@ -4,5 +4,6 @@ public record SongLikeRow(
         Long songLikeId,
         Long songId,
         String name,
+        String audio,
         Long likeCount
 ) {}

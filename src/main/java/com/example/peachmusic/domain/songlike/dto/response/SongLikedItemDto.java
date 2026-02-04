@@ -10,9 +10,10 @@ public class SongLikedItemDto {
 
     private final Long songId;
     private final String name;
+    private final String audio;
     private final Long likeCount;
 
     public static SongLikedItemDto from(SongLikeRow row) {
-        return new SongLikedItemDto(row.songId(), row.name(), row.likeCount());
+        return new SongLikedItemDto(row.songId(), row.name(), row.audio(), row.likeCount());
     }
 }

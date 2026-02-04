@@ -21,7 +21,7 @@ public class SongLikeCustomRepositoryImpl implements SongLikeCustomRepository {
     @Override
     public List<SongLikeRow> findMyLikedSongWithCursor(Long userId, Long lastId, Integer size) {
         return queryFactory
-                .select(Projections.constructor(SongLikeRow.class, songLike.songLikeId, songLike.song.songId, songLike.song.name, songLike.song.likeCount))
+                .select(Projections.constructor(SongLikeRow.class, songLike.songLikeId, songLike.song.songId, songLike.song.name, songLike.song.audio, songLike.song.likeCount))
                 .from(songLike)
                 .where(songLike.user.userId.eq(userId), songLike.song.isDeleted.isFalse(), songLike.song.streamingStatus.isTrue(), lastIdCondition(lastId))
                 .orderBy(songLike.songLikeId.desc())
