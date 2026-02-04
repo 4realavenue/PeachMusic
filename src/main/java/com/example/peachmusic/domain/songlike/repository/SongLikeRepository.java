@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
 
-public interface SongLikeRepository extends JpaRepository<SongLike, Long> {
+public interface SongLikeRepository extends JpaRepository<SongLike, Long>, SongLikeCustomRepository {
 
     boolean existsSongLikeByUserAndSong(User user, Song song);
 
