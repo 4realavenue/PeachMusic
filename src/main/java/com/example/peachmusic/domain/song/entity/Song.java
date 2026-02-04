@@ -122,7 +122,7 @@ public class Song extends BaseEntity {
         this.audio = audio;
     }
 
-    public void playcount() {
+    public void addPlayCount() {
         this.playCount++;
     }
 }

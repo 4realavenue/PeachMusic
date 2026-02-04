@@ -21,11 +21,15 @@ import com.example.peachmusic.domain.songlike.repository.SongLikeRepository;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 import java.util.List;
 import java.util.function.Function;
+
 import static com.example.peachmusic.common.enums.SortDirection.DESC;
 import static com.example.peachmusic.common.enums.SortType.LIKE;
 import static com.example.peachmusic.common.enums.SortType.NAME;
@@ -39,6 +43,9 @@ public class SongService extends AbstractKeysetService {
     private final AlbumRepository albumRepository;
     private final SongLikeRepository songLikeRepository;
     private final UserService userService;
+    private final RedisTemplate<String,String> redisTemplate;
+
+    public static final String MUSIC_DAILY_KEY = "music";
 
     /**
      * 음원 단건 조회
@@ -121,9 +128,18 @@ public class SongService extends AbstractKeysetService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void play(Long songId) {
 
+        LocalDate currentDate = LocalDate.now();
         Song song = songRepository.findById(songId).orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
-        song.playcount();
+        // 키에 날짜 반영
+        String key =  MUSIC_DAILY_KEY + currentDate.toString();
+        // music:2025-02-04
+
+        // Redis에 저장
+        redisTemplate.opsForZSet().incrementScore(key, songId.toString(),1);
+
+        // DB에 저장
+        song.addPlayCount();
         songRepository.save(song);
     }
 }
