@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.function.Function;
 import static com.example.peachmusic.common.enums.SortDirection.DESC;
 import static com.example.peachmusic.common.enums.SortType.LIKE;
+import static com.example.peachmusic.common.enums.SortType.NAME;
 
 @Service
 @RequiredArgsConstructor
@@ -79,6 +80,9 @@ public class SongService extends AbstractKeysetService {
     public KeysetResponse<SongSearchResponseDto> searchSongPage(String word, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
 
         validateWord(word); // 단어 검증
+        if (!sortType.equals(LIKE) && !sortType.equals(NAME)) { // 정렬 기준 검증
+            throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
+        }
         validateCursor(sortType, lastId, lastLike, lastName); // 커서 검증
 
         String[] words = word.split("\\s+");
@@ -93,6 +97,7 @@ public class SongService extends AbstractKeysetService {
         Function<SongSearchResponseDto, Cursor> cursorExtractor = switch (sortType) {
             case LIKE -> last -> new Cursor(last.getSongId(), last.getLikeCount());
             case NAME -> last -> new Cursor(last.getSongId(), last.getName());
+            default -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
         };
 
         return toKeysetResponse(content, size, cursorExtractor);

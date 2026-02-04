@@ -5,6 +5,7 @@ import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.query.SearchWordCondition;
 import com.example.peachmusic.domain.artist.entity.QArtist;
 import com.example.peachmusic.domain.artistsong.entity.QArtistSong;
+import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
@@ -15,11 +16,16 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.example.peachmusic.domain.album.entity.QAlbum.album;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
 import static com.example.peachmusic.domain.artistsong.entity.QArtistSong.artistSong;
 import static com.example.peachmusic.domain.song.entity.QSong.song;
+import static com.example.peachmusic.domain.songlike.entity.QSongLike.songLike;
 import static com.example.peachmusic.domain.streamingjob.entity.QStreamingJob.streamingJob;
 
 public class SongCustomRepositoryImpl implements SongCustomRepository {
@@ -48,6 +54,22 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
     }
 
     /**
+     * 음원 - 미리보기
+     */
+    @Override
+    public List<SongArtistDetailResponseDto> findSongList(Long userId, Long artistId, int size) {
+        return baseQueryByArtist(userId, artistId, SortType.RELEASE_DATE, SortDirection.DESC, null, null).limit(size).fetch();
+    }
+
+    /**
+     * 음원 - 자세히 보기
+     */
+    @Override
+    public List<SongArtistDetailResponseDto> findSongByArtistKeyset(Long userId, Long artistId, SortType sortType, SortDirection sortDirection, Long lastId, LocalDate lastDate, int size) {
+        return baseQueryByArtist(userId, artistId, sortType, sortDirection, lastId, lastDate).limit(size + 1).fetch();
+    }
+
+    /**
      * 기본 쿼리
      */
     private JPAQuery<SongSearchResponseDto> baseQuery(String[] words, boolean isAdmin, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
@@ -70,9 +92,38 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
                 .join(artistSong).on(artistSong.song.eq(song))
                 .join(artist).on(artistSong.artist.eq(artist))
                 .join(streamingJob).on(streamingJob.song.eq(song))
-                .where(searchCondition(words, isAdmin), keysetCondition(sortType, isAsc, lastId, lastLike, lastName)) // 검색어 조건, Keyset 조건
+                .where(searchCondition(words, isAdmin), keysetCondition(sortType, isAsc, lastId, lastLike, lastName, null)) // 검색어 조건, Keyset 조건
                 .groupBy(song.songId) // 아티스트 이름을 문자열로 합치는데 음원 id를 기준으로 함
                 .orderBy(orderList.toArray(OrderSpecifier[]::new)); // Keyset 조건에 사용되는 커서 순서대로 정렬
+    }
+
+    /**
+     * 아티스트 상세 전용 공통 쿼리
+     */
+    private JPAQuery<SongArtistDetailResponseDto> baseQueryByArtist(Long userId, Long artistId, SortType sortType, SortDirection direction, Long lastId, LocalDate lastDate) {
+
+        boolean isAsc = direction == SortDirection.ASC;
+
+        List<OrderSpecifier<?>> orderList = new ArrayList<>();
+        OrderSpecifier<?> main = mainOrder(sortType, isAsc);
+        if (main != null) {
+            orderList.add(main);
+        }
+        orderList.add(idOrder(isAsc)); // id 정렬은 항상 함
+
+        StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
+
+        return queryFactory
+                .select(Projections.constructor(SongArtistDetailResponseDto.class, song.songId, song.name, artistNames, song.likeCount, song.album.albumImage, streamingJob.jobStatus, songLike.songLikeId.isNotNull(), album.albumId, album.albumReleaseDate))
+                .from(song)
+                .join(artistSong).on(artistSong.song.eq(song))
+                .join(artist).on(artistSong.artist.eq(artist))
+                .join(song.album, album)
+                .join(streamingJob).on(streamingJob.song.eq(song))
+                .leftJoin(songLike).on(songLike.song.eq(song).and(songLike.user.userId.eq(userId)))
+                .where(artist.artistId.eq(artistId), song.isDeleted.isFalse(), song.streamingStatus.isTrue(), keysetCondition(sortType, isAsc, lastId, null, null, lastDate))
+                .groupBy(song.songId)
+                .orderBy(orderList.toArray(OrderSpecifier[]::new));
     }
 
     /**
@@ -136,7 +187,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
     /**
      * Keyset 조건
      */
-    private BooleanExpression keysetCondition(SortType sortType, boolean asc, Long lastId, Long lastLike, String lastName) {
+    private BooleanExpression keysetCondition(SortType sortType, boolean asc, Long lastId, Long lastLike, String lastName, LocalDate lastDate) {
 
         // lastId가 없으면 Keyset 조건 없음
         if (lastId == null) {
@@ -151,6 +202,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
         return switch (sortType) {
             case LIKE -> likeCountKeyset(asc, lastId, lastLike);
             case NAME -> nameKeyset(asc, lastId, lastName);
+            case RELEASE_DATE -> dateKeyset(asc, lastId, lastDate);
         };
     }
 
@@ -178,6 +230,14 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
     }
 
     /**
+     * 날짜가 Keyset이 되는 경우
+     */
+    private BooleanExpression dateKeyset(boolean asc, Long lastId, LocalDate lastDate) {
+        BooleanExpression dateCondition = asc ? album.albumReleaseDate.gt(lastDate) : album.albumReleaseDate.lt(lastDate);
+        return dateCondition.or(album.albumReleaseDate.eq(lastDate).and(idKeyset(asc, lastId)));
+    }
+
+    /**
      * 메인 정렬
      */
     private OrderSpecifier<?> mainOrder(SortType sortType, boolean asc) {
@@ -188,6 +248,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
         return switch (sortType) {
             case LIKE -> asc ? song.likeCount.asc() : song.likeCount.desc();
             case NAME -> asc ? song.name.asc() : song.name.desc();
+            case RELEASE_DATE -> asc ? album.albumReleaseDate.asc() : album.albumReleaseDate.desc();
         };
     }
 

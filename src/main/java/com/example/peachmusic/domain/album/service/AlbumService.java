@@ -1,5 +1,6 @@
 package com.example.peachmusic.domain.album.service;
 
+import at.favre.lib.crypto.bcrypt.BCryptFormatter;
 import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.function.Function;
 import static com.example.peachmusic.common.enums.SortDirection.DESC;
 import static com.example.peachmusic.common.enums.SortType.LIKE;
+import static com.example.peachmusic.common.enums.SortType.NAME;
 
 @Service
 @RequiredArgsConstructor
@@ -81,6 +83,9 @@ public class AlbumService extends AbstractKeysetService {
     public KeysetResponse<AlbumSearchResponseDto> searchAlbumPage(String word, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
 
         validateWord(word); // 단어 검증
+        if (!sortType.equals(LIKE) && !sortType.equals(NAME)) { // 정렬 기준 검증
+            throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
+        }
         validateCursor(sortType, lastId, lastLike, lastName); // 커서 검증
 
         String[] words = word.split("\\s+");
@@ -95,6 +100,7 @@ public class AlbumService extends AbstractKeysetService {
         Function<AlbumSearchResponseDto, Cursor> cursorExtractor = switch (sortType) {
             case LIKE -> last -> new Cursor(last.getAlbumId(), last.getLikeCount());
             case NAME -> last -> new Cursor(last.getAlbumId(), last.getAlbumName());
+            default -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
         };
 
         return toKeysetResponse(content, size, cursorExtractor);

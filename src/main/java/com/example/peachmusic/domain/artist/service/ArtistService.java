@@ -8,18 +8,28 @@ import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.Cursor;
 import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.common.service.AbstractKeysetService;
+import com.example.peachmusic.domain.album.dto.response.AlbumArtistDetailResponseDto;
+import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
+import com.example.peachmusic.domain.album.repository.AlbumRepository;
+import com.example.peachmusic.domain.artist.dto.response.ArtistPreviewResponseDto;
 import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.dto.response.ArtistGetDetailResponseDto;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
 import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
 import com.example.peachmusic.domain.artistlike.repository.ArtistLikeRepository;
+import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
+import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
+import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 import java.util.List;
 import java.util.function.Function;
 import static com.example.peachmusic.common.enums.SortDirection.DESC;
 import static com.example.peachmusic.common.enums.SortType.LIKE;
+import static com.example.peachmusic.common.enums.SortType.NAME;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +37,8 @@ public class ArtistService extends AbstractKeysetService {
 
     private final ArtistRepository artistRepository;
     private final ArtistLikeRepository artistLikeRepository;
+    private final SongRepository songRepository;
+    private final AlbumRepository albumRepository;
 
     /**
      * 아티스트 단건 조회 기능
@@ -50,12 +62,64 @@ public class ArtistService extends AbstractKeysetService {
     }
 
     /**
+     * 아티스트의 앨범 및 음원 미리보기
+     */
+    @Transactional(readOnly = true)
+    public ArtistPreviewResponseDto getArtistDetailPreview(AuthUser authUser, Long artistId) {
+        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
+
+        int size = 10;
+        List<AlbumArtistDetailResponseDto> albumList = albumRepository.findAlbumList(authUser.getUserId(), foundArtist.getArtistId(), size);
+        List<SongArtistDetailResponseDto> songList = songRepository.findSongList(authUser.getUserId(), foundArtist.getArtistId(), size);
+
+        return ArtistPreviewResponseDto.of(albumList, songList);
+    }
+
+    /**
+     * 아티스트의 앨범 자세히 보기
+     */
+    @Transactional(readOnly = true)
+    public KeysetResponse<AlbumArtistDetailResponseDto> getArtistAlbums(AuthUser authUser, Long artistId, Long lastId, LocalDate lastDate) {
+        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
+
+        final int size = 20;
+        SortType sortType = SortType.RELEASE_DATE;
+        validateArtistCursor(sortType, lastId, lastDate);
+
+        List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, SortDirection.DESC, lastId, lastDate, size);
+
+        return toKeysetResponse(content, size, last -> new Cursor(last.getAlbumId(), last.getAlbumReleaseDate()));
+    }
+
+    /**
+     * 아티스트의 음원 자세히 보기
+     */
+    @Transactional(readOnly = true)
+    public KeysetResponse<SongArtistDetailResponseDto> getArtistSongs(AuthUser authUser, Long artistId, Long lastId, LocalDate lastDate) {
+        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
+
+        final int size = 20;
+        SortType sortType = SortType.RELEASE_DATE;
+        validateArtistCursor(sortType, lastId, lastDate);
+
+        List<SongArtistDetailResponseDto> content = songRepository.findSongByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, SortDirection.DESC, lastId, lastDate, size);
+
+        return toKeysetResponse(content, size, last -> new Cursor(last.getAlbumId(), last.getAlbumReleaseDate()));
+    }
+
+    /**
      * 아티스트 검색 - 자세히 보기
      */
     @Transactional(readOnly = true)
     public KeysetResponse<ArtistSearchResponseDto> searchArtistPage(String word, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
 
         validateWord(word); // 단어 검증
+        if (!sortType.equals(LIKE) && !sortType.equals(NAME)) { // 정렬 기준 검증
+            throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
+        }
         validateCursor(sortType, lastId, lastLike, lastName); // 커서 검증
 
         String[] words = word.split("\\s+");
@@ -70,6 +134,7 @@ public class ArtistService extends AbstractKeysetService {
         Function<ArtistSearchResponseDto, Cursor> cursorExtractor = switch (sortType) {
             case LIKE -> last -> new Cursor(last.getArtistId(), last.getLikeCount());
             case NAME -> last -> new Cursor(last.getArtistId(), last.getArtistName());
+            default -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
         };
 
         return toKeysetResponse(content, size, cursorExtractor);
@@ -87,4 +152,6 @@ public class ArtistService extends AbstractKeysetService {
         final boolean isAdmin = false;
         return artistRepository.findArtistListByWord(words, size, isAdmin, LIKE, DESC);
     }
+
+
 }

@@ -7,10 +7,11 @@ import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.Cursor;
 import com.example.peachmusic.common.model.KeysetResponse;
 import org.springframework.util.StringUtils;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.function.Function;
-import static com.example.peachmusic.common.enums.SortType.LIKE;
-import static com.example.peachmusic.common.enums.SortType.NAME;
+
+import static com.example.peachmusic.common.enums.SortType.*;
 
 public abstract class AbstractKeysetService {
 
@@ -34,6 +35,19 @@ public abstract class AbstractKeysetService {
         boolean missingLastLike = sortType == LIKE && lastId != null && lastLike == null;
         boolean missingLastName = sortType == NAME && lastId != null && lastName == null;
         if (missingLastLike || missingLastName) {
+            throw new CustomException(ErrorCode.MISSING_CURSOR_PARAMETER);
+        }
+    }
+
+    /**
+     * 아티스트 전용 - 커서가 정렬 기준에 맞게 입력됐는지 검증
+     * @param sortType 정렬 기준
+     * @param lastId 커서 - 마지막 ID
+     * @param lastDate 커서 - 마지막 날짜
+     */
+    protected void validateArtistCursor(SortType sortType, Long lastId, LocalDate lastDate) {
+        boolean missingLastDate = sortType == RELEASE_DATE && lastId != null && lastDate == null;
+        if (missingLastDate) {
             throw new CustomException(ErrorCode.MISSING_CURSOR_PARAMETER);
         }
     }
