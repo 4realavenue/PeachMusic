@@ -44,10 +44,4 @@ public class RedisConfig {
         template.afterPropertiesSet();
         return template;
     }
-
-    // String 타입 기본 Redis 템플릿
-    @Bean
-    public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory factory) {
-        return new StringRedisTemplate(factory);
-    }
 }

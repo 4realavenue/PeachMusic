@@ -1,6 +1,6 @@
 package com.example.peachmusic.domain.ranking.controller;
 
-import com.example.peachmusic.domain.ranking.model.RankingDto;
+import com.example.peachmusic.domain.ranking.model.RankingResponseDto;
 import com.example.peachmusic.domain.ranking.service.RankingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +19,7 @@ public class RankingController {
     private final RankingService rankingService;
 
     @GetMapping("/songs/ranking/Top100")
-    public List<RankingDto> findTop100Music(
+    public List<RankingResponseDto> findTop100Music(
             @RequestParam(required = false) int page,
             @RequestParam(defaultValue = "10" ) int limit
     ) {

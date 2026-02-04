@@ -21,7 +21,7 @@ import com.example.peachmusic.domain.songlike.repository.SongLikeRepository;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,7 +43,7 @@ public class SongService extends AbstractKeysetService {
     private final AlbumRepository albumRepository;
     private final SongLikeRepository songLikeRepository;
     private final UserService userService;
-    private final StringRedisTemplate stringRedisTemplate;
+    private final RedisTemplate<String,String> redisTemplate;
 
     public static final String MUSIC_DAILY_KEY = "music";
 
@@ -135,7 +135,7 @@ public class SongService extends AbstractKeysetService {
         // music:2025-02-04
 
         // Redis에 저장
-        stringRedisTemplate.opsForZSet().incrementScore(key, songId.toString(),1);
+        redisTemplate.opsForZSet().incrementScore(key, songId.toString(),1);
 
         // DB에 저장
         song.playcount();

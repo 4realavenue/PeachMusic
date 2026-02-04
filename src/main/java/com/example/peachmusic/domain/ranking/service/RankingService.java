@@ -1,8 +1,8 @@
 package com.example.peachmusic.domain.ranking.service;
 
-import com.example.peachmusic.domain.ranking.model.RankingDto;
+import com.example.peachmusic.domain.ranking.model.RankingResponseDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
@@ -17,9 +17,9 @@ import static com.example.peachmusic.domain.song.service.SongService.MUSIC_DAILY
 @RequiredArgsConstructor
 public class RankingService {
 
-    private final StringRedisTemplate stringRedisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
 
-    public List<RankingDto> findMusicTop100(LocalDate currentDate, int page ,int limit) {
+    public List<RankingResponseDto> findMusicTop100(LocalDate currentDate, int page , int limit) {
 
         // 현재일로부터 1주의 데이터를 리스트로 만들어 나열함
         List<String> keyList = List.of(
@@ -36,21 +36,23 @@ public class RankingService {
         String destKey = "music_rank:last1weeks";
 
         // 1주간의 데이터를 병합함
-        stringRedisTemplate.opsForZSet().unionAndStore(keyList.get(0), keyList.subList(1,keyList.size()), destKey);
+        redisTemplate.opsForZSet().unionAndStore(keyList.get(0), keyList.subList(1,keyList.size()), destKey);
 
         int start = page * limit;
         int end = start + limit - 1;
 
         // 1주간의 데이터를 합친것 중 상위 Top 100 뽑아냄
-        Set<ZSetOperations.TypedTuple<String>> result = stringRedisTemplate
+        Set<ZSetOperations.TypedTuple<String>> result = redisTemplate
                 .opsForZSet().reverseRangeWithScores(destKey, start, end);
 
         // 결과가 빈값이면 빈리스트 반환
-        if ( result == null ) {return Collections.emptyList();}
+        if ( result == null ) {
+            return Collections.emptyList();
+        }
 
         // Set<typedTuple<String>> -> List<RankingDto> 변환
         return result.stream()
-                .map(tuple -> new RankingDto(tuple.getValue(), tuple.getScore()))
+                .map(RankingResponseDto::of)
                 .toList();
     }
 }
