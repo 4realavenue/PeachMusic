@@ -20,7 +20,7 @@ public class ArtistLikeQueryService extends AbstractKeysetService {
     @Transactional(readOnly = true)
     public KeysetResponse<ArtistLikedItemDto> getMyLikedArtist(Long userId, Long lastLikeId) {
 
-        final int size = 20;
+        final int size = 10;
 
         List<ArtistLikedItemDto> content = artistLikeRepository.findMyLikedArtistWithCursor(userId, lastLikeId, size);
 
