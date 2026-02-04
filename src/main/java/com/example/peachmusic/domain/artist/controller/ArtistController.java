@@ -54,7 +54,7 @@ public class ArtistController {
     ) {
         ArtistPreviewResponseDto responseDto = artistService.getArtistDetailPreview(authUser, artistId);
 
-        return ResponseEntity.ok(CommonResponse.success("아티스트 조회에 성공했습니다.", responseDto));
+        return ResponseEntity.ok(CommonResponse.success("아티스트의 앨범 및 음원 미리보기가 성공했습니다.", responseDto));
     }
 
     // 아티스트 앨범 전체 보기
