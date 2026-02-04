@@ -126,7 +126,7 @@ public class SongService extends AbstractKeysetService {
      */
     @RedisLock(key = "song")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void play( Long songId) {
+    public void play(Long songId) {
 
         LocalDate currentDate = LocalDate.now();
         Song song = songRepository.findById(songId).orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
@@ -139,7 +139,7 @@ public class SongService extends AbstractKeysetService {
         redisTemplate.opsForZSet().incrementScore(key, songId.toString(),1);
 
         // DB에 저장
-        song.playcount();
+        song.addplayCount();
         songRepository.save(song);
     }
 }

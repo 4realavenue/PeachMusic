@@ -19,7 +19,7 @@ public class RankingService {
 
     private final RedisTemplate<String, String> redisTemplate;
 
-    public List<RankingResponseDto> findMusicTop100( int page , int limit) {
+    public List<RankingResponseDto>findMusicTop100(int page , int limit) {
 
         LocalDate currentDate = LocalDate.now();
 
@@ -48,7 +48,7 @@ public class RankingService {
                 .opsForZSet().reverseRangeWithScores(destKey, start, end);
 
         // 결과가 빈값이면 빈리스트 반환
-        if ( result == null ) {
+        if (result == null) {
             return Collections.emptyList();
         }
 
