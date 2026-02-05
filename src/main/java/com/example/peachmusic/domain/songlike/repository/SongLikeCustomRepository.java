@@ -1,10 +1,10 @@
 package com.example.peachmusic.domain.songlike.repository;
 
-import com.example.peachmusic.domain.songlike.dto.response.SongLikedItemDto;
+import com.example.peachmusic.domain.songlike.dto.response.SongLikedItemResponseDto;
 
 import java.util.List;
 
 public interface SongLikeCustomRepository {
 
-    List<SongLikedItemDto> findMyLikedSongWithCursor(Long userId, Long lastLikeId, int size);
+    List<SongLikedItemResponseDto> findMyLikedSongWithCursor(Long userId, Long lastLikeId, int size);
 }

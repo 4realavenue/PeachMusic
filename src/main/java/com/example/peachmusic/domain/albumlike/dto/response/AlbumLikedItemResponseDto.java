@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class AlbumLikedItemDto {
+public class AlbumLikedItemResponseDto {
 
     @JsonIgnore
     private final Long albumLikeId; // 커서용 (응답 제외)
