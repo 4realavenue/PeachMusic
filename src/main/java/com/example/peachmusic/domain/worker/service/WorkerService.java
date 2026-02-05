@@ -18,10 +18,10 @@ public class WorkerService {
     private String workerBaseUrl;
 
     /**
-     * (Worker) 재시도 요청
+     * (Worker) 다운로드 재시도 요청
      */
     @Transactional
-    public void retryWorkSong(WorkerRetryRequestDto requestDto) {
+    public void retryDownloadSong(WorkerRetryRequestDto requestDto) {
 
         WebClient webClient = WebClient.builder()
                 .baseUrl(workerBaseUrl)
@@ -30,6 +30,25 @@ public class WorkerService {
 
         webClient.method(HttpMethod.POST)
                 .uri("/worker/re-download")
+                .bodyValue(requestDto)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .block();
+    }
+
+    /**
+     * (Worker) 형변환 재시도 요청
+     */
+    @Transactional
+    public void retryTranscodeSong(WorkerRetryRequestDto requestDto) {
+
+        WebClient webClient = WebClient.builder()
+                .baseUrl(workerBaseUrl)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+
+        webClient.method(HttpMethod.POST)
+                .uri("/worker/re-transcode")
                 .bodyValue(requestDto)
                 .retrieve()
                 .bodyToMono(Void.class)

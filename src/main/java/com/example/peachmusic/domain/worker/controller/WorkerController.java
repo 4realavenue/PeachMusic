@@ -18,8 +18,8 @@ public class WorkerController {
     @PostMapping("/admin/songs/re-download")
     public void retryDownloadSong(
             @RequestBody WorkerRetryRequestDto requestDto
-            ) {
-        streamingJobService.retryWorkSong(requestDto);
+    ) {
+        streamingJobService.retryDownloadSong(requestDto);
     }
 
     /**
@@ -29,6 +29,6 @@ public class WorkerController {
     public void retryTranscodeSong(
             @RequestBody WorkerRetryRequestDto requestDto
     ) {
-        streamingJobService.retryWorkSong(requestDto);
+        streamingJobService.retryTranscodeSong(requestDto);
     }
 }
