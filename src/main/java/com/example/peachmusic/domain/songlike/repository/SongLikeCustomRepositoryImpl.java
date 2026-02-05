@@ -1,6 +1,6 @@
 package com.example.peachmusic.domain.songlike.repository;
 
-import com.example.peachmusic.domain.songlike.dto.response.SongLikedItemDto;
+import com.example.peachmusic.domain.songlike.dto.response.SongLikedItemResponseDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -19,9 +19,9 @@ public class SongLikeCustomRepositoryImpl implements SongLikeCustomRepository {
     }
 
     @Override
-    public List<SongLikedItemDto> findMyLikedSongWithCursor(Long userId, Long lastLikeId, int size) {
+    public List<SongLikedItemResponseDto> findMyLikedSongWithCursor(Long userId, Long lastLikeId, int size) {
         return queryFactory
-                .select(Projections.constructor(SongLikedItemDto.class, songLike.songLikeId, songLike.song.songId, songLike.song.name, songLike.song.audio, songLike.song.likeCount))
+                .select(Projections.constructor(SongLikedItemResponseDto.class, songLike.songLikeId, songLike.song.songId, songLike.song.name, songLike.song.audio, songLike.song.likeCount))
                 .from(songLike)
                 .where(songLike.user.userId.eq(userId), songLike.song.isDeleted.isFalse(), songLike.song.streamingStatus.isTrue(), lastLikeIdCondition(lastLikeId))
                 .orderBy(songLike.songLikeId.desc())

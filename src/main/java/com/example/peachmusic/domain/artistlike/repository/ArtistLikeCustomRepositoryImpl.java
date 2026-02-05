@@ -1,6 +1,6 @@
 package com.example.peachmusic.domain.artistlike.repository;
 
-import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikedItemDto;
+import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikedItemResponseDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -19,9 +19,9 @@ public class ArtistLikeCustomRepositoryImpl implements ArtistLikeCustomRepositor
     }
 
     @Override
-    public List<ArtistLikedItemDto> findMyLikedArtistWithCursor(Long userId, Long lastLikeId, int size) {
+    public List<ArtistLikedItemResponseDto> findMyLikedArtistWithCursor(Long userId, Long lastLikeId, int size) {
         return queryFactory
-                .select(Projections.constructor(ArtistLikedItemDto.class, artistLike.artistLikeId, artistLike.artist.artistId, artistLike.artist.artistName, artistLike.artist.profileImage, artistLike.artist.likeCount))
+                .select(Projections.constructor(ArtistLikedItemResponseDto.class, artistLike.artistLikeId, artistLike.artist.artistId, artistLike.artist.artistName, artistLike.artist.profileImage, artistLike.artist.likeCount))
                 .from(artistLike)
                 .where(artistLike.user.userId.eq(userId), artistLike.artist.isDeleted.isFalse(), lastLikeIdCondition(lastLikeId))
                 .orderBy(artistLike.artistLikeId.desc())

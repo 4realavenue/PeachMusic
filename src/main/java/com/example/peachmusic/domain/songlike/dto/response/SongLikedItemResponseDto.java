@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class SongLikedItemDto {
+public class SongLikedItemResponseDto {
 
     @JsonIgnore
     private final Long songLikeId;

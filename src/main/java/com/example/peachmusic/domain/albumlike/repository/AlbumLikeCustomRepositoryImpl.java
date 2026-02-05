@@ -1,6 +1,6 @@
 package com.example.peachmusic.domain.albumlike.repository;
 
-import com.example.peachmusic.domain.albumlike.dto.response.AlbumLikedItemDto;
+import com.example.peachmusic.domain.albumlike.dto.response.AlbumLikedItemResponseDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -27,9 +27,9 @@ public class AlbumLikeCustomRepositoryImpl implements AlbumLikeCustomRepository 
      * size + 1 조회 후 다음 페이지 존재 여부(hasNext) 판단
      */
     @Override
-    public List<AlbumLikedItemDto> findMyLikedAlbumWithCursor(Long userId, Long lastLikeId, int size) {
+    public List<AlbumLikedItemResponseDto> findMyLikedAlbumWithCursor(Long userId, Long lastLikeId, int size) {
         return queryFactory
-                .select(Projections.constructor(AlbumLikedItemDto.class, albumLike.albumLikeId, albumLike.album.albumId, albumLike.album.albumName, albumLike.album.albumImage, albumLike.album.likeCount))
+                .select(Projections.constructor(AlbumLikedItemResponseDto.class, albumLike.albumLikeId, albumLike.album.albumId, albumLike.album.albumName, albumLike.album.albumImage, albumLike.album.likeCount))
                 .from(albumLike)
                 .where(albumLike.user.userId.eq(userId), albumLike.album.isDeleted.isFalse(), lastLikeIdCondition(lastLikeId))
                 .orderBy(albumLike.albumLikeId.desc())
