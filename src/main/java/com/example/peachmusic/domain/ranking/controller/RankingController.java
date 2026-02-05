@@ -1,6 +1,7 @@
 package com.example.peachmusic.domain.ranking.controller;
 
 import com.example.peachmusic.common.model.CommonResponse;
+import com.example.peachmusic.common.model.PageResponse;
 import com.example.peachmusic.domain.ranking.model.RankingResponseDto;
 import com.example.peachmusic.domain.ranking.service.RankingService;
 import lombok.RequiredArgsConstructor;
@@ -10,8 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
@@ -20,11 +19,11 @@ public class RankingController {
     private final RankingService rankingService;
 
     @GetMapping("/songs/ranking/Top100")
-    public ResponseEntity<CommonResponse<List<RankingResponseDto>>> findTop100Music(
-            @RequestParam(required = false) int page,
+    public ResponseEntity<CommonResponse<PageResponse<RankingResponseDto>>> findTop100Music(
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit
     ) {
-        List<RankingResponseDto> result = rankingService.findMusicTop100(page, limit);
+        PageResponse<RankingResponseDto> result = rankingService.findMusicTop100(page, limit);
         return ResponseEntity.ok(CommonResponse.success("조회 완료했습니다.", result));
     }
 }

@@ -1,9 +1,10 @@
 package com.example.peachmusic.domain.ranking.service;
 
+import com.example.peachmusic.common.model.PageResponse;
 import com.example.peachmusic.domain.ranking.model.RankingResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -19,7 +20,7 @@ public class RankingService {
 
     private final RedisTemplate<String, String> redisTemplate;
 
-    public List<RankingResponseDto>findMusicTop100(int page , int limit) {
+    public PageResponse<RankingResponseDto> findMusicTop100(int page , int limit) {
 
         LocalDate currentDate = LocalDate.now();
 
@@ -40,19 +41,25 @@ public class RankingService {
         // 1주간의 데이터를 병합함
         redisTemplate.opsForZSet().unionAndStore(keyList.get(0), keyList.subList(1,keyList.size()), destKey);
 
-        int start = page * limit;
+        int start = (page - 1) * limit;
         int end = start + limit - 1;
 
         // 1주간의 데이터를 합친것 중 상위 Top 100 뽑아냄
-        Set<ZSetOperations.TypedTuple<String>> result = redisTemplate
+        Set<TypedTuple<String>> result = redisTemplate
                 .opsForZSet().reverseRangeWithScores(destKey, start, end);
 
         // 결과가 빈값이면 빈리스트 반환
-        if (result == null) {
-            return Collections.emptyList();
+        if (result == null || result.isEmpty()) {
+            return new PageResponse<>(true,"조회 완료했습니다.", new PageResponse.PageData<>(Collections.emptyList(), 0, 0, limit, page));
         }
 
         // Set<typedTuple<String>> -> List<RankingDto> 변환
-        return result.stream().map(RankingResponseDto::of).toList();
+        List<RankingResponseDto> content = result.stream().map(RankingResponseDto::of).toList();
+
+        long totalElements = redisTemplate.opsForZSet().size(destKey);
+        int totalPages = (int) Math.ceil((double) totalElements / limit);
+
+        // 페이지 응답 생성
+        return new PageResponse<>(true,"조회 완료했습니다.",new PageResponse.PageData<>(content, totalElements, totalPages, limit, page));
     }
 }
