@@ -3,6 +3,7 @@ package com.example.peachmusic.domain.song.repository;
 import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.query.SearchWordCondition;
+import com.example.peachmusic.domain.album.dto.response.SongSummaryDto;
 import com.example.peachmusic.domain.artist.entity.QArtist;
 import com.example.peachmusic.domain.artistsong.entity.QArtistSong;
 import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
@@ -67,6 +68,16 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
     @Override
     public List<SongArtistDetailResponseDto> findSongByArtistKeyset(Long userId, Long artistId, SortType sortType, SortDirection sortDirection, Long lastId, LocalDate lastDate, int size) {
         return baseQueryByArtist(userId, artistId, sortType, sortDirection, lastId, lastDate).limit(size + 1).fetch();
+    }
+
+    @Override
+    public List<SongSummaryDto> findSongSummaryListByAlbumId(Long albumId) {
+        return queryFactory
+                .select(Projections.constructor(SongSummaryDto.class, song.position, song.songId, song.name, song.duration, song.likeCount))
+                .from(song)
+                .where(song.album.albumId.eq(albumId), song.isDeleted.isFalse(), song.streamingStatus.isTrue())
+                .orderBy(song.position.asc(), song.songId.asc())
+                .fetch();
     }
 
     /**

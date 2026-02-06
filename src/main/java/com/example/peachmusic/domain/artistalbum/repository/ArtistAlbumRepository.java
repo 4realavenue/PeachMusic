@@ -10,12 +10,10 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface ArtistAlbumRepository extends JpaRepository<ArtistAlbum, Long> {
+public interface ArtistAlbumRepository extends JpaRepository<ArtistAlbum, Long>, ArtistAlbumCustomRepository {
 
     // 관리자용 - 앨범에 참여한 아티스트 조회
     List<ArtistAlbum> findAllByAlbum_AlbumId(Long albumId);
-    // 유저용
-    List<ArtistAlbum> findAllByAlbum_AlbumIdAndArtist_IsDeletedFalse(Long albumId);
 
     /**
      * 앨범 정책에 따라 참여 아티스트 목록을 전체 갱신하기 위해
@@ -39,8 +37,6 @@ public interface ArtistAlbumRepository extends JpaRepository<ArtistAlbum, Long> 
             and aa.album.isDeleted = :isDeleted
             """)
     List<Album> findAlbumsByArtistIdAndIsDeleted(@Param("artistId") Long artistId, @Param("isDeleted") boolean isDeleted);
-
-    boolean existsByArtist_ArtistIdAndAlbum_AlbumId(Long artistId, Long albumId);
 
     @Query("""
             select aa.artist from ArtistAlbum aa
