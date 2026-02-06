@@ -26,6 +26,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
+import static com.example.peachmusic.common.constants.UserViewScope.ADMIN_VIEW;
 
 @Service
 @RequiredArgsConstructor
@@ -68,10 +70,9 @@ public class ArtistAdminService extends AbstractKeysetService {
     public KeysetResponse<ArtistSearchResponseDto> getArtistList(String word, Long lastId) {
 
         String[] words = word == null ? null : word.split("\\s+");
-        final int size = 10;
-        final boolean isAdmin = true; // 관리자용
+        final int size = DETAIL_SIZE;
 
-        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(words, size, isAdmin, null, null, lastId, null, null);
+        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(words, size, ADMIN_VIEW, null, null, lastId, null, null);
 
         return toKeysetResponse(content, size, last -> new Cursor(last.getArtistId(), null));
     }

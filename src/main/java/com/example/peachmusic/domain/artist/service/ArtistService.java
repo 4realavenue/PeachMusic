@@ -24,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.function.Function;
+import static com.example.peachmusic.common.constants.SearchViewSize.*;
+import static com.example.peachmusic.common.constants.UserViewScope.PUBLIC_VIEW;
 import static com.example.peachmusic.common.enums.SortDirection.DESC;
 import static com.example.peachmusic.common.enums.SortType.LIKE;
 import static com.example.peachmusic.common.enums.SortType.NAME;
@@ -66,7 +68,7 @@ public class ArtistService extends AbstractKeysetService {
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
 
-        int size = 5;
+        int size = PREVIEW_SIZE;
         List<AlbumArtistDetailResponseDto> albumList = albumRepository.findAlbumList(authUser.getUserId(), foundArtist.getArtistId(), size);
         List<SongArtistDetailResponseDto> songList = songRepository.findSongList(authUser.getUserId(), foundArtist.getArtistId(), size);
 
@@ -81,7 +83,7 @@ public class ArtistService extends AbstractKeysetService {
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
 
-        final int size = 10;
+        final int size = DETAIL_SIZE;
         SortType sortType = SortType.RELEASE_DATE;
         validateArtistCursor(sortType, lastId, lastDate);
 
@@ -98,7 +100,7 @@ public class ArtistService extends AbstractKeysetService {
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
 
-        final int size = 10;
+        final int size = DETAIL_SIZE;
         SortType sortType = SortType.RELEASE_DATE;
         validateArtistCursor(sortType, lastId, lastDate);
 
@@ -120,12 +122,11 @@ public class ArtistService extends AbstractKeysetService {
         validateCursor(sortType, lastId, lastLike, lastName); // 커서 검증
 
         String[] words = word.split("\\s+");
-        final int size = 10;
-        final boolean isAdmin = false;
+        final int size = DETAIL_SIZE;
         direction = resolveSortDirection(sortType, direction);
 
         // 아티스트 조회
-        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(words, size, isAdmin, sortType, direction, lastId, lastLike, lastName);
+        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(words, size, PUBLIC_VIEW, sortType, direction, lastId, lastLike, lastName);
 
         // 정렬 기준에 따라 커서 결정
         Function<ArtistSearchResponseDto, Cursor> cursorExtractor = switch (sortType) {
@@ -145,8 +146,6 @@ public class ArtistService extends AbstractKeysetService {
     @Transactional(readOnly = true)
     public List<ArtistSearchResponseDto> searchArtistList(String word) {
         String[] words = word.split("\\s+");
-        final int size = 5;
-        final boolean isAdmin = false;
-        return artistRepository.findArtistListByWord(words, size, isAdmin, LIKE, DESC);
+        return artistRepository.findArtistListByWord(words, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC);
     }
 }

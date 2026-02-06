@@ -25,11 +25,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.function.Function;
-
+import static com.example.peachmusic.common.constants.SearchViewSize.*;
+import static com.example.peachmusic.common.constants.UserViewScope.PUBLIC_VIEW;
 import static com.example.peachmusic.common.enums.SortDirection.DESC;
 import static com.example.peachmusic.common.enums.SortType.LIKE;
 import static com.example.peachmusic.common.enums.SortType.NAME;
@@ -93,12 +93,11 @@ public class SongService extends AbstractKeysetService {
         validateCursor(sortType, lastId, lastLike, lastName); // 커서 검증
 
         String[] words = word.split("\\s+");
-        final int size = 10;
-        final boolean isAdmin = false;
+        final int size = DETAIL_SIZE;
         direction = resolveSortDirection(sortType, direction);
 
         // 음원 조회
-        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(words, size, isAdmin, sortType, direction, lastId, lastLike, lastName);
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(words, size, PUBLIC_VIEW, sortType, direction, lastId, lastLike, lastName);
 
         // 정렬 기준에 따라 커서 결정
         Function<SongSearchResponseDto, Cursor> cursorExtractor = switch (sortType) {
@@ -116,9 +115,7 @@ public class SongService extends AbstractKeysetService {
     @Transactional(readOnly = true)
     public List<SongSearchResponseDto> searchSongList(String word) {
         String[] words = word.split("\\s+");
-        final int size = 5;
-        final boolean isAdmin = false;
-        return songRepository.findSongListByWord(words, size, isAdmin, LIKE, DESC); // 좋아요 많은 순
+        return songRepository.findSongListByWord(words, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
     }
 
     /**

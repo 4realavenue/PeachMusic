@@ -1,6 +1,5 @@
 package com.example.peachmusic.domain.album.service;
 
-import at.favre.lib.crypto.bcrypt.BCryptFormatter;
 import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
@@ -27,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import static com.example.peachmusic.common.constants.SearchViewSize.*;
+import static com.example.peachmusic.common.constants.UserViewScope.PUBLIC_VIEW;
 import static com.example.peachmusic.common.enums.SortDirection.DESC;
 import static com.example.peachmusic.common.enums.SortType.LIKE;
 import static com.example.peachmusic.common.enums.SortType.NAME;
@@ -89,12 +90,11 @@ public class AlbumService extends AbstractKeysetService {
         validateCursor(sortType, lastId, lastLike, lastName); // 커서 검증
 
         String[] words = word.split("\\s+");
-        final int size = 10;
-        final boolean isAdmin = false;
+        final int size = DETAIL_SIZE;
         direction = resolveSortDirection(sortType, direction);
 
         // 앨범 조회
-        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(words, size, isAdmin, sortType, direction, lastId, lastLike, lastName);
+        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(words, size, PUBLIC_VIEW, sortType, direction, lastId, lastLike, lastName);
 
         // 정렬 기준에 따라 커서 결정
         Function<AlbumSearchResponseDto, Cursor> cursorExtractor = switch (sortType) {
@@ -114,8 +114,6 @@ public class AlbumService extends AbstractKeysetService {
     @Transactional(readOnly = true)
     public List<AlbumSearchResponseDto> searchAlbumList(String word) {
         String[] words = word.split("\\s+");
-        final int size = 5;
-        final boolean isAdmin = false;
-        return albumRepository.findAlbumListByWord(words, size, isAdmin, LIKE, DESC); // 좋아요 많은 순
+        return albumRepository.findAlbumListByWord(words, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
     }
 }
