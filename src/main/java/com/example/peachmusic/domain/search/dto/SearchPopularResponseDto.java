@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.searchhistory.dto;
+package com.example.peachmusic.domain.search.dto;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

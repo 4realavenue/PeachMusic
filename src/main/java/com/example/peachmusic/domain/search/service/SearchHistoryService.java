@@ -1,6 +1,6 @@
-package com.example.peachmusic.domain.searchhistory.service;
+package com.example.peachmusic.domain.search.service;
 
-import com.example.peachmusic.domain.searchhistory.dto.SearchPopularResponseDto;
+import com.example.peachmusic.domain.search.dto.SearchPopularResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
@@ -26,7 +26,6 @@ public class SearchHistoryService {
      * - TTL을 설정하여 24시간 뒤면 삭제됨
      * @param word 검색어
      */
-    @Transactional
     public void recordSearch(String word) {
 
         // 매 시간마다 검색어 랭킹 기록
