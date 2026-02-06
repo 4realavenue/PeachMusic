@@ -9,7 +9,6 @@ import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songlike.repository.SongLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
@@ -27,7 +26,7 @@ public class RecommendationService {
      * 음원 추천 기능 메인 메서드
      */
     @Transactional(readOnly = true)
-    public Slice<SongRecommendationResponseDto> getRecommendedSongSlice(AuthUser authUser, Pageable pageable) {
+    public List<SongRecommendationResponseDto> getRecommendedSongSlice(AuthUser authUser, Pageable pageable) {
         // 사용자의 좋아요 / 플레이리스트 음원 ID 병합
         List<Long> mergedSongIdList = mergeLikeAndPlaylistSongIdList(authUser.getUserId());
 
