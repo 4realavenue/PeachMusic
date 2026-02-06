@@ -105,7 +105,7 @@ public class RecommendationService {
     /**
      * 추천 상위 50곡 추출
      */
-    private static List<Long> getTopSongIdList(List<SongRecommendationScoreDto> scoredSongList) {
+    private List<Long> getTopSongIdList(List<SongRecommendationScoreDto> scoredSongList) {
         // 유사도 기준 내림차순 정렬
         scoredSongList.sort((o1, o2) -> Double.compare(o2.getScore(), o1.getScore()));
 
