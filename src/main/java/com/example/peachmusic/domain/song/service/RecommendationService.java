@@ -101,19 +101,32 @@ public class RecommendationService {
         return scoredSongList;
     }
 
+
     /**
-     * 추천 상위 50곡 추출
+     * 추천 상위 50곡 추출 (PriorityQueue 적용)
      */
     private List<Long> getTopSongIdList(List<SongRecommendationScoreDto> scoredSongList) {
-        // 유사도 기준 내림차순 정렬
-        scoredSongList.sort((o1, o2) -> Double.compare(o2.getScore(), o1.getScore()));
 
-        List<Long> orderBySongIdList = new ArrayList<>();
+        final int LIMIT = 50;
 
-        // 최대 50곡까지만 추출
-        for (int i = 0; i < Math.min(scoredSongList.size(), 50); i++) {
-            orderBySongIdList.add(scoredSongList.get(i).getSongFeatureDto().getSongId());
+        // score 기준 오름차순 Min-Heap
+        PriorityQueue<SongRecommendationScoreDto> heap = new PriorityQueue<>(Comparator.comparingDouble(SongRecommendationScoreDto::getScore));
+
+        // 모든 후보 순회
+        for (SongRecommendationScoreDto dto : scoredSongList) {
+            // 일단 추가
+            heap.offer(dto);
+
+            // 50개 초과하면 가장 작은 점수 제거
+            if (heap.size() > LIMIT) {
+                heap.poll();
+            }
         }
-        return orderBySongIdList;
+
+        // heap → 정렬 → songId 추출
+        return heap.stream()
+                .sorted(Comparator.comparingDouble(SongRecommendationScoreDto::getScore).reversed())
+                .map(dto -> dto.getSongFeatureDto().getSongId())
+                .toList();
     }
 }
