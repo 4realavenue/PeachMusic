@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +26,7 @@ public class UserAdminService extends AbstractKeysetService {
      */
     @Transactional(readOnly = true)
     public KeysetResponse<UserAdminGetResponseDto> getUserList(String word, Long lastId) {
-        final int size = 10;
+        final int size = DETAIL_SIZE;
         List<UserAdminGetResponseDto> content = userRepository.findUserKeysetPageByWord(word, size, lastId);
 
         return toKeysetResponse(content, size, last -> new Cursor(last.getUserId(), null));

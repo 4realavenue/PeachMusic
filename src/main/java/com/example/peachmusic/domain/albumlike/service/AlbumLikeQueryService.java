@@ -8,8 +8,8 @@ import com.example.peachmusic.domain.albumlike.repository.AlbumLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
+import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +20,7 @@ public class AlbumLikeQueryService extends AbstractKeysetService {
     @Transactional(readOnly = true)
     public KeysetResponse<AlbumLikedItemDto> getMyLikedAlbum(Long userId, Long lastLikeId) {
 
-        final int size = 10;
+        final int size = DETAIL_SIZE;
 
         List<AlbumLikedItemDto> content = albumLikeRepository.findMyLikedAlbumWithCursor(userId, lastLikeId, size);
 
