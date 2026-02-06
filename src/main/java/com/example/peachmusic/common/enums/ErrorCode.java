@@ -31,7 +31,6 @@ public enum ErrorCode {
     EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "이메일이 인증되지 않았습니다."),
     JAMENDO_INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "시작 날짜는 종료 날짜보다 이전이어야 합니다."),
     MISSING_CURSOR_PARAMETER(HttpStatus.BAD_REQUEST, "정렬 기준에 필요한 커서 파라미터가 누락되었습니다."),
-    SEARCH_KEYWORD_INVALID(HttpStatus.BAD_REQUEST, "검색어는 공백이거나 비어 있을 수 없습니다."),
     UNSUPPORTED_SORT_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 정렬 방식입니다"),
 
     // 401

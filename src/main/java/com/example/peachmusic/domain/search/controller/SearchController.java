@@ -5,6 +5,7 @@ import com.example.peachmusic.domain.search.dto.SearchPopularResponseDto;
 import com.example.peachmusic.domain.search.dto.SearchPreviewResponseDto;
 import com.example.peachmusic.domain.search.service.SearchHistoryService;
 import com.example.peachmusic.domain.search.service.SearchService;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +29,7 @@ public class SearchController {
      */
     @GetMapping("/search")
     public ResponseEntity<CommonResponse<SearchPreviewResponseDto>> searchPreview(
-            @RequestParam String word
+            @NotBlank(message = "검색어를 입력해주세요.") @RequestParam String word
     ) {
         SearchPreviewResponseDto result = searchService.searchPreview(word);
         return ResponseEntity.ok(CommonResponse.success("검색이 완료되었습니다.", result));

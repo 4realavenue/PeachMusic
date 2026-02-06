@@ -1,12 +1,12 @@
 package com.example.peachmusic.domain.album.service;
 
 import com.example.peachmusic.common.enums.SortDirection;
-import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.Cursor;
 import com.example.peachmusic.common.model.KeysetResponse;
+import com.example.peachmusic.common.model.SearchConditionParam;
 import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
 import com.example.peachmusic.domain.album.entity.Album;
@@ -30,7 +30,6 @@ import static com.example.peachmusic.common.constants.SearchViewSize.*;
 import static com.example.peachmusic.common.constants.UserViewScope.PUBLIC_VIEW;
 import static com.example.peachmusic.common.enums.SortDirection.DESC;
 import static com.example.peachmusic.common.enums.SortType.LIKE;
-import static com.example.peachmusic.common.enums.SortType.NAME;
 
 @Service
 @RequiredArgsConstructor
@@ -81,23 +80,19 @@ public class AlbumService extends AbstractKeysetService {
      * 앨범 검색 - 자세히 보기
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<AlbumSearchResponseDto> searchAlbumPage(String word, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
+    public KeysetResponse<AlbumSearchResponseDto> searchAlbumPage(SearchConditionParam condition) {
 
-        validateWord(word); // 단어 검증
-        if (!sortType.equals(LIKE) && !sortType.equals(NAME)) { // 정렬 기준 검증
-            throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
-        }
-        validateCursor(sortType, lastId, lastLike, lastName); // 커서 검증
+        validateCursor(condition); // 커서 검증
 
-        String[] words = word.split("\\s+");
+        String[] words = condition.getWord().split("\\s+");
         final int size = DETAIL_SIZE;
-        direction = resolveSortDirection(sortType, direction);
+        SortDirection direction = resolveSortDirection(condition.getSortType(), condition.getDirection());
 
         // 앨범 조회
-        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(words, size, PUBLIC_VIEW, sortType, direction, lastId, lastLike, lastName);
+        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(words, size, PUBLIC_VIEW, condition.getSortType(), direction, condition.getLastId(), condition.getLastLike(), condition.getLastName());
 
         // 정렬 기준에 따라 커서 결정
-        Function<AlbumSearchResponseDto, Cursor> cursorExtractor = switch (sortType) {
+        Function<AlbumSearchResponseDto, Cursor> cursorExtractor = switch (condition.getSortType()) {
             case LIKE -> last -> new Cursor(last.getAlbumId(), last.getLikeCount());
             case NAME -> last -> new Cursor(last.getAlbumId(), last.getAlbumName());
             default -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
