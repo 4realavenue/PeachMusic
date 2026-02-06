@@ -59,7 +59,7 @@ class RecommendationServiceTest {
         // cold-start 추천 결과
         SongRecommendationResponseDto dto = createDummyDto(1L);
         List<SongRecommendationResponseDto> list = List.of(dto);
-        given(songRepository.findRecommendedSongSliceForColdStart(pageable)).willReturn(list);
+        given(songRepository.findRecommendedSongListForColdStart(pageable)).willReturn(list);
 
         // when
         List<SongRecommendationResponseDto> result = recommendationService.getRecommendedSongSlice(authUser, pageable);
@@ -68,7 +68,7 @@ class RecommendationServiceTest {
         assertEquals(1, result.size());
         assertEquals(1L, result.get(0).getSongId());
 
-        verify(songRepository).findRecommendedSongSliceForColdStart(pageable);
+        verify(songRepository).findRecommendedSongListForColdStart(pageable);
     }
 
 
@@ -102,7 +102,7 @@ class RecommendationServiceTest {
         // 최종 추천 결과
         SongRecommendationResponseDto dto = createDummyDto(2L);
         List<SongRecommendationResponseDto> list = List.of(dto);
-        given(songRepository.findRecommendedSongSlice(List.of(2L), pageable)).willReturn(list);
+        given(songRepository.findRecommendedSongList(List.of(2L), pageable)).willReturn(list);
 
         // when
         List<SongRecommendationResponseDto> result = recommendationService.getRecommendedSongSlice(authUser, pageable);
@@ -112,7 +112,7 @@ class RecommendationServiceTest {
         assertEquals(2L, result.get(0).getSongId());
 
         verify(songRepository).findSeedGenreList(List.of(1L));
-        verify(songRepository).findRecommendedSongSlice(List.of(2L), pageable);
+        verify(songRepository).findRecommendedSongList(List.of(2L), pageable);
     }
 
 

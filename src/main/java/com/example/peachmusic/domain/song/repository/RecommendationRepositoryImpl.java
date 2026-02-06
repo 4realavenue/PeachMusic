@@ -70,7 +70,7 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
      * 최종 추천 결과 조회
      */
     @Override
-    public List<SongRecommendationResponseDto> findRecommendedSongSlice(List<Long> orderBySongIdList, Pageable pageable) {
+    public List<SongRecommendationResponseDto> findRecommendedSongList(List<Long> orderBySongIdList, Pageable pageable) {
         // 추천 대상 음원 상세 조회
         List<SongRecommendationResponseDto> result = queryFactory
                 .select(Projections.constructor(SongRecommendationResponseDto.class, song.songId, song.name, artist.artistId, artist.artistName, album.albumId, album.albumName, album.albumImage, song.likeCount))
@@ -97,7 +97,7 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
      * cold-start일 경우 likeCount기준으로 추천 반환
      */
     @Override
-    public List<SongRecommendationResponseDto> findRecommendedSongSliceForColdStart(Pageable pageable) {
+    public List<SongRecommendationResponseDto> findRecommendedSongListForColdStart(Pageable pageable) {
 
         // 인기순 음원 50건 조회
         return queryFactory
