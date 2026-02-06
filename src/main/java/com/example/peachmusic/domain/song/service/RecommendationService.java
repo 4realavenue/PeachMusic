@@ -35,7 +35,7 @@ public class RecommendationService {
 
         // 신규 회원이거나 Seed 데이터가 없으면 추천 likeCount가 높은 음원부터 50건 반환
         if (mergedSongIdList.isEmpty() || seedGenreIdList.isEmpty()) {
-            return songRepository.findRecommendedSongSliceForColdStart(pageable);
+            return songRepository.findRecommendedSongListForColdStart(pageable);
         }
 
         // songId, 장르, 스피드, 태그, 악기 등 음원 기반 User Profile Vector 생성
@@ -48,7 +48,7 @@ public class RecommendationService {
         List<Long> orderBySongIdList = getTopSongIdList(scoredSongList);
 
         // 추천 결과 DB 조회
-        return songRepository.findRecommendedSongSlice(orderBySongIdList, pageable);
+        return songRepository.findRecommendedSongList(orderBySongIdList, pageable);
     }
 
     /**
