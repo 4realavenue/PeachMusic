@@ -74,7 +74,7 @@ public class ArtistAdminService extends AbstractKeysetService {
 
         List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(words, size, ADMIN_VIEW, null, null, lastId, null, null);
 
-        return toKeysetResponse(content, size, last -> new Cursor(last.getArtistId(), null));
+        return KeysetResponse.of(content, size, last -> new Cursor(last.getArtistId(), null));
     }
 
     /**

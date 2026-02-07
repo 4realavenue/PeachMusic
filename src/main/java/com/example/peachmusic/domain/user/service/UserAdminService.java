@@ -29,7 +29,7 @@ public class UserAdminService extends AbstractKeysetService {
         final int size = DETAIL_SIZE;
         List<UserAdminGetResponseDto> content = userRepository.findUserKeysetPageByWord(word, size, lastId);
 
-        return toKeysetResponse(content, size, last -> new Cursor(last.getUserId(), null));
+        return KeysetResponse.of(content, size, last -> new Cursor(last.getUserId(), null));
     }
 
     /**

@@ -24,6 +24,6 @@ public class ArtistLikeQueryService extends AbstractKeysetService {
 
         List<ArtistLikedItemDto> content = artistLikeRepository.findMyLikedArtistWithCursor(userId, lastLikeId, size);
 
-        return toKeysetResponse(content, size, likedArtist -> new Cursor(likedArtist.getArtistLikeId(), null));
+        return KeysetResponse.of(content, size, likedArtist -> new Cursor(likedArtist.getArtistLikeId(), null));
     }
 }

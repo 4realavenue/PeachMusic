@@ -24,6 +24,6 @@ public class SongLikeQueryService extends AbstractKeysetService {
 
         List<SongLikedItemDto> content = songLikeRepository.findMyLikedSongWithCursor(userId, lastLikeId, size);
 
-        return toKeysetResponse(content, size, likedSong -> new Cursor(likedSong.getSongLikeId(), null));
+        return KeysetResponse.of(content, size, likedSong -> new Cursor(likedSong.getSongLikeId(), null));
     }
 }

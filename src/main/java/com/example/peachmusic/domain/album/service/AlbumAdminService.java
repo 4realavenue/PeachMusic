@@ -91,7 +91,7 @@ public class AlbumAdminService extends AbstractKeysetService {
 
         List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(words, size, ADMIN_VIEW, null, null, lastId, null, null);
 
-        return toKeysetResponse(content, size, last -> new Cursor(last.getAlbumId(), null));
+        return KeysetResponse.of(content, size, last -> new Cursor(last.getAlbumId(), null));
     }
 
     /**

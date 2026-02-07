@@ -26,6 +26,6 @@ public class AlbumLikeQueryService extends AbstractKeysetService {
 
         // Cursor는 albumLikeId(lastId) 기준으로만 구성
         // 단일 정렬 기준이므로 lastSortValue는 사용하지 않음
-        return toKeysetResponse(content, size, likedAlbum -> new Cursor(likedAlbum.getAlbumLikeId(), null));
+        return KeysetResponse.of(content, size, likedAlbum -> new Cursor(likedAlbum.getAlbumLikeId(), null));
     }
 }

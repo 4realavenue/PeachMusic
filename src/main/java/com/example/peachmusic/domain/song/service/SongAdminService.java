@@ -121,7 +121,7 @@ public class SongAdminService extends AbstractKeysetService {
 
         List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(words, size, ADMIN_VIEW, null, null, lastId, null, null);
 
-        return toKeysetResponse(content, size, last -> new Cursor(last.getSongId(), null));
+        return KeysetResponse.of(content, size, last -> new Cursor(last.getSongId(), null));
     }
 
     /**

@@ -4,12 +4,8 @@ import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.common.model.Cursor;
-import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.common.model.SearchConditionParam;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.function.Function;
 import static com.example.peachmusic.common.enums.SortType.*;
 
 public abstract class AbstractKeysetService {
@@ -54,26 +50,4 @@ public abstract class AbstractKeysetService {
         return sortType.getDefaultDirection();
     }
 
-    /**
-     * Keyset 페이징 응답
-     * @param content 검색 결과
-     * @param size 한 페이지에 나오는 데이터 크기
-     * @param cursorExtractor 커서 생성 장치
-     * @return 검색 결과, 다음 데이터 있는지 여부, 커서
-     * @param <T> 검색 응답 DTO
-     */
-    protected <T> KeysetResponse<T> toKeysetResponse(List<T> content, int size, Function<T, Cursor> cursorExtractor) {
-
-        boolean hasNext = content.size() > size; // 다음 페이지 존재 여부
-        Cursor nextCursor = null;
-
-        if (hasNext) {
-            content.remove(size); // 다음 페이지 삭제
-
-            T last = content.get(content.size() - 1);
-            nextCursor = cursorExtractor.apply(last);
-        }
-
-        return new KeysetResponse<>(content, hasNext, nextCursor);
-    }
 }
