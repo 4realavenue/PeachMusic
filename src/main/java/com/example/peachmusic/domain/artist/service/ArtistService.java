@@ -89,7 +89,7 @@ public class ArtistService extends AbstractKeysetService {
 
         List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, SortDirection.DESC, lastId, lastDate, size);
 
-        return toKeysetResponse(content, size, last -> new Cursor(last.getAlbumId(), last.getAlbumReleaseDate()));
+        return KeysetResponse.of(content, size, last -> new Cursor(last.getAlbumId(), last.getAlbumReleaseDate()));
     }
 
     /**
@@ -106,7 +106,7 @@ public class ArtistService extends AbstractKeysetService {
 
         List<SongArtistDetailResponseDto> content = songRepository.findSongByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, SortDirection.DESC, lastId, lastDate, size);
 
-        return toKeysetResponse(content, size, last -> new Cursor(last.getAlbumId(), last.getAlbumReleaseDate()));
+        return KeysetResponse.of(content, size, last -> new Cursor(last.getAlbumId(), last.getAlbumReleaseDate()));
     }
 
     /**
@@ -131,7 +131,7 @@ public class ArtistService extends AbstractKeysetService {
             default -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
         };
 
-        return toKeysetResponse(content, size, cursorExtractor);
+        return KeysetResponse.of(content, size, cursorExtractor);
     }
 
     /**

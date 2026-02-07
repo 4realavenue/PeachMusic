@@ -101,7 +101,7 @@ public class SongService extends AbstractKeysetService {
             default -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
         };
 
-        return toKeysetResponse(content, size, cursorExtractor);
+        return KeysetResponse.of(content, size, cursorExtractor);
     }
 
     /**
