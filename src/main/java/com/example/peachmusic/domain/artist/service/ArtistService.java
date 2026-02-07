@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.function.Function;
 import static com.example.peachmusic.common.constants.SearchViewSize.*;
 import static com.example.peachmusic.common.constants.UserViewScope.PUBLIC_VIEW;
 import static com.example.peachmusic.common.enums.SortDirection.DESC;
@@ -124,14 +123,7 @@ public class ArtistService extends AbstractKeysetService {
         // 아티스트 조회
         List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(words, size, PUBLIC_VIEW, condition.getSortType(), direction, condition.getLastId(), condition.getLastLike(), condition.getLastName());
 
-        // 정렬 기준에 따라 커서 결정
-        Function<ArtistSearchResponseDto, Cursor> cursorExtractor = switch (condition.getSortType()) {
-            case LIKE -> last -> new Cursor(last.getArtistId(), last.getLikeCount());
-            case NAME -> last -> new Cursor(last.getArtistId(), last.getArtistName());
-            default -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
-        };
-
-        return KeysetResponse.of(content, size, cursorExtractor);
+        return KeysetResponse.of(content, size, last -> last.toCursor(condition.getSortType()));
     }
 
     /**
