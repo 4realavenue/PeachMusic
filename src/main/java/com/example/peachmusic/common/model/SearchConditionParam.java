@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -19,10 +18,6 @@ public class SearchConditionParam {
     private SortType sortType = SortType.LIKE; // 정렬 기준: 기본값은 좋아요순
     private SortDirection direction; // 정렬 방향
 
-    // keyset cursor
-    private Long lastId;
-    private Long lastLike;
-    private String lastName;
-    private LocalDate lastDate;
+    private CursorParam cursor;
 
 }

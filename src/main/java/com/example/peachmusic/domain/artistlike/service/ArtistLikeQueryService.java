@@ -1,9 +1,7 @@
 package com.example.peachmusic.domain.artistlike.service;
 
-import com.example.peachmusic.common.model.Cursor;
+import com.example.peachmusic.common.model.NextCursor;
 import com.example.peachmusic.common.model.KeysetResponse;
-import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikedItemDto;
-import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikedItemResponseDto;
 import com.example.peachmusic.domain.artistlike.repository.ArtistLikeRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +23,6 @@ public class ArtistLikeQueryService {
 
         List<ArtistLikedItemResponseDto> content = artistLikeRepository.findMyLikedArtistWithCursor(userId, lastLikeId, size);
 
-        return KeysetResponse.of(content, size, likedArtist -> new Cursor(likedArtist.getArtistLikeId(), null));
+        return KeysetResponse.of(content, size, likedArtist -> new NextCursor(likedArtist.getArtistLikeId(), null));
     }
 }

@@ -3,7 +3,7 @@ package com.example.peachmusic.domain.album.dto.response;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.common.model.Cursor;
+import com.example.peachmusic.common.model.NextCursor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import java.time.LocalDate;
@@ -20,10 +20,10 @@ public class AlbumSearchResponseDto {
     private final Long likeCount;
     private final boolean isDeleted;
 
-    public Cursor toCursor(SortType sortType) {
+    public NextCursor toCursor(SortType sortType) {
         return switch (sortType) {
-            case LIKE -> new Cursor(albumId, likeCount);
-            case NAME -> new Cursor(albumId, albumName);
+            case LIKE -> new NextCursor(albumId, likeCount);
+            case NAME -> new NextCursor(albumId, albumName);
             default -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
         };
     }
