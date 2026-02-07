@@ -4,7 +4,7 @@ import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.common.model.SearchConditionParam;
+import com.example.peachmusic.common.model.CursorParam;
 import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import static com.example.peachmusic.common.enums.SortType.*;
@@ -15,11 +15,8 @@ public class KeysetPolicy {
     /**
      * 커서가 정렬 기준에 맞게 입력됐는지 검증
      */
-    public void validateCursor(SearchConditionParam condition) {
-        SortType sortType = condition.getSortType();
-        boolean missingLastLike = sortType == LIKE && condition.getLastId() != null && condition.getLastLike() == null;
-        boolean missingLastName = sortType == NAME && condition.getLastId() != null && condition.getLastName() == null;
-        if (missingLastLike || missingLastName) {
+    public void validateCursor(SortType sortType, CursorParam cursor) {
+        if (sortType.isCursorInvalid(cursor)) {
             throw new CustomException(ErrorCode.MISSING_CURSOR_PARAMETER);
         }
     }
