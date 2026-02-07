@@ -83,7 +83,7 @@ public class AlbumService {
     public KeysetResponse<AlbumSearchResponseDto> searchAlbumPage(SearchConditionParam condition) {
 
         CursorParam cursor = condition.getCursor();
-        keysetPolicy.validateCursor(condition); // 커서 검증
+        keysetPolicy.validateCursor(condition.getSortType(), cursor); // 커서 검증
 
         String[] words = condition.getWord().split("\\s+");
         final int size = DETAIL_SIZE;
