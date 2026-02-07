@@ -1,5 +1,9 @@
 package com.example.peachmusic.domain.album.dto.response;
 
+import com.example.peachmusic.common.enums.ErrorCode;
+import com.example.peachmusic.common.enums.SortType;
+import com.example.peachmusic.common.exception.CustomException;
+import com.example.peachmusic.common.model.Cursor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import java.time.LocalDate;
@@ -15,4 +19,12 @@ public class AlbumSearchResponseDto {
     private final String albumImage;
     private final Long likeCount;
     private final boolean isDeleted;
+
+    public Cursor toCursor(SortType sortType) {
+        return switch (sortType) {
+            case LIKE -> new Cursor(albumId, likeCount);
+            case NAME -> new Cursor(albumId, albumName);
+            default -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
+        };
+    }
 }
