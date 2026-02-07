@@ -5,15 +5,17 @@ import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.SearchConditionParam;
+import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import static com.example.peachmusic.common.enums.SortType.*;
 
-public abstract class AbstractKeysetService {
+@Component
+public class KeysetPolicy {
 
     /**
      * 커서가 정렬 기준에 맞게 입력됐는지 검증
      */
-    protected void validateCursor(SearchConditionParam condition) {
+    public void validateCursor(SearchConditionParam condition) {
         SortType sortType = condition.getSortType();
         boolean missingLastLike = sortType == LIKE && condition.getLastId() != null && condition.getLastLike() == null;
         boolean missingLastName = sortType == NAME && condition.getLastId() != null && condition.getLastName() == null;
@@ -28,7 +30,7 @@ public abstract class AbstractKeysetService {
      * @param lastId 커서 - 마지막 ID
      * @param lastDate 커서 - 마지막 날짜
      */
-    protected void validateArtistCursor(SortType sortType, Long lastId, LocalDate lastDate) {
+    public void validateArtistCursor(SortType sortType, Long lastId, LocalDate lastDate) {
         boolean missingLastDate = sortType == RELEASE_DATE && lastId != null && lastDate == null;
         if (missingLastDate) {
             throw new CustomException(ErrorCode.MISSING_CURSOR_PARAMETER);
@@ -43,7 +45,7 @@ public abstract class AbstractKeysetService {
      * @param direction 정렬 방향
      * @return 결정된 정렬 방향
      */
-    protected SortDirection resolveSortDirection(SortType sortType, SortDirection direction) {
+    public SortDirection resolveSortDirection(SortType sortType, SortDirection direction) {
         if (direction != null) {
             return direction;
         }

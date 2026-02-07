@@ -2,7 +2,6 @@ package com.example.peachmusic.domain.albumlike.service;
 
 import com.example.peachmusic.common.model.Cursor;
 import com.example.peachmusic.common.model.KeysetResponse;
-import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.domain.albumlike.dto.response.AlbumLikedItemDto;
 import com.example.peachmusic.domain.albumlike.repository.AlbumLikeRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +12,7 @@ import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE
 
 @Service
 @RequiredArgsConstructor
-public class AlbumLikeQueryService extends AbstractKeysetService {
+public class AlbumLikeQueryService {
 
     private final AlbumLikeRepository albumLikeRepository;
 
