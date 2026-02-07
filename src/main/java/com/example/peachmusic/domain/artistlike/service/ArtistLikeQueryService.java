@@ -3,6 +3,8 @@ package com.example.peachmusic.domain.artistlike.service;
 import com.example.peachmusic.common.model.Cursor;
 import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikedItemDto;
+import com.example.peachmusic.common.service.AbstractKeysetService;
+import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikedItemResponseDto;
 import com.example.peachmusic.domain.artistlike.repository.ArtistLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,11 +19,11 @@ public class ArtistLikeQueryService {
     private final ArtistLikeRepository artistLikeRepository;
 
     @Transactional(readOnly = true)
-    public KeysetResponse<ArtistLikedItemDto> getMyLikedArtist(Long userId, Long lastLikeId) {
+    public KeysetResponse<ArtistLikedItemResponseDto> getMyLikedArtist(Long userId, Long lastLikeId) {
 
         final int size = DETAIL_SIZE;
 
-        List<ArtistLikedItemDto> content = artistLikeRepository.findMyLikedArtistWithCursor(userId, lastLikeId, size);
+        List<ArtistLikedItemResponseDto> content = artistLikeRepository.findMyLikedArtistWithCursor(userId, lastLikeId, size);
 
         return KeysetResponse.of(content, size, likedArtist -> new Cursor(likedArtist.getArtistLikeId(), null));
     }

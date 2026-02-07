@@ -1,15 +1,16 @@
 package com.example.peachmusic.domain.worker.service;
 
-import com.example.peachmusic.domain.worker.dto.request.WorkerRetryRequestDto;
+import com.example.peachmusic.domain.worker.dto.request.WorkerTryRequestDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WorkerService {
@@ -18,10 +19,9 @@ public class WorkerService {
     private String workerBaseUrl;
 
     /**
-     * (Worker) 재시도 요청
+     * (Worker) 다운로드 재시도 요청
      */
-    @Transactional
-    public void retryWorkSong(WorkerRetryRequestDto requestDto) {
+    public void tryDownloadSong(WorkerTryRequestDto requestDto) {
 
         WebClient webClient = WebClient.builder()
                 .baseUrl(workerBaseUrl)
@@ -29,10 +29,28 @@ public class WorkerService {
                 .build();
 
         webClient.method(HttpMethod.POST)
-                .uri("/worker/re-download")
+                .uri("/worker/songs/download")
                 .bodyValue(requestDto)
                 .retrieve()
                 .bodyToMono(Void.class)
-                .block();
+                .subscribe();
+    }
+
+    /**
+     * (Worker) 형변환 재시도 요청
+     */
+    public void tryTranscodeSong(WorkerTryRequestDto requestDto) {
+
+        WebClient webClient = WebClient.builder()
+                .baseUrl(workerBaseUrl)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+
+        webClient.method(HttpMethod.POST)
+                .uri("/worker/songs/transcode")
+                .bodyValue(requestDto)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .subscribe();
     }
 }

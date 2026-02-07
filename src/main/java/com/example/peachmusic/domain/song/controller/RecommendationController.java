@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class RecommendationController {
     private final RecommendationService recommendationService;
 
-    @GetMapping("/song/recommendation")
+    @GetMapping("/songs/recommendation")
     public ResponseEntity<SliceResponse<SongRecommendationResponseDto>> getRecommendedSongs(
             @AuthenticationPrincipal AuthUser authUser,
             @PageableDefault(size = 10) Pageable pageable

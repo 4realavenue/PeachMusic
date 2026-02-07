@@ -3,11 +3,11 @@ package com.example.peachmusic.domain.user.controller;
 import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.CommonResponse;
 import com.example.peachmusic.common.model.KeysetResponse;
-import com.example.peachmusic.domain.albumlike.dto.response.AlbumLikedItemDto;
+import com.example.peachmusic.domain.albumlike.dto.response.AlbumLikedItemResponseDto;
 import com.example.peachmusic.domain.albumlike.service.AlbumLikeQueryService;
-import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikedItemDto;
+import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikedItemResponseDto;
 import com.example.peachmusic.domain.artistlike.service.ArtistLikeQueryService;
-import com.example.peachmusic.domain.songlike.dto.response.SongLikedItemDto;
+import com.example.peachmusic.domain.songlike.dto.response.SongLikedItemResponseDto;
 import com.example.peachmusic.domain.songlike.service.SongLikeQueryService;
 import com.example.peachmusic.domain.user.dto.request.UserUpdateRequestDto;
 import com.example.peachmusic.domain.user.dto.response.UserGetResponseDto;
@@ -72,13 +72,13 @@ public class UserController {
      *         Keyset 기반 페이징 응답
      */
     @GetMapping("/users/likes/albums")
-    public ResponseEntity<CommonResponse<KeysetResponse<AlbumLikedItemDto>>> getMyLikedAlbum(
+    public ResponseEntity<CommonResponse<KeysetResponse<AlbumLikedItemResponseDto>>> getMyLikedAlbum(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(required = false) Long lastLikeId
     ) {
         Long userId = authUser.getUserId();
 
-        KeysetResponse<AlbumLikedItemDto> responseDtoPage = albumLikeQueryService.getMyLikedAlbum(userId, lastLikeId);
+        KeysetResponse<AlbumLikedItemResponseDto> responseDtoPage = albumLikeQueryService.getMyLikedAlbum(userId, lastLikeId);
         return ResponseEntity.ok(CommonResponse.success("좋아요한 앨범 목록 조회에 성공했습니다.", responseDtoPage));
     }
 
@@ -91,13 +91,13 @@ public class UserController {
      *         Keyset 기반 페이징 응답
      */
     @GetMapping("/users/likes/artists")
-    public ResponseEntity<CommonResponse<KeysetResponse<ArtistLikedItemDto>>> getMyLikedArtist(
+    public ResponseEntity<CommonResponse<KeysetResponse<ArtistLikedItemResponseDto>>> getMyLikedArtist(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(required = false) Long lastLikeId
     ) {
         Long userId = authUser.getUserId();
 
-        KeysetResponse<ArtistLikedItemDto> responseDtoPage = artistLikeQueryService.getMyLikedArtist(userId, lastLikeId);
+        KeysetResponse<ArtistLikedItemResponseDto> responseDtoPage = artistLikeQueryService.getMyLikedArtist(userId, lastLikeId);
         return ResponseEntity.ok(CommonResponse.success("좋아요한 아티스트 목록 조회에 성공했습니다.", responseDtoPage));
     }
 
@@ -110,13 +110,13 @@ public class UserController {
      *         Keyset 기반 페이징 응답
      */
     @GetMapping("/users/likes/songs")
-    public ResponseEntity<CommonResponse<KeysetResponse<SongLikedItemDto>>> getMyLikedSong(
+    public ResponseEntity<CommonResponse<KeysetResponse<SongLikedItemResponseDto>>> getMyLikedSong(
             @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(required = false) Long lastLikeId
     ) {
         Long userId = authUser.getUserId();
 
-        KeysetResponse<SongLikedItemDto> responseDtoPage = songLikeQueryService.getMyLikedSong(userId, lastLikeId);
+        KeysetResponse<SongLikedItemResponseDto> responseDtoPage = songLikeQueryService.getMyLikedSong(userId, lastLikeId);
         return ResponseEntity.ok(CommonResponse.success("좋아요한 음원 목록 조회에 성공했습니다.", responseDtoPage));
     }
 }
