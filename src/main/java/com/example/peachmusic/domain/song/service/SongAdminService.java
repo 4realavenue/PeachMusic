@@ -6,7 +6,6 @@ import com.example.peachmusic.common.enums.JobStatus;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.Cursor;
 import com.example.peachmusic.common.model.KeysetResponse;
-import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.common.storage.FileStorageService;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
@@ -42,7 +41,7 @@ import static com.example.peachmusic.common.constants.UserViewScope.ADMIN_VIEW;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SongAdminService extends AbstractKeysetService {
+public class SongAdminService {
 
     private final SongRepository songRepository;
     private final AlbumRepository albumRepository;

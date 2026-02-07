@@ -5,7 +5,6 @@ import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.Cursor;
 import com.example.peachmusic.common.model.KeysetResponse;
-import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.domain.user.dto.response.admin.UserAdminGetResponseDto;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.repository.UserRepository;
@@ -17,7 +16,7 @@ import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE
 
 @Service
 @RequiredArgsConstructor
-public class UserAdminService extends AbstractKeysetService {
+public class UserAdminService {
 
     private final UserRepository userRepository;
 

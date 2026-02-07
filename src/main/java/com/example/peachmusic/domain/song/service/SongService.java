@@ -7,7 +7,7 @@ import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.common.model.SearchConditionParam;
-import com.example.peachmusic.common.service.AbstractKeysetService;
+import com.example.peachmusic.common.service.KeysetPolicy;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.song.dto.response.SongGetDetailResponseDto;
@@ -33,13 +33,14 @@ import static com.example.peachmusic.common.enums.SortType.LIKE;
 
 @Service
 @RequiredArgsConstructor
-public class SongService extends AbstractKeysetService {
+public class SongService {
 
     private final SongRepository songRepository;
     private final SongGenreRepository songGenreRepository;
     private final AlbumRepository albumRepository;
     private final SongLikeRepository songLikeRepository;
     private final UserService userService;
+    private final KeysetPolicy keysetPolicy;
     private final RedisTemplate<String,String> redisTemplate;
 
     public static final String MUSIC_DAILY_KEY = "music";
@@ -83,13 +84,12 @@ public class SongService extends AbstractKeysetService {
     @Transactional(readOnly = true)
     public KeysetResponse<SongSearchResponseDto> searchSongPage(SearchConditionParam condition) {
 
-        validateCursor(condition); // 커서 검증
+        keysetPolicy.validateCursor(condition); // 커서 검증
 
         String[] words = condition.getWord().split("\\s+");
         final int size = DETAIL_SIZE;
-        SortDirection direction = resolveSortDirection(condition.getSortType(), condition.getDirection());
+        SortDirection direction = keysetPolicy.resolveSortDirection(condition.getSortType(), condition.getDirection());
 
-        // 음원 조회
         List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(words, size, PUBLIC_VIEW, condition.getSortType(), direction, condition.getLastId(), condition.getLastLike(), condition.getLastName());
 
         return KeysetResponse.of(content, size, last -> last.toCursor(condition.getSortType()));

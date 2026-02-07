@@ -8,7 +8,7 @@ import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.Cursor;
 import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.common.model.SearchConditionParam;
-import com.example.peachmusic.common.service.AbstractKeysetService;
+import com.example.peachmusic.common.service.KeysetPolicy;
 import com.example.peachmusic.domain.album.dto.response.AlbumArtistDetailResponseDto;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.artist.dto.response.ArtistPreviewResponseDto;
@@ -31,12 +31,13 @@ import static com.example.peachmusic.common.enums.SortType.LIKE;
 
 @Service
 @RequiredArgsConstructor
-public class ArtistService extends AbstractKeysetService {
+public class ArtistService {
 
     private final ArtistRepository artistRepository;
     private final ArtistLikeRepository artistLikeRepository;
     private final SongRepository songRepository;
     private final AlbumRepository albumRepository;
+    private final KeysetPolicy keysetPolicy;
 
     /**
      * 아티스트 단건 조회 기능
@@ -84,7 +85,7 @@ public class ArtistService extends AbstractKeysetService {
 
         final int size = DETAIL_SIZE;
         SortType sortType = SortType.RELEASE_DATE;
-        validateArtistCursor(sortType, lastId, lastDate);
+        keysetPolicy.validateArtistCursor(sortType, lastId, lastDate);
 
         List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, SortDirection.DESC, lastId, lastDate, size);
 
@@ -101,7 +102,7 @@ public class ArtistService extends AbstractKeysetService {
 
         final int size = DETAIL_SIZE;
         SortType sortType = SortType.RELEASE_DATE;
-        validateArtistCursor(sortType, lastId, lastDate);
+        keysetPolicy.validateArtistCursor(sortType, lastId, lastDate);
 
         List<SongArtistDetailResponseDto> content = songRepository.findSongByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, SortDirection.DESC, lastId, lastDate, size);
 
@@ -114,13 +115,12 @@ public class ArtistService extends AbstractKeysetService {
     @Transactional(readOnly = true)
     public KeysetResponse<ArtistSearchResponseDto> searchArtistPage(SearchConditionParam condition) {
 
-        validateCursor(condition); // 커서 검증
+        keysetPolicy.validateCursor(condition); // 커서 검증
 
         String[] words = condition.getWord().split("\\s+");
         final int size = DETAIL_SIZE;
-        SortDirection direction = resolveSortDirection(condition.getSortType(), condition.getDirection());
+        SortDirection direction = keysetPolicy.resolveSortDirection(condition.getSortType(), condition.getDirection());
 
-        // 아티스트 조회
         List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(words, size, PUBLIC_VIEW, condition.getSortType(), direction, condition.getLastId(), condition.getLastLike(), condition.getLastName());
 
         return KeysetResponse.of(content, size, last -> last.toCursor(condition.getSortType()));
