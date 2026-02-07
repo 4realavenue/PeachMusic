@@ -3,7 +3,7 @@ package com.example.peachmusic.domain.user.service;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.common.model.Cursor;
+import com.example.peachmusic.common.model.NextCursor;
 import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.domain.user.dto.response.admin.UserAdminGetResponseDto;
 import com.example.peachmusic.domain.user.entity.User;
@@ -28,7 +28,7 @@ public class UserAdminService {
         final int size = DETAIL_SIZE;
         List<UserAdminGetResponseDto> content = userRepository.findUserKeysetPageByWord(word, size, lastId);
 
-        return KeysetResponse.of(content, size, last -> new Cursor(last.getUserId(), null));
+        return KeysetResponse.of(content, size, last -> new NextCursor(last.getUserId(), null));
     }
 
     /**

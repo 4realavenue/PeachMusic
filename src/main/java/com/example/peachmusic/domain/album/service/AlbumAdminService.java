@@ -3,7 +3,7 @@ package com.example.peachmusic.domain.album.service;
 import com.example.peachmusic.common.enums.FileType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
-import com.example.peachmusic.common.model.Cursor;
+import com.example.peachmusic.common.model.NextCursor;
 import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.common.storage.FileStorageService;
 import com.example.peachmusic.domain.album.entity.Album;
@@ -90,7 +90,7 @@ public class AlbumAdminService {
 
         List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(words, size, ADMIN_VIEW, null, null, lastId, null, null);
 
-        return KeysetResponse.of(content, size, last -> new Cursor(last.getAlbumId(), null));
+        return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), null));
     }
 
     /**

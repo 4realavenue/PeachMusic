@@ -4,10 +4,7 @@ import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
-import com.example.peachmusic.common.model.AuthUser;
-import com.example.peachmusic.common.model.Cursor;
-import com.example.peachmusic.common.model.KeysetResponse;
-import com.example.peachmusic.common.model.SearchConditionParam;
+import com.example.peachmusic.common.model.*;
 import com.example.peachmusic.common.service.KeysetPolicy;
 import com.example.peachmusic.domain.album.dto.response.AlbumArtistDetailResponseDto;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
@@ -89,7 +86,7 @@ public class ArtistService {
 
         List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, SortDirection.DESC, lastId, lastDate, size);
 
-        return KeysetResponse.of(content, size, last -> new Cursor(last.getAlbumId(), last.getAlbumReleaseDate()));
+        return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), last.getAlbumReleaseDate()));
     }
 
     /**
@@ -106,7 +103,7 @@ public class ArtistService {
 
         List<SongArtistDetailResponseDto> content = songRepository.findSongByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, SortDirection.DESC, lastId, lastDate, size);
 
-        return KeysetResponse.of(content, size, last -> new Cursor(last.getAlbumId(), last.getAlbumReleaseDate()));
+        return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), last.getAlbumReleaseDate()));
     }
 
     /**
@@ -115,13 +112,14 @@ public class ArtistService {
     @Transactional(readOnly = true)
     public KeysetResponse<ArtistSearchResponseDto> searchArtistPage(SearchConditionParam condition) {
 
+        CursorParam cursor = condition.getCursor();
         keysetPolicy.validateCursor(condition); // 커서 검증
 
         String[] words = condition.getWord().split("\\s+");
         final int size = DETAIL_SIZE;
         SortDirection direction = keysetPolicy.resolveSortDirection(condition.getSortType(), condition.getDirection());
 
-        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(words, size, PUBLIC_VIEW, condition.getSortType(), direction, condition.getLastId(), condition.getLastLike(), condition.getLastName());
+        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(words, size, PUBLIC_VIEW, condition.getSortType(), direction, cursor.getLastId(), cursor.getLastLike(), cursor.getLastName());
 
         return KeysetResponse.of(content, size, last -> last.toCursor(condition.getSortType()));
     }

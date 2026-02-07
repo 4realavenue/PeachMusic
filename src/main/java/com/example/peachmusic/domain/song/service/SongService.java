@@ -5,6 +5,7 @@ import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.AuthUser;
+import com.example.peachmusic.common.model.CursorParam;
 import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.common.model.SearchConditionParam;
 import com.example.peachmusic.common.service.KeysetPolicy;
@@ -84,13 +85,14 @@ public class SongService {
     @Transactional(readOnly = true)
     public KeysetResponse<SongSearchResponseDto> searchSongPage(SearchConditionParam condition) {
 
+        CursorParam cursor = condition.getCursor();
         keysetPolicy.validateCursor(condition); // 커서 검증
 
         String[] words = condition.getWord().split("\\s+");
         final int size = DETAIL_SIZE;
         SortDirection direction = keysetPolicy.resolveSortDirection(condition.getSortType(), condition.getDirection());
 
-        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(words, size, PUBLIC_VIEW, condition.getSortType(), direction, condition.getLastId(), condition.getLastLike(), condition.getLastName());
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(words, size, PUBLIC_VIEW, condition.getSortType(), direction, cursor.getLastId(), cursor.getLastLike(), cursor.getLastName());
 
         return KeysetResponse.of(content, size, last -> last.toCursor(condition.getSortType()));
     }
