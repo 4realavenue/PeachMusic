@@ -76,15 +76,17 @@ public class ArtistService {
      * 아티스트의 앨범 자세히 보기
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<AlbumArtistDetailResponseDto> getArtistAlbums(AuthUser authUser, Long artistId, Long lastId, LocalDate lastDate) {
+    public KeysetResponse<AlbumArtistDetailResponseDto> getArtistAlbums(AuthUser authUser, Long artistId, CursorParam cursor) {
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
 
-        final int size = DETAIL_SIZE;
         SortType sortType = SortType.RELEASE_DATE;
-        keysetPolicy.validateArtistCursor(sortType, lastId, lastDate);
+        keysetPolicy.validateCursor(sortType, cursor);
 
-        List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, SortDirection.DESC, lastId, lastDate, size);
+        final int size = DETAIL_SIZE;
+        SortDirection direction = sortType.getDefaultDirection();
+
+        List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, direction, cursor.getLastId(), cursor.getLastDate(), size);
 
         return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), last.getAlbumReleaseDate()));
     }
@@ -93,15 +95,17 @@ public class ArtistService {
      * 아티스트의 음원 자세히 보기
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<SongArtistDetailResponseDto> getArtistSongs(AuthUser authUser, Long artistId, Long lastId, LocalDate lastDate) {
+    public KeysetResponse<SongArtistDetailResponseDto> getArtistSongs(AuthUser authUser, Long artistId, CursorParam cursor) {
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
 
-        final int size = DETAIL_SIZE;
         SortType sortType = SortType.RELEASE_DATE;
-        keysetPolicy.validateArtistCursor(sortType, lastId, lastDate);
+        keysetPolicy.validateCursor(sortType, cursor);
 
-        List<SongArtistDetailResponseDto> content = songRepository.findSongByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, SortDirection.DESC, lastId, lastDate, size);
+        final int size = DETAIL_SIZE;
+        SortDirection direction = sortType.getDefaultDirection();
+
+        List<SongArtistDetailResponseDto> content = songRepository.findSongByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, direction, cursor.getLastId(), cursor.getLastDate(), size);
 
         return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), last.getAlbumReleaseDate()));
     }

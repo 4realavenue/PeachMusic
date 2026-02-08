@@ -1,9 +1,6 @@
 package com.example.peachmusic.domain.artist.controller;
 
-import com.example.peachmusic.common.model.AuthUser;
-import com.example.peachmusic.common.model.CommonResponse;
-import com.example.peachmusic.common.model.KeysetResponse;
-import com.example.peachmusic.common.model.SearchConditionParam;
+import com.example.peachmusic.common.model.*;
 import com.example.peachmusic.domain.album.dto.response.AlbumArtistDetailResponseDto;
 import com.example.peachmusic.domain.artist.dto.response.ArtistGetDetailResponseDto;
 import com.example.peachmusic.domain.artist.dto.response.ArtistPreviewResponseDto;
@@ -63,10 +60,9 @@ public class ArtistController {
     public ResponseEntity<CommonResponse<KeysetResponse<AlbumArtistDetailResponseDto>>> getArtistAlbums(
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long artistId,
-            @RequestParam(required = false) Long lastId,
-            @RequestParam(required = false) LocalDate lastDate
+            @ModelAttribute CursorParam cursor
     ) {
-        KeysetResponse<AlbumArtistDetailResponseDto> responseDto = artistService.getArtistAlbums(authUser, artistId, lastId, lastDate);
+        KeysetResponse<AlbumArtistDetailResponseDto> responseDto = artistService.getArtistAlbums(authUser, artistId, cursor);
         return ResponseEntity.ok(CommonResponse.success("아티스트의 앨범 전체 조회에 성공했습니다.", responseDto));
     }
 
@@ -78,10 +74,9 @@ public class ArtistController {
     public ResponseEntity<CommonResponse<KeysetResponse<SongArtistDetailResponseDto>>> getArtistSongs(
             @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long artistId,
-            @RequestParam(required = false) Long lastId,
-            @RequestParam(required = false) LocalDate lastDate
+            @ModelAttribute CursorParam cursor
     ) {
-        KeysetResponse<SongArtistDetailResponseDto> responseDto = artistService.getArtistSongs(authUser, artistId, lastId, lastDate);
+        KeysetResponse<SongArtistDetailResponseDto> responseDto = artistService.getArtistSongs(authUser, artistId, cursor);
         return ResponseEntity.ok(CommonResponse.success("아티스트의 음원 전체 조회에 성공했습니다.", responseDto));
     }
 
