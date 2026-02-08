@@ -118,7 +118,7 @@ public class SongAdminService {
         String[] words = word == null ? null : word.split("\\s+");
         final int size = DETAIL_SIZE;
 
-        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(words, size, ADMIN_VIEW, null, null, lastId, null, null);
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(words, size, ADMIN_VIEW, null, null, lastId, null, null, null, null);
 
         return KeysetResponse.of(content, size, last -> new NextCursor(last.getSongId(), null));
     }

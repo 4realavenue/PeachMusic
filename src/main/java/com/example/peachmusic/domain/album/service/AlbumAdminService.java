@@ -88,7 +88,7 @@ public class AlbumAdminService {
         String[] words = word == null ? null : word.split("\\s+");
         final int size = DETAIL_SIZE;
 
-        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(words, size, ADMIN_VIEW, null, null, lastId, null, null);
+        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(words, size, ADMIN_VIEW, null, null, lastId, null, null, null);
 
         return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), null));
     }

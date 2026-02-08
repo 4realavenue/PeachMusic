@@ -15,7 +15,7 @@ public class AlbumSearchResponseDto {
     private final Long albumId;
     private final String albumName;
     private final String artistName;
-    private final LocalDate albumReleaseDate;
+    private final LocalDate releaseDate;
     private final String albumImage;
     private final Long likeCount;
     private final boolean isDeleted;
@@ -24,6 +24,7 @@ public class AlbumSearchResponseDto {
         return switch (sortType) {
             case LIKE -> new NextCursor(albumId, likeCount);
             case NAME -> new NextCursor(albumId, albumName);
+            case RELEASE_DATE -> new NextCursor(albumId, releaseDate);
             default -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
         };
     }

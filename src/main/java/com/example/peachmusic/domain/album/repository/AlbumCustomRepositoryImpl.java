@@ -1,7 +1,9 @@
 package com.example.peachmusic.domain.album.repository;
 
+import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
+import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.query.SearchWordCondition;
 import com.example.peachmusic.domain.album.dto.response.AlbumArtistDetailResponseDto;
 import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
@@ -16,7 +18,6 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,8 +38,8 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
      * 검색 - 자세히 보기
      */
     @Override
-    public List<AlbumSearchResponseDto> findAlbumKeysetPageByWord(String[] words, int size, boolean isAdmin, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
-        return baseQuery(words, isAdmin, sortType, direction, lastId, lastLike, lastName)
+    public List<AlbumSearchResponseDto> findAlbumKeysetPageByWord(String[] words, int size, boolean isAdmin, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName, LocalDate lastDate) {
+        return baseQuery(words, isAdmin, sortType, direction, lastId, lastLike, lastName, lastDate)
                 .limit(size+1).fetch(); // 요청한 사이즈보다 하나 더 많은 데이터를 조회
     }
 
@@ -47,7 +48,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
      */
     @Override
     public List<AlbumSearchResponseDto> findAlbumListByWord(String[] words, int size, boolean isAdmin, SortType sortType, SortDirection direction) {
-        return baseQuery(words, isAdmin, sortType, direction, null, null, null).limit(size).fetch();
+        return baseQuery(words, isAdmin, sortType, direction, null, null, null, null).limit(size).fetch();
     }
 
     /**
@@ -69,7 +70,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
     /**
      * 기본 쿼리
      */
-    private JPAQuery<AlbumSearchResponseDto> baseQuery(String[] words, boolean isAdmin, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
+    private JPAQuery<AlbumSearchResponseDto> baseQuery(String[] words, boolean isAdmin, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName, LocalDate lastDate) {
 
         boolean isAsc = direction == SortDirection.ASC;
 
@@ -88,7 +89,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
                 .from(album)
                 .join(artistAlbum).on(artistAlbum.album.eq(album))
                 .join(artist).on(artistAlbum.artist.eq(artist))
-                .where(searchCondition(words, isAdmin), keysetCondition(sortType, isAsc, lastId, lastLike, lastName, null)) // 검색어 조건, Keyset 조건
+                .where(searchCondition(words, isAdmin), keysetCondition(sortType, isAsc, lastId, lastLike, lastName, lastDate)) // 검색어 조건, Keyset 조건
                 .groupBy(album.albumId) // 아티스트 이름을 문자열로 합치는데 앨범 id를 기준으로 함
                 .orderBy(orderList.toArray(OrderSpecifier[]::new)); // Keyset 조건에 사용되는 커서 순서대로 정렬
     }
@@ -172,7 +173,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
     }
 
     /**
-     * 검색 조건 3
+     * 검색 조건
      * - 앨범이 삭제된 상태가 아닌 경우
      */
     private BooleanExpression isActive() {
@@ -198,6 +199,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
             case LIKE -> likeCountKeyset(asc, lastId, lastLike);
             case NAME -> nameKeyset(asc, lastId, lastName);
             case RELEASE_DATE -> dateKeyset(asc, lastId, lastDate);
+            case PLAY -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
         };
     }
 
@@ -244,6 +246,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
             case LIKE -> asc ? album.likeCount.asc() : album.likeCount.desc();
             case NAME -> asc ? album.albumName.asc() : album.albumName.desc();
             case RELEASE_DATE -> asc ? album.albumReleaseDate.asc() : album.albumReleaseDate.desc();
+            case PLAY -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
         };
     }
 
