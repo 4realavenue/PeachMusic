@@ -59,4 +59,8 @@ public class ArtistLikeTxService {
         }
         return ArtistLikeResponseDto.of(artistId, artistName, liked, likeCount);
     }
+
+    public boolean isArtistLiked(Long artistId, Long userId) {
+        return artistLikeRepository.existsByArtist_ArtistIdAndUser_UserId(artistId, userId);
+    }
 }
