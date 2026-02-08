@@ -89,7 +89,7 @@ public class AlbumService {
         final int size = DETAIL_SIZE;
         SortDirection direction = keysetPolicy.resolveSortDirection(condition.getSortType(), condition.getDirection());
 
-        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(words, size, PUBLIC_VIEW, condition.getSortType(), direction, cursor.getLastId(), cursor.getLastLike(), cursor.getLastName());
+        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(words, size, PUBLIC_VIEW, condition.getSortType(), direction, cursor.getLastId(), cursor.getLastLike(), cursor.getLastName(), cursor.getLastDate());
 
         return KeysetResponse.of(content, size, last -> last.toCursor(condition.getSortType()));
     }

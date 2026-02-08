@@ -92,7 +92,7 @@ public class SongService {
         final int size = DETAIL_SIZE;
         SortDirection direction = keysetPolicy.resolveSortDirection(condition.getSortType(), condition.getDirection());
 
-        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(words, size, PUBLIC_VIEW, condition.getSortType(), direction, cursor.getLastId(), cursor.getLastLike(), cursor.getLastName());
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(words, size, PUBLIC_VIEW, condition.getSortType(), direction, cursor.getLastId(), cursor.getLastLike(), cursor.getLastName(), cursor.getLastDate(), cursor.getLastPlay());
 
         return KeysetResponse.of(content, size, last -> last.toCursor(condition.getSortType()));
     }
