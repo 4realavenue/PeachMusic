@@ -1,20 +1,17 @@
 package com.example.peachmusic.domain.album.service;
 
 import com.example.peachmusic.common.enums.SortDirection;
+import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
-import com.example.peachmusic.common.model.AuthUser;
-import com.example.peachmusic.common.model.KeysetResponse;
-import com.example.peachmusic.common.model.SearchConditionParam;
+import com.example.peachmusic.common.model.*;
 import com.example.peachmusic.common.service.KeysetPolicy;
-import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
+import com.example.peachmusic.domain.album.dto.response.*;
 import com.example.peachmusic.domain.album.entity.Album;
-import com.example.peachmusic.domain.album.dto.response.AlbumGetDetailResponseDto;
-import com.example.peachmusic.domain.album.dto.response.ArtistSummaryDto;
-import com.example.peachmusic.domain.album.dto.response.SongSummaryDto;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.albumlike.repository.AlbumLikeRepository;
 import com.example.peachmusic.domain.artist.entity.Artist;
+import com.example.peachmusic.domain.artist.repository.ArtistRepository;
 import com.example.peachmusic.domain.artistalbum.entity.ArtistAlbum;
 import com.example.peachmusic.domain.artistalbum.repository.ArtistAlbumRepository;
 import com.example.peachmusic.domain.song.entity.Song;
@@ -38,6 +35,7 @@ public class AlbumService {
     private final ArtistAlbumRepository artistAlbumRepository;
     private final SongRepository songRepository;
     private final AlbumLikeRepository albumLikeRepository;
+    private final ArtistRepository artistRepository;
     private final KeysetPolicy keysetPolicy;
 
     /**
@@ -74,6 +72,26 @@ public class AlbumService {
         }
 
         return AlbumGetDetailResponseDto.from(foundAlbum, artistSummaryDtoList, songSummaryDtoList, isLiked);
+    }
+
+    /**
+     * 아티스트의 앨범 자세히 보기
+     */
+    @Transactional(readOnly = true)
+    public KeysetResponse<AlbumArtistDetailResponseDto> getArtistAlbums(AuthUser authUser, Long artistId, CursorParam cursor) {
+
+        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
+
+        SortType sortType = SortType.RELEASE_DATE;
+        keysetPolicy.validateCursor(sortType, cursor);
+
+        final int size = DETAIL_SIZE;
+        SortDirection direction = sortType.getDefaultDirection();
+
+        List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, direction, cursor, size);
+
+        return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), last.getAlbumReleaseDate()));
     }
 
     /**

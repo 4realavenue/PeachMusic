@@ -74,44 +74,6 @@ public class ArtistService {
     }
 
     /**
-     * 아티스트의 앨범 자세히 보기
-     */
-    @Transactional(readOnly = true)
-    public KeysetResponse<AlbumArtistDetailResponseDto> getArtistAlbums(AuthUser authUser, Long artistId, CursorParam cursor) {
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
-
-        SortType sortType = SortType.RELEASE_DATE;
-        keysetPolicy.validateCursor(sortType, cursor);
-
-        final int size = DETAIL_SIZE;
-        SortDirection direction = sortType.getDefaultDirection();
-
-        List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, direction, cursor, size);
-
-        return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), last.getAlbumReleaseDate()));
-    }
-
-    /**
-     * 아티스트의 음원 자세히 보기
-     */
-    @Transactional(readOnly = true)
-    public KeysetResponse<SongArtistDetailResponseDto> getArtistSongs(AuthUser authUser, Long artistId, CursorParam cursor) {
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
-
-        SortType sortType = SortType.RELEASE_DATE;
-        keysetPolicy.validateCursor(sortType, cursor);
-
-        final int size = DETAIL_SIZE;
-        SortDirection direction = sortType.getDefaultDirection();
-
-        List<SongArtistDetailResponseDto> content = songRepository.findSongByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, direction, cursor, size);
-
-        return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), last.getAlbumReleaseDate()));
-    }
-
-    /**
      * 아티스트 검색 - 자세히 보기
      */
     @Transactional(readOnly = true)

@@ -3,14 +3,15 @@ package com.example.peachmusic.domain.song.service;
 import com.example.peachmusic.common.annotation.RedisLock;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.SortDirection;
+import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.common.model.AuthUser;
-import com.example.peachmusic.common.model.CursorParam;
-import com.example.peachmusic.common.model.KeysetResponse;
-import com.example.peachmusic.common.model.SearchConditionParam;
+import com.example.peachmusic.common.model.*;
 import com.example.peachmusic.common.service.KeysetPolicy;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
+import com.example.peachmusic.domain.artist.entity.Artist;
+import com.example.peachmusic.domain.artist.repository.ArtistRepository;
+import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongGetDetailResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.example.peachmusic.domain.song.entity.Song;
@@ -41,6 +42,7 @@ public class SongService {
     private final SongGenreRepository songGenreRepository;
     private final AlbumRepository albumRepository;
     private final SongLikeRepository songLikeRepository;
+    private final ArtistRepository artistRepository;
     private final UserService userService;
     private final KeysetPolicy keysetPolicy;
     private final RedisTemplate<String,String> redisTemplate;
@@ -78,6 +80,26 @@ public class SongService {
 
         return SongGetDetailResponseDto.from(findSong, genreNameList, findAlbum, liked);
 
+    }
+
+    /**
+     * 아티스트의 음원 자세히 보기
+     */
+    @Transactional(readOnly = true)
+    public KeysetResponse<SongArtistDetailResponseDto> getArtistSongs(AuthUser authUser, Long artistId, CursorParam cursor) {
+
+        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
+
+        SortType sortType = SortType.RELEASE_DATE;
+        keysetPolicy.validateCursor(sortType, cursor);
+
+        final int size = DETAIL_SIZE;
+        SortDirection direction = sortType.getDefaultDirection();
+
+        List<SongArtistDetailResponseDto> content = songRepository.findSongByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, direction, cursor, size);
+
+        return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), last.getAlbumReleaseDate()));
     }
 
     /**

@@ -1,9 +1,7 @@
 package com.example.peachmusic.domain.song.controller;
 
-import com.example.peachmusic.common.model.AuthUser;
-import com.example.peachmusic.common.model.CommonResponse;
-import com.example.peachmusic.common.model.KeysetResponse;
-import com.example.peachmusic.common.model.SearchConditionParam;
+import com.example.peachmusic.common.model.*;
+import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongGetDetailResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.example.peachmusic.domain.song.service.SongService;
@@ -31,6 +29,19 @@ public class SongController {
         SongGetDetailResponseDto responseDto = songService.getSong(songId, authUser);
 
         return ResponseEntity.ok(CommonResponse.success("음원 조회에 성공했습니다.", responseDto));
+    }
+
+    /**
+     * 아티스트 단건 조회 시 음원 전체 보기
+     */
+    @GetMapping("/artists/{artistId}/songs")
+    public ResponseEntity<CommonResponse<KeysetResponse<SongArtistDetailResponseDto>>> getArtistSongs(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable Long artistId,
+            @ModelAttribute CursorParam cursor
+    ) {
+        KeysetResponse<SongArtistDetailResponseDto> responseDto = songService.getArtistSongs(authUser, artistId, cursor);
+        return ResponseEntity.ok(CommonResponse.success("아티스트의 음원 전체 조회에 성공했습니다.", responseDto));
     }
 
     /**
