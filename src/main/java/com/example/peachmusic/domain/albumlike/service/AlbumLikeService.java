@@ -1,10 +1,9 @@
 package com.example.peachmusic.domain.albumlike.service;
 
 import com.example.peachmusic.common.model.AuthUser;
-import com.example.peachmusic.common.model.Cursor;
 import com.example.peachmusic.common.model.KeysetResponse;
+import com.example.peachmusic.common.model.NextCursor;
 import com.example.peachmusic.common.retry.LockRetryExecutor;
-import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.domain.albumlike.dto.response.AlbumLikeResponseDto;
 import com.example.peachmusic.domain.albumlike.dto.response.AlbumLikedItemResponseDto;
 import com.example.peachmusic.domain.albumlike.repository.AlbumLikeRepository;
@@ -14,15 +13,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
+
 @Service
 @RequiredArgsConstructor
-public class AlbumLikeService extends AbstractKeysetService {
+public class AlbumLikeService {
 
     private final LockRetryExecutor lockRetryExecutor;
     private final AlbumLikeCommand albumLikeCommand;
     private final AlbumLikeRepository albumLikeRepository;
 
-    private static final int KEYSET_SIZE = 10;
+    private static final int SIZE = DETAIL_SIZE;
 
     public AlbumLikeResponseDto likeAlbum(AuthUser authUser, Long albumId) {
         return lockRetryExecutor.execute(() -> albumLikeCommand.doLikeAlbum(authUser, albumId));
@@ -31,11 +32,11 @@ public class AlbumLikeService extends AbstractKeysetService {
     @Transactional(readOnly = true)
     public KeysetResponse<AlbumLikedItemResponseDto> getMyLikedAlbum(Long userId, Long lastLikeId) {
 
-        List<AlbumLikedItemResponseDto> content = albumLikeRepository.findMyLikedAlbumWithCursor(userId, lastLikeId, KEYSET_SIZE);
+        List<AlbumLikedItemResponseDto> content = albumLikeRepository.findMyLikedAlbumWithCursor(userId, lastLikeId, SIZE);
 
         // Cursor는 albumLikeId(lastId) 기준으로만 구성
         // 단일 정렬 기준이므로 lastSortValue는 사용하지 않음
-        return toKeysetResponse(content, KEYSET_SIZE, likedAlbum -> new Cursor(likedAlbum.getAlbumLikeId(), null));
+        return KeysetResponse.of(content, SIZE, likedAlbum -> new NextCursor(likedAlbum.getAlbumLikeId(), null));
     }
 
     @Transactional(readOnly = true)
