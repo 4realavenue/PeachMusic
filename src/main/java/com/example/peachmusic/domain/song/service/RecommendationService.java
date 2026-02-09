@@ -22,6 +22,7 @@ public class RecommendationService {
     private final SongLikeRepository songLikeRepository;
     private final PlaylistSongRepository playlistSongRepository;
     private final FeatureVectorizer featureVectorizer;
+    private final RecommendColdStartService recommendColdStartService;
 
     /**
      * 음원 추천 기능 메인 메서드
@@ -31,13 +32,13 @@ public class RecommendationService {
         // 사용자의 좋아요 / 플레이리스트 음원 ID 병합
         List<Long> mergedSongIdList = mergeLikeAndPlaylistSongIdList(authUser.getUserId());
 
+        // 신규 회원이거나 Seed 데이터가 없으면 추천 likeCount가 높은 음원부터 50건 반환
+        if (mergedSongIdList.isEmpty()) {
+            return recommendColdStartService.getTop50();
+        }
+
         // 사용자의 좋아요 / 플레이리스트 음원의 장르 아이디 조회
         List<Long> seedGenreIdList = songRepository.findSeedGenreList(mergedSongIdList);
-
-        // 신규 회원이거나 Seed 데이터가 없으면 추천 likeCount가 높은 음원부터 50건 반환
-        if (mergedSongIdList.isEmpty() || seedGenreIdList.isEmpty()) {
-            return songRepository.findRecommendedSongListForColdStart();
-        }
 
         // songId, 장르, 스피드, 태그, 악기 등 음원 기반 User Profile Vector 생성
         Map<String, Double> userVectorMap = createUserVector(mergedSongIdList);
