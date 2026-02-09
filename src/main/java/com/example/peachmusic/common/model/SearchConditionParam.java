@@ -18,6 +18,4 @@ public class SearchConditionParam {
     private SortType sortType = SortType.LIKE; // 정렬 기준: 기본값은 좋아요순
     private SortDirection direction; // 정렬 방향
 
-    private CursorParam cursor;
-
 }
