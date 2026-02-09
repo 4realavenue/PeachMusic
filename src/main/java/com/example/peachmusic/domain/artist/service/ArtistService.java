@@ -19,12 +19,13 @@ import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.LocalDate;
+import java.util.EnumSet;
 import java.util.List;
 import static com.example.peachmusic.common.constants.SearchViewSize.*;
 import static com.example.peachmusic.common.constants.UserViewScope.PUBLIC_VIEW;
 import static com.example.peachmusic.common.enums.SortDirection.DESC;
 import static com.example.peachmusic.common.enums.SortType.LIKE;
+import static com.example.peachmusic.common.enums.SortType.NAME;
 
 @Service
 @RequiredArgsConstructor
@@ -86,7 +87,7 @@ public class ArtistService {
         final int size = DETAIL_SIZE;
         SortDirection direction = sortType.getDefaultDirection();
 
-        List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, direction, cursor.getLastId(), cursor.getLastDate(), size);
+        List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, direction, cursor, size);
 
         return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), last.getAlbumReleaseDate()));
     }
@@ -105,7 +106,7 @@ public class ArtistService {
         final int size = DETAIL_SIZE;
         SortDirection direction = sortType.getDefaultDirection();
 
-        List<SongArtistDetailResponseDto> content = songRepository.findSongByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, direction, cursor.getLastId(), cursor.getLastDate(), size);
+        List<SongArtistDetailResponseDto> content = songRepository.findSongByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, direction, cursor, size);
 
         return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), last.getAlbumReleaseDate()));
     }
@@ -116,14 +117,17 @@ public class ArtistService {
     @Transactional(readOnly = true)
     public KeysetResponse<ArtistSearchResponseDto> searchArtistPage(SearchConditionParam condition) {
 
-        CursorParam cursor = condition.getCursor();
-        keysetPolicy.validateCursor(condition.getSortType(), cursor); // 커서 검증
+        if (!EnumSet.of(LIKE, NAME).contains(condition.getSortType())) {
+            throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
+        }
+
+        keysetPolicy.validateCursor(condition.getSortType(), condition.getCursor()); // 커서 검증
 
         String[] words = condition.getWord().split("\\s+");
         final int size = DETAIL_SIZE;
         SortDirection direction = keysetPolicy.resolveSortDirection(condition.getSortType(), condition.getDirection());
 
-        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(words, size, PUBLIC_VIEW, condition.getSortType(), direction, cursor.getLastId(), cursor.getLastLike(), cursor.getLastName());
+        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(words, size, PUBLIC_VIEW, condition.getSortType(), direction, condition.getCursor());
 
         return KeysetResponse.of(content, size, last -> last.toCursor(condition.getSortType()));
     }
