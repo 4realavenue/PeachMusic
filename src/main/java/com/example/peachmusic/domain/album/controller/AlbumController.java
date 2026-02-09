@@ -55,9 +55,10 @@ public class AlbumController {
      */
     @GetMapping("/search/albums")
     public ResponseEntity<CommonResponse<KeysetResponse<AlbumSearchResponseDto>>> searchAlbum(
-            @Valid @ModelAttribute SearchConditionParam condition
+            @Valid @ModelAttribute SearchConditionParam condition,
+            @ModelAttribute CursorParam cursor
     ) {
-        KeysetResponse<AlbumSearchResponseDto> responseDto = albumService.searchAlbumPage(condition);
+        KeysetResponse<AlbumSearchResponseDto> responseDto = albumService.searchAlbumPage(condition, cursor);
 
         return ResponseEntity.ok(CommonResponse.success("앨범 검색이 완료되었습니다.", responseDto));
     }

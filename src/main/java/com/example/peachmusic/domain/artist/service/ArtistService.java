@@ -71,9 +71,9 @@ public class ArtistService {
      * 아티스트 검색 - 자세히 보기
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<ArtistSearchResponseDto> searchArtistPage(SearchConditionParam condition) {
+    public KeysetResponse<ArtistSearchResponseDto> searchArtistPage(SearchConditionParam condition, CursorParam cursor) {
 
-        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), condition.getCursor());
+        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
 
         return KeysetResponse.of(content, DETAIL_SIZE, last -> last.toCursor(condition.getSortType()));
     }

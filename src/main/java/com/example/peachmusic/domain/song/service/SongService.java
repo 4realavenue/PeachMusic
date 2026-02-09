@@ -101,9 +101,9 @@ public class SongService {
      * 음원 검색 - 자세히 보기
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<SongSearchResponseDto> searchSongPage(SearchConditionParam condition) {
+    public KeysetResponse<SongSearchResponseDto> searchSongPage(SearchConditionParam condition, CursorParam cursor) {
 
-        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), condition.getCursor());
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
 
         return KeysetResponse.of(content, DETAIL_SIZE, last -> last.toCursor(condition.getSortType()));
     }

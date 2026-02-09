@@ -93,9 +93,9 @@ public class AlbumService {
      * 앨범 검색 - 자세히 보기
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<AlbumSearchResponseDto> searchAlbumPage(SearchConditionParam condition) {
+    public KeysetResponse<AlbumSearchResponseDto> searchAlbumPage(SearchConditionParam condition, CursorParam cursor) {
 
-        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), condition.getCursor());
+        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
 
         return KeysetResponse.of(content, DETAIL_SIZE, last -> last.toCursor(condition.getSortType()));
     }

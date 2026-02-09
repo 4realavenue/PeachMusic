@@ -53,9 +53,10 @@ public class SongController {
      */
     @GetMapping("/search/songs")
     public ResponseEntity<CommonResponse<KeysetResponse<SongSearchResponseDto>>> searchSong(
-            @Valid @ModelAttribute SearchConditionParam condition
+            @Valid @ModelAttribute SearchConditionParam condition,
+            @ModelAttribute CursorParam cursor
     ) {
-        KeysetResponse<SongSearchResponseDto> responseDto = songService.searchSongPage(condition);
+        KeysetResponse<SongSearchResponseDto> responseDto = songService.searchSongPage(condition, cursor);
 
         return ResponseEntity.ok(CommonResponse.success("음원 검색이 완료되었습니다.", responseDto));
     }
