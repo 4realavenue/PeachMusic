@@ -33,10 +33,6 @@ class RecommendationScaleTest {
     static final int K = 50;
     static final int GENRE_COUNT = 100;
 
-    /* =========================
-       Evaluation (단일/복합 테스트 분리)
-     ========================= */
-
     @Test
     @Order(1)
     @DisplayName("Case 1: 단일 취향 추천 정밀도 테스트")
@@ -93,10 +89,7 @@ class RecommendationScaleTest {
         System.out.println("==============================\n");
     }
 
-    /* =========================
-       Setup & Insert Helpers
-     ========================= */
-
+    // Setup & Insert Helpers
     private void setupDataset(Map<Long, List<Long>> preferenceMap) {
         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
         List<String> tables = List.of("song_likes", "playlist_songs", "playlists", "artist_songs", "song_genres", "songs", "albums", "artists", "users", "genres");
@@ -213,10 +206,7 @@ class RecommendationScaleTest {
         }
     }
 
-    /* =========================
-       Utilities
-     ========================= */
-
+    // Utilities
     private void dynamicInsert(String table, List<String> cols, List<Object> vals) {
         String colPart = String.join(", ", cols);
         String qPart = String.join(", ", Collections.nCopies(cols.size(), "?"));
