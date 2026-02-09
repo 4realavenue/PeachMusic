@@ -1,6 +1,6 @@
 package com.example.peachmusic.domain.worker.controller;
 
-import com.example.peachmusic.domain.worker.dto.request.WorkerRetryRequestDto;
+import com.example.peachmusic.domain.worker.dto.request.WorkerTryRequestDto;
 import com.example.peachmusic.domain.worker.service.WorkerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -15,20 +15,20 @@ public class WorkerController {
     /**
      * (Worker) 음원 다운로드 재시도
      */
-    @PostMapping("/admin/songs/re-download")
-    public void retryDownloadSong(
-            @RequestBody WorkerRetryRequestDto requestDto
+    @PostMapping("/admin/songs/download")
+    public void tryDownloadSong(
+            @RequestBody WorkerTryRequestDto requestDto
     ) {
-        streamingJobService.retryDownloadSong(requestDto);
+        streamingJobService.tryDownloadSong(requestDto);
     }
 
     /**
      * (Worker) 음원 형변환 재시도
      */
-    @PostMapping("/admin/songs/re-transcode")
-    public void retryTranscodeSong(
-            @RequestBody WorkerRetryRequestDto requestDto
+    @PostMapping("/admin/songs/transcode")
+    public void tryTranscodeSong(
+            @RequestBody WorkerTryRequestDto requestDto
     ) {
-        streamingJobService.retryTranscodeSong(requestDto);
+        streamingJobService.tryTranscodeSong(requestDto);
     }
 }
