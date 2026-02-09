@@ -3,6 +3,7 @@ package com.example.peachmusic.domain.songlike.service;
 import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.Cursor;
 import com.example.peachmusic.common.model.KeysetResponse;
+import com.example.peachmusic.common.model.NextCursor;
 import com.example.peachmusic.common.retry.LockRetryExecutor;
 import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.domain.songlike.dto.response.SongLikeResponseDto;
@@ -14,15 +15,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
+
 @Service
 @RequiredArgsConstructor
-public class SongLikeService extends AbstractKeysetService {
+public class SongLikeService {
 
     private final LockRetryExecutor lockRetryExecutor;
     private final SongLikeCommand songLikeCommand;
     private final SongLikeRepository songLikeRepository;
 
-    private static final int KEYSET_SIZE = 10;
+    private static final int SIZE = DETAIL_SIZE;
 
     public SongLikeResponseDto likeSong(AuthUser authUser, Long songId) {
         return lockRetryExecutor.execute(() -> songLikeCommand.doLikeSong(authUser, songId));
@@ -31,8 +34,8 @@ public class SongLikeService extends AbstractKeysetService {
     @Transactional(readOnly = true)
     public KeysetResponse<SongLikedItemResponseDto> getMyLikedSong(Long userId, Long lastLikeId) {
 
-        List<SongLikedItemResponseDto> content = songLikeRepository.findMyLikedSongWithCursor(userId, lastLikeId, KEYSET_SIZE);
+        List<SongLikedItemResponseDto> content = songLikeRepository.findMyLikedSongWithCursor(userId, lastLikeId, SIZE);
 
-        return toKeysetResponse(content, KEYSET_SIZE, likedSong -> new Cursor(likedSong.getSongLikeId(), null));
+        return KeysetResponse.of(content, SIZE, likedSong -> new NextCursor(likedSong.getSongLikeId(), null));
     }
 }
