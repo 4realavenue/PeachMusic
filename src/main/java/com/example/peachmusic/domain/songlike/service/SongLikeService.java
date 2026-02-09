@@ -1,36 +1,38 @@
 package com.example.peachmusic.domain.songlike.service;
 
 import com.example.peachmusic.common.model.AuthUser;
+import com.example.peachmusic.common.model.Cursor;
+import com.example.peachmusic.common.model.KeysetResponse;
+import com.example.peachmusic.common.retry.LockRetryExecutor;
+import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.domain.songlike.dto.response.SongLikeResponseDto;
+import com.example.peachmusic.domain.songlike.dto.response.SongLikedItemResponseDto;
+import com.example.peachmusic.domain.songlike.repository.SongLikeRepository;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.AssertionFailure;
-import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.function.Supplier;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class SongLikeService {
+public class SongLikeService extends AbstractKeysetService {
 
-    private final SongLikeTxService songLikeTxService;
+    private final LockRetryExecutor lockRetryExecutor;
+    private final SongLikeCommand songLikeCommand;
+    private final SongLikeRepository songLikeRepository;
+
+    private static final int KEYSET_SIZE = 10;
 
     public SongLikeResponseDto likeSong(AuthUser authUser, Long songId) {
-        return retryOnLock(() -> songLikeTxService.doLikeSong(authUser, songId));
+        return lockRetryExecutor.execute(() -> songLikeCommand.doLikeSong(authUser, songId));
     }
 
-    private SongLikeResponseDto retryOnLock(Supplier<SongLikeResponseDto> action) {
-        int maxRetry = 2;
+    @Transactional(readOnly = true)
+    public KeysetResponse<SongLikedItemResponseDto> getMyLikedSong(Long userId, Long lastLikeId) {
 
-        for (int i = 0; i <= maxRetry; i++) {
-            try {
-                return action.get();
-            } catch (PessimisticLockingFailureException e) {
-                if (i == maxRetry) {
-                    throw e;
-                }
-            }
-        }
-        throw new AssertionFailure("unreachable");
+        List<SongLikedItemResponseDto> content = songLikeRepository.findMyLikedSongWithCursor(userId, lastLikeId, KEYSET_SIZE);
+
+        return toKeysetResponse(content, KEYSET_SIZE, likedSong -> new Cursor(likedSong.getSongLikeId(), null));
     }
 }
