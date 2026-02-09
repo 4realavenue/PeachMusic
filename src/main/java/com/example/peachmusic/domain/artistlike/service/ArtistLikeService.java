@@ -1,10 +1,9 @@
 package com.example.peachmusic.domain.artistlike.service;
 
 import com.example.peachmusic.common.model.AuthUser;
-import com.example.peachmusic.common.model.Cursor;
 import com.example.peachmusic.common.model.KeysetResponse;
+import com.example.peachmusic.common.model.NextCursor;
 import com.example.peachmusic.common.retry.LockRetryExecutor;
-import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikeResponseDto;
 import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikedItemResponseDto;
 import com.example.peachmusic.domain.artistlike.repository.ArtistLikeRepository;
@@ -14,15 +13,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
+
 @Service
 @RequiredArgsConstructor
-public class ArtistLikeService extends AbstractKeysetService {
+public class ArtistLikeService {
 
     private final LockRetryExecutor lockRetryExecutor;
     private final ArtistLikeCommand artistLikeCommand;
     private final ArtistLikeRepository artistLikeRepository;
 
-    private static final int KEYSET_SIZE = 10;
+    private static final int SIZE = DETAIL_SIZE;
 
     public ArtistLikeResponseDto likeArtist(AuthUser authUser, Long artistId) {
         return lockRetryExecutor.execute(() -> artistLikeCommand.doLikeArtist(authUser, artistId));
@@ -31,9 +32,9 @@ public class ArtistLikeService extends AbstractKeysetService {
     @Transactional(readOnly = true)
     public KeysetResponse<ArtistLikedItemResponseDto> getMyLikedArtist(Long userId, Long lastLikeId) {
 
-        List<ArtistLikedItemResponseDto> content = artistLikeRepository.findMyLikedArtistWithCursor(userId, lastLikeId, KEYSET_SIZE);
+        List<ArtistLikedItemResponseDto> content = artistLikeRepository.findMyLikedArtistWithCursor(userId, lastLikeId, SIZE);
 
-        return toKeysetResponse(content, KEYSET_SIZE, likedArtist -> new Cursor(likedArtist.getArtistLikeId(), null));
+        return KeysetResponse.of(content, SIZE, likedArtist -> new NextCursor(likedArtist.getArtistLikeId(), null));
     }
 
     @Transactional(readOnly = true)
