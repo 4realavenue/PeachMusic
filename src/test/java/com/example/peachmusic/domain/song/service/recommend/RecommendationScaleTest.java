@@ -23,28 +23,20 @@ import java.util.*;
 @Transactional
 class RecommendationScaleTest {
 
-    @Autowired
-    RecommendationService recommendationService;
-
-    @Autowired
-    JdbcTemplate jdbcTemplate;
-
     static final int DATA_SIZE = 100_000;
     static final int K = 50;
     static final int GENRE_COUNT = 100;
+    @Autowired
+    RecommendationService recommendationService;
+    @Autowired
+    JdbcTemplate jdbcTemplate;
 
     @Test
     @Order(1)
     @DisplayName("Case 1: 단일 취향 추천 정밀도 테스트")
     void evaluateSingleGenre() {
         // 1~5번 유저가 각각 하나의 명확한 장르만 선호하는 경우
-        Map<Long, List<Long>> singlePreference = Map.of(
-                1L, List.of(1L),
-                2L, List.of(25L),
-                3L, List.of(50L),
-                4L, List.of(75L),
-                5L, List.of(99L)
-        );
+        Map<Long, List<Long>> singlePreference = Map.of(1L, List.of(1L), 2L, List.of(25L), 3L, List.of(50L), 4L, List.of(75L), 5L, List.of(99L));
         runTest("SINGLE", singlePreference);
     }
 
@@ -53,13 +45,7 @@ class RecommendationScaleTest {
     @DisplayName("Case 2: 복합 취향 추천 정밀도 테스트")
     void evaluateMultiGenre() {
         // 유저별로 2~3개의 장르가 섞여 있는 경우
-        Map<Long, List<Long>> multiPreference = Map.of(
-                1L, List.of(1L, 10L),
-                2L, List.of(25L, 30L, 35L),
-                3L, List.of(50L, 55L),
-                4L, List.of(75L, 80L),
-                5L, List.of(99L, 5L)
-        );
+        Map<Long, List<Long>> multiPreference = Map.of(1L, List.of(1L, 10L), 2L, List.of(25L, 30L, 35L), 3L, List.of(50L, 55L), 4L, List.of(75L, 80L), 5L, List.of(99L, 5L));
         runTest("MULTI", multiPreference);
     }
 
@@ -71,8 +57,7 @@ class RecommendationScaleTest {
 
         for (Long uid : preferenceMap.keySet()) {
             AuthUser user = new AuthUser(uid, "", UserRole.USER, 0L);
-            List<Long> rec = recommendationService.getRecommendedSongList(user).stream()
-                    .map(SongRecommendationResponseDto::getSongId).limit(K).toList();
+            List<Long> rec = recommendationService.getRecommendedSongList(user).stream().map(SongRecommendationResponseDto::getSongId).limit(K).toList();
 
             Set<Long> truth = new HashSet<>(jdbcTemplate.queryForList("SELECT song_id FROM song_likes WHERE user_id=?", Long.class, uid));
 
@@ -94,7 +79,10 @@ class RecommendationScaleTest {
         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
         List<String> tables = List.of("song_likes", "playlist_songs", "playlists", "artist_songs", "song_genres", "songs", "albums", "artists", "users", "genres");
         for (String t : tables) {
-            try { jdbcTemplate.execute("TRUNCATE TABLE " + t); } catch (Exception ignore) {}
+            try {
+                jdbcTemplate.execute("TRUNCATE TABLE " + t);
+            } catch (Exception ignore) {
+            }
         }
         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
 
@@ -112,9 +100,9 @@ class RecommendationScaleTest {
             List<Long> gids = preferenceMap.get(uid);
             for (Long gid : gids) {
                 jdbcTemplate.update("""
-                    INSERT INTO song_likes (user_id, song_id)
-                    SELECT ?, sg.song_id FROM song_genres sg WHERE sg.genre_id = ? ORDER BY RAND() LIMIT ? 
-                """, uid, gid, 300 / gids.size());
+                            INSERT INTO song_likes (user_id, song_id)
+                            SELECT ?, sg.song_id FROM song_genres sg WHERE sg.genre_id = ? ORDER BY RAND() LIMIT ? 
+                        """, uid, gid, 300 / gids.size());
             }
         }
     }
@@ -122,9 +110,9 @@ class RecommendationScaleTest {
     private void insertUsers() {
         for (int i = 1; i <= 5; i++) {
             jdbcTemplate.update("""
-                INSERT INTO users (user_id, name, nickname, email, password, role, is_deleted, token_version, email_verified)
-                VALUES (?, ?, ?, ?, ?, 'USER', 0, '0', 1)
-            """, i, "u" + i, "u" + i, "u" + i + "@test.com", "p");
+                        INSERT INTO users (user_id, name, nickname, email, password, role, is_deleted, token_version, email_verified)
+                        VALUES (?, ?, ?, ?, ?, 'USER', 0, '0', 1)
+                    """, i, "u" + i, "u" + i, "u" + i + "@test.com", "p");
         }
     }
 
@@ -162,9 +150,9 @@ class RecommendationScaleTest {
         String[] inst = {"piano", "guitar", "drum", "violin"};
 
         String sql = """
-            INSERT INTO songs (song_id, album_id, name, duration, position, audio, speed, vartags, instruments, like_count, is_deleted, play_count, streaming_status)
-            VALUES (?, 1, ?, 200, 1, ?, ?, ?, ?, ?, 0, 0, 1)
-        """;
+                    INSERT INTO songs (song_id, album_id, name, duration, position, audio, speed, vartags, instruments, like_count, is_deleted, play_count, streaming_status)
+                    VALUES (?, 1, ?, 200, 1, ?, ?, ?, ?, ?, 0, 0, 1)
+                """;
 
         for (int i = 1; i <= DATA_SIZE; i += 1000) {
             int start = i;
@@ -181,7 +169,11 @@ class RecommendationScaleTest {
                     ps.setString(6, inst[gid % 4]);
                     ps.setLong(7, id % 1000);
                 }
-                @Override public int getBatchSize() { return 1000; }
+
+                @Override
+                public int getBatchSize() {
+                    return 1000;
+                }
             });
         }
     }
@@ -200,8 +192,13 @@ class RecommendationScaleTest {
             List<Object> vals = new ArrayList<>();
             addIfColumnExists("playlists", "playlist_id", cols, vals, i);
             addIfColumnExists("playlists", "user_id", cols, vals, i);
-            if (columnExists("playlists", "playlist_name")) { cols.add("playlist_name"); vals.add("PL" + i); }
-            else if (columnExists("playlists", "name")) { cols.add("name"); vals.add("PL" + i); }
+            if (columnExists("playlists", "playlist_name")) {
+                cols.add("playlist_name");
+                vals.add("PL" + i);
+            } else if (columnExists("playlists", "name")) {
+                cols.add("name");
+                vals.add("PL" + i);
+            }
             dynamicInsert("playlists", cols, vals);
         }
     }
@@ -214,7 +211,10 @@ class RecommendationScaleTest {
     }
 
     private void addIfColumnExists(String table, String col, List<String> cols, List<Object> vals, Object value) {
-        if (columnExists(table, col)) { cols.add(col); vals.add(value); }
+        if (columnExists(table, col)) {
+            cols.add(col);
+            vals.add(value);
+        }
     }
 
     private boolean columnExists(String table, String col) {
