@@ -5,10 +5,11 @@ import com.example.peachmusic.domain.playlistsong.repository.PlaylistSongReposit
 import com.example.peachmusic.domain.song.dto.SongFeatureDto;
 import com.example.peachmusic.domain.song.dto.SongRecommendationScoreDto;
 import com.example.peachmusic.domain.song.dto.response.SongRecommendationResponseDto;
+import com.example.peachmusic.domain.song.recommend.CosineSimilarity;
+import com.example.peachmusic.domain.song.recommend.FeatureVectorizer;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songlike.repository.SongLikeRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
@@ -26,7 +27,7 @@ public class RecommendationService {
      * 음원 추천 기능 메인 메서드
      */
     @Transactional(readOnly = true)
-    public List<SongRecommendationResponseDto> getRecommendedSongSlice(AuthUser authUser, Pageable pageable) {
+    public List<SongRecommendationResponseDto> getRecommendedSongList(AuthUser authUser) {
         // 사용자의 좋아요 / 플레이리스트 음원 ID 병합
         List<Long> mergedSongIdList = mergeLikeAndPlaylistSongIdList(authUser.getUserId());
 
@@ -35,7 +36,7 @@ public class RecommendationService {
 
         // 신규 회원이거나 Seed 데이터가 없으면 추천 likeCount가 높은 음원부터 50건 반환
         if (mergedSongIdList.isEmpty() || seedGenreIdList.isEmpty()) {
-            return songRepository.findRecommendedSongListForColdStart(pageable);
+            return songRepository.findRecommendedSongListForColdStart();
         }
 
         // songId, 장르, 스피드, 태그, 악기 등 음원 기반 User Profile Vector 생성
@@ -48,7 +49,7 @@ public class RecommendationService {
         List<Long> orderBySongIdList = getTopSongIdList(scoredSongList);
 
         // 추천 결과 DB 조회
-        return songRepository.findRecommendedSongList(orderBySongIdList, pageable);
+        return songRepository.findRecommendedSongList(orderBySongIdList);
     }
 
     /**

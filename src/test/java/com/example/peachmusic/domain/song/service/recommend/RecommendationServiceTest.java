@@ -1,11 +1,13 @@
-package com.example.peachmusic.domain.song.service;
+package com.example.peachmusic.domain.song.service.recommend;
 
 import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.domain.playlistsong.repository.PlaylistSongRepository;
 import com.example.peachmusic.domain.song.dto.SongFeatureDto;
 import com.example.peachmusic.domain.song.dto.response.SongRecommendationResponseDto;
+import com.example.peachmusic.domain.song.recommend.FeatureVectorizer;
 import com.example.peachmusic.domain.song.repository.SongRepository;
+import com.example.peachmusic.domain.song.service.RecommendationService;
 import com.example.peachmusic.domain.songlike.repository.SongLikeRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,7 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Pageable;
 
 import java.util.Collections;
 import java.util.List;
@@ -47,10 +48,9 @@ class RecommendationServiceTest {
 
     @Test
     @DisplayName("추천 조회 성공 - Seed가 없으면 Cold Start 추천을 반환")
-    void success_getRecommendedSongSlice_coldStart() {
+    void success_getRecommendedSongList_coldStart() {
         // given 로그인한 유저 정보와 페이지 정보
         AuthUser authUser = new AuthUser(1L, "test@test.com", UserRole.USER, 1L);
-        Pageable pageable = Pageable.ofSize(10);
 
         // 사용자가 좋아요/플레이리스트에 아무 음원도 없을 때
         given(songLikeRepository.findSongsLikedByUser(authUser.getUserId())).willReturn(Collections.emptyList());
@@ -59,25 +59,24 @@ class RecommendationServiceTest {
         // cold-start 추천 결과
         SongRecommendationResponseDto dto = createDummyDto(1L);
         List<SongRecommendationResponseDto> list = List.of(dto);
-        given(songRepository.findRecommendedSongListForColdStart(pageable)).willReturn(list);
+        given(songRepository.findRecommendedSongListForColdStart()).willReturn(list);
 
         // when
-        List<SongRecommendationResponseDto> result = recommendationService.getRecommendedSongSlice(authUser, pageable);
+        List<SongRecommendationResponseDto> result = recommendationService.getRecommendedSongList(authUser);
 
         // then
         assertEquals(1, result.size());
         assertEquals(1L, result.get(0).getSongId());
 
-        verify(songRepository).findRecommendedSongListForColdStart(pageable);
+        verify(songRepository).findRecommendedSongListForColdStart();
     }
 
 
     @Test
     @DisplayName("추천 조회 성공 - Seed가 있으면 추천 로직을 수행")
-    void success_getRecommendedSongSlice_withSeed() {
+    void success_getRecommendedSongList_withSeed() {
         // given
         AuthUser authUser = new AuthUser(1L, "test@test.com", UserRole.USER, 1L);
-        Pageable pageable = Pageable.ofSize(10);
 
         // 좋아요한 곡이 1번 곡 하나 있다고 가정
         given(songLikeRepository.findSongsLikedByUser(authUser.getUserId())).willReturn(List.of(1L));
@@ -102,17 +101,17 @@ class RecommendationServiceTest {
         // 최종 추천 결과
         SongRecommendationResponseDto dto = createDummyDto(2L);
         List<SongRecommendationResponseDto> list = List.of(dto);
-        given(songRepository.findRecommendedSongList(List.of(2L), pageable)).willReturn(list);
+        given(songRepository.findRecommendedSongList(List.of(2L))).willReturn(list);
 
         // when
-        List<SongRecommendationResponseDto> result = recommendationService.getRecommendedSongSlice(authUser, pageable);
+        List<SongRecommendationResponseDto> result = recommendationService.getRecommendedSongList(authUser);
 
         // then
         assertEquals(1, result.size());
         assertEquals(2L, result.get(0).getSongId());
 
         verify(songRepository).findSeedGenreList(List.of(1L));
-        verify(songRepository).findRecommendedSongList(List.of(2L), pageable);
+        verify(songRepository).findRecommendedSongList(List.of(2L));
     }
 
 
@@ -121,7 +120,6 @@ class RecommendationServiceTest {
     void fail_getRecommendedSongs_noCandidateSongSlice() {
         // given
         AuthUser authUser = new AuthUser(1L, "test@test.com", UserRole.USER, 1L);
-        Pageable pageable = Pageable.ofSize(10);
 
         given(songLikeRepository.findSongsLikedByUser(authUser.getUserId())).willReturn(List.of(1L));
 
@@ -140,7 +138,7 @@ class RecommendationServiceTest {
         given(songRepository.findRecommendFeatureMap(List.of(1L), genreIdList)).willReturn(Collections.emptyMap());
 
         // when
-        List<SongRecommendationResponseDto> result = recommendationService.getRecommendedSongSlice(authUser, pageable);
+        List<SongRecommendationResponseDto> result = recommendationService.getRecommendedSongList(authUser);
 
         // then
         assertTrue(result.isEmpty());
