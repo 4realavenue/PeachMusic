@@ -116,10 +116,9 @@ public class SongAdminService {
     @Transactional(readOnly = true)
     public KeysetResponse<SongSearchResponseDto> getSongList(String word, CursorParam cursor) {
 
-        String[] words = word == null ? null : word.split("\\s+");
         final int size = DETAIL_SIZE;
 
-        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(words, size, ADMIN_VIEW, null, null, cursor);
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(word, size, ADMIN_VIEW, null, null, cursor);
 
         return KeysetResponse.of(content, size, last -> new NextCursor(last.getSongId(), null));
     }

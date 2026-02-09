@@ -1,11 +1,8 @@
 package com.example.peachmusic.domain.artist.service;
 
-import com.example.peachmusic.common.enums.SortDirection;
-import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.model.*;
-import com.example.peachmusic.common.service.KeysetPolicy;
 import com.example.peachmusic.domain.album.dto.response.AlbumArtistDetailResponseDto;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.artist.dto.response.ArtistPreviewResponseDto;
@@ -19,13 +16,11 @@ import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.EnumSet;
 import java.util.List;
 import static com.example.peachmusic.common.constants.SearchViewSize.*;
 import static com.example.peachmusic.common.constants.UserViewScope.PUBLIC_VIEW;
 import static com.example.peachmusic.common.enums.SortDirection.DESC;
 import static com.example.peachmusic.common.enums.SortType.LIKE;
-import static com.example.peachmusic.common.enums.SortType.NAME;
 
 @Service
 @RequiredArgsConstructor
@@ -35,7 +30,6 @@ public class ArtistService {
     private final ArtistLikeRepository artistLikeRepository;
     private final SongRepository songRepository;
     private final AlbumRepository albumRepository;
-    private final KeysetPolicy keysetPolicy;
 
     /**
      * 아티스트 단건 조회 기능
@@ -79,19 +73,9 @@ public class ArtistService {
     @Transactional(readOnly = true)
     public KeysetResponse<ArtistSearchResponseDto> searchArtistPage(SearchConditionParam condition) {
 
-        if (!EnumSet.of(LIKE, NAME).contains(condition.getSortType())) {
-            throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
-        }
+        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), condition.getCursor());
 
-        keysetPolicy.validateCursor(condition.getSortType(), condition.getCursor()); // 커서 검증
-
-        String[] words = condition.getWord().split("\\s+");
-        final int size = DETAIL_SIZE;
-        SortDirection direction = keysetPolicy.resolveSortDirection(condition.getSortType(), condition.getDirection());
-
-        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(words, size, PUBLIC_VIEW, condition.getSortType(), direction, condition.getCursor());
-
-        return KeysetResponse.of(content, size, last -> last.toCursor(condition.getSortType()));
+        return KeysetResponse.of(content, DETAIL_SIZE, last -> last.toCursor(condition.getSortType()));
     }
 
     /**
@@ -101,7 +85,6 @@ public class ArtistService {
      */
     @Transactional(readOnly = true)
     public List<ArtistSearchResponseDto> searchArtistList(String word) {
-        String[] words = word.split("\\s+");
-        return artistRepository.findArtistListByWord(words, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC);
+        return artistRepository.findArtistListByWord(word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC);
     }
 }

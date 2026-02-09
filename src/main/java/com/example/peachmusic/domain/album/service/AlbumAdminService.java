@@ -86,10 +86,9 @@ public class AlbumAdminService {
     @Transactional(readOnly = true)
     public KeysetResponse<AlbumSearchResponseDto> getAlbumList(String word, CursorParam cursor) {
 
-        String[] words = word == null ? null : word.split("\\s+");
         final int size = DETAIL_SIZE;
 
-        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(words, size, ADMIN_VIEW, null, null, cursor);
+        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(word, size, ADMIN_VIEW, null, null, cursor);
 
         return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), null));
     }

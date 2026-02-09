@@ -9,8 +9,8 @@ import java.util.List;
 
 public interface AlbumCustomRepository {
 
-    List<AlbumSearchResponseDto> findAlbumKeysetPageByWord(String[] words, int size, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor);
-    List<AlbumSearchResponseDto> findAlbumListByWord(String[] words, int size, boolean isAdmin, SortType sortType, SortDirection direction);
+    List<AlbumSearchResponseDto> findAlbumKeysetPageByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor);
+    List<AlbumSearchResponseDto> findAlbumListByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction);
     List<AlbumArtistDetailResponseDto> findAlbumList(Long userId, Long artistId, int size);
     List<AlbumArtistDetailResponseDto> findAlbumByArtistKeyset(Long userId, Long artistId, SortType sortType, SortDirection sortDirection, CursorParam cursor, int size);
 }

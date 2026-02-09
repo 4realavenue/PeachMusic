@@ -5,7 +5,6 @@ import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.model.*;
-import com.example.peachmusic.common.service.KeysetPolicy;
 import com.example.peachmusic.domain.album.dto.response.*;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
@@ -20,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import static com.example.peachmusic.common.constants.SearchViewSize.*;
 import static com.example.peachmusic.common.constants.UserViewScope.PUBLIC_VIEW;
@@ -36,7 +34,6 @@ public class AlbumService {
     private final SongRepository songRepository;
     private final AlbumLikeRepository albumLikeRepository;
     private final ArtistRepository artistRepository;
-    private final KeysetPolicy keysetPolicy;
 
     /**
      * 앨범 단건 조회 기능
@@ -84,10 +81,8 @@ public class AlbumService {
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
 
         SortType sortType = SortType.RELEASE_DATE;
-        keysetPolicy.validateCursor(sortType, cursor);
-
-        final int size = DETAIL_SIZE;
         SortDirection direction = sortType.getDefaultDirection();
+        final int size = DETAIL_SIZE;
 
         List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, direction, cursor, size);
 
@@ -100,19 +95,9 @@ public class AlbumService {
     @Transactional(readOnly = true)
     public KeysetResponse<AlbumSearchResponseDto> searchAlbumPage(SearchConditionParam condition) {
 
-        if (!EnumSet.of(LIKE, NAME, RELEASE_DATE).contains(condition.getSortType())) {
-            throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
-        }
+        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), condition.getCursor());
 
-        keysetPolicy.validateCursor(condition.getSortType(), condition.getCursor()); // 커서 검증
-
-        String[] words = condition.getWord().split("\\s+");
-        final int size = DETAIL_SIZE;
-        SortDirection direction = keysetPolicy.resolveSortDirection(condition.getSortType(), condition.getDirection());
-
-        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(words, size, PUBLIC_VIEW, condition.getSortType(), direction, condition.getCursor());
-
-        return KeysetResponse.of(content, size, last -> last.toCursor(condition.getSortType()));
+        return KeysetResponse.of(content, DETAIL_SIZE, last -> last.toCursor(condition.getSortType()));
     }
 
     /**
@@ -122,7 +107,6 @@ public class AlbumService {
      */
     @Transactional(readOnly = true)
     public List<AlbumSearchResponseDto> searchAlbumList(String word) {
-        String[] words = word.split("\\s+");
-        return albumRepository.findAlbumListByWord(words, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
+        return albumRepository.findAlbumListByWord(word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
     }
 }
