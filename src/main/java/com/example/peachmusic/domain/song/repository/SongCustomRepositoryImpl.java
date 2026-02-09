@@ -18,7 +18,6 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import java.util.ArrayList;
 import java.util.List;
 import static com.example.peachmusic.domain.album.entity.QAlbum.album;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
@@ -77,13 +76,6 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
         keysetPolicy.validateCursor(sortType, cursor); // 커서 검증
         boolean isAsc = keysetPolicy.isAscending(sortType, direction);
 
-        List<OrderSpecifier<?>> orderList = new ArrayList<>();
-        OrderSpecifier<?> main = mainOrder(sortType, isAsc);
-        if (main != null) {
-            orderList.add(main);
-        }
-        orderList.add(idOrder(isAsc)); // id 정렬은 항상 함
-
         // 아티스트 이름을 문자열로 합치기
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
 
@@ -96,7 +88,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
                 .join(streamingJob).on(streamingJob.song.eq(song))
                 .where(searchCondition(word, isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
                 .groupBy(song.songId) // 아티스트 이름을 문자열로 합치는데 음원 id를 기준으로 함
-                .orderBy(orderList.toArray(OrderSpecifier[]::new)); // Keyset 조건에 사용되는 커서 순서대로 정렬
+                .orderBy(keysetOrder(sortType, isAsc)); // Keyset 조건에 사용되는 커서 순서대로 정렬
     }
 
     /**
@@ -106,13 +98,6 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
 
         keysetPolicy.validateCursor(sortType, cursor); // 커서 검증
         boolean isAsc = direction == SortDirection.ASC;
-
-        List<OrderSpecifier<?>> orderList = new ArrayList<>();
-        OrderSpecifier<?> main = mainOrder(sortType, isAsc);
-        if (main != null) {
-            orderList.add(main);
-        }
-        orderList.add(idOrder(isAsc)); // id 정렬은 항상 함
 
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
 
@@ -126,7 +111,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
                 .leftJoin(songLike).on(songLike.song.eq(song).and(songLike.user.userId.eq(userId)))
                 .where(artist.artistId.eq(artistId), song.isDeleted.isFalse(), song.streamingStatus.isTrue(), keysetCondition(sortType, isAsc, cursor))
                 .groupBy(song.songId)
-                .orderBy(orderList.toArray(OrderSpecifier[]::new));
+                .orderBy(keysetOrder(sortType, isAsc));
     }
 
     /**
@@ -247,6 +232,19 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
     private BooleanExpression playKeyset(boolean asc, CursorParam cursor) {
         BooleanExpression dateCondition = asc ? song.playCount.gt(cursor.getLastPlay()) : song.playCount.lt(cursor.getLastPlay());
         return dateCondition.or(song.playCount.eq(cursor.getLastPlay()).and(idKeyset(asc, cursor.getLastId())));
+    }
+    /**
+     * keyset 정렬
+     */
+    private OrderSpecifier<?>[] keysetOrder(SortType sortType, boolean isAsc) {
+
+        OrderSpecifier<?> main = mainOrder(sortType, isAsc);
+
+        if (main != null) {
+            return new OrderSpecifier<?>[] {main, idOrder(isAsc)};
+        }
+
+        return new OrderSpecifier<?>[] {idOrder(isAsc)};
     }
 
     /**
