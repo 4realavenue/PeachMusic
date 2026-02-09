@@ -5,7 +5,6 @@ import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.model.NextCursor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import java.time.LocalDate;
 
 @Getter

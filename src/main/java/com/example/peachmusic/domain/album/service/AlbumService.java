@@ -4,7 +4,6 @@ import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.model.AuthUser;
-import com.example.peachmusic.common.model.CursorParam;
 import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.common.model.SearchConditionParam;
 import com.example.peachmusic.common.service.KeysetPolicy;
@@ -24,11 +23,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import static com.example.peachmusic.common.constants.SearchViewSize.*;
 import static com.example.peachmusic.common.constants.UserViewScope.PUBLIC_VIEW;
 import static com.example.peachmusic.common.enums.SortDirection.DESC;
-import static com.example.peachmusic.common.enums.SortType.LIKE;
+import static com.example.peachmusic.common.enums.SortType.*;
 
 @Service
 @RequiredArgsConstructor
@@ -82,14 +82,17 @@ public class AlbumService {
     @Transactional(readOnly = true)
     public KeysetResponse<AlbumSearchResponseDto> searchAlbumPage(SearchConditionParam condition) {
 
-        CursorParam cursor = condition.getCursor();
-        keysetPolicy.validateCursor(condition.getSortType(), cursor); // 커서 검증
+        if (!EnumSet.of(LIKE, NAME, RELEASE_DATE).contains(condition.getSortType())) {
+            throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
+        }
+
+        keysetPolicy.validateCursor(condition.getSortType(), condition.getCursor()); // 커서 검증
 
         String[] words = condition.getWord().split("\\s+");
         final int size = DETAIL_SIZE;
         SortDirection direction = keysetPolicy.resolveSortDirection(condition.getSortType(), condition.getDirection());
 
-        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(words, size, PUBLIC_VIEW, condition.getSortType(), direction, cursor.getLastId(), cursor.getLastLike(), cursor.getLastName(), cursor.getLastDate());
+        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(words, size, PUBLIC_VIEW, condition.getSortType(), direction, condition.getCursor());
 
         return KeysetResponse.of(content, size, last -> last.toCursor(condition.getSortType()));
     }

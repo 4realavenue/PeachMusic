@@ -1,8 +1,6 @@
 package com.example.peachmusic.domain.album.dto.response;
 
-import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.SortType;
-import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.NextCursor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +23,7 @@ public class AlbumSearchResponseDto {
             case LIKE -> new NextCursor(albumId, likeCount);
             case NAME -> new NextCursor(albumId, albumName);
             case RELEASE_DATE -> new NextCursor(albumId, releaseDate);
-            default -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
+            default -> null;
         };
     }
 }

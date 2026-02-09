@@ -3,6 +3,7 @@ package com.example.peachmusic.domain.album.service;
 import com.example.peachmusic.common.enums.FileType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
+import com.example.peachmusic.common.model.CursorParam;
 import com.example.peachmusic.common.model.NextCursor;
 import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.common.storage.FileStorageService;
@@ -83,12 +84,12 @@ public class AlbumAdminService {
      * @return 앨범 목록 페이징 조회 결과
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<AlbumSearchResponseDto> getAlbumList(String word, Long lastId) {
+    public KeysetResponse<AlbumSearchResponseDto> getAlbumList(String word, CursorParam cursor) {
 
         String[] words = word == null ? null : word.split("\\s+");
         final int size = DETAIL_SIZE;
 
-        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(words, size, ADMIN_VIEW, null, null, lastId, null, null, null);
+        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(words, size, ADMIN_VIEW, null, null, cursor);
 
         return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), null));
     }
