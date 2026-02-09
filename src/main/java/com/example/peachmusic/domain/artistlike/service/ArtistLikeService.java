@@ -1,36 +1,43 @@
 package com.example.peachmusic.domain.artistlike.service;
 
 import com.example.peachmusic.common.model.AuthUser;
+import com.example.peachmusic.common.model.Cursor;
+import com.example.peachmusic.common.model.KeysetResponse;
+import com.example.peachmusic.common.retry.LockRetryExecutor;
+import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikeResponseDto;
+import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikedItemResponseDto;
+import com.example.peachmusic.domain.artistlike.repository.ArtistLikeRepository;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.AssertionFailure;
-import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.function.Supplier;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ArtistLikeService {
+public class ArtistLikeService extends AbstractKeysetService {
 
-    private final ArtistLikeTxService artistLikeTxService;
+    private final LockRetryExecutor lockRetryExecutor;
+    private final ArtistLikeCommand artistLikeCommand;
+    private final ArtistLikeRepository artistLikeRepository;
+
+    private static final int KEYSET_SIZE = 10;
 
     public ArtistLikeResponseDto likeArtist(AuthUser authUser, Long artistId) {
-        return retryOnLock(() -> artistLikeTxService.doLikeArtist(authUser, artistId));
+        return lockRetryExecutor.execute(() -> artistLikeCommand.doLikeArtist(authUser, artistId));
     }
 
-    private ArtistLikeResponseDto retryOnLock(Supplier<ArtistLikeResponseDto> action) {
-        int maxRetry = 2;
+    @Transactional(readOnly = true)
+    public KeysetResponse<ArtistLikedItemResponseDto> getMyLikedArtist(Long userId, Long lastLikeId) {
 
-        for (int i = 0; i <= maxRetry; i++) {
-            try {
-                return action.get();
-            } catch (PessimisticLockingFailureException e) {
-                if (i == maxRetry) {
-                    throw e;
-                }
-            }
-        }
-        throw new AssertionFailure("unreachable");
+        List<ArtistLikedItemResponseDto> content = artistLikeRepository.findMyLikedArtistWithCursor(userId, lastLikeId, KEYSET_SIZE);
+
+        return toKeysetResponse(content, KEYSET_SIZE, likedArtist -> new Cursor(likedArtist.getArtistLikeId(), null));
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isArtistLiked(Long artistId, Long userId) {
+        return artistLikeRepository.existsByArtist_ArtistIdAndUser_UserId(artistId, userId);
     }
 }
