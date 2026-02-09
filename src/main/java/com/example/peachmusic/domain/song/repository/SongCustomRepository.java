@@ -9,8 +9,8 @@ import java.util.List;
 
 public interface SongCustomRepository {
 
-    List<SongSearchResponseDto> findSongKeysetPageByWord(String[] words, int size, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor);
-    List<SongSearchResponseDto> findSongListByWord(String[] words, int size, boolean isAdmin, SortType sortType, SortDirection direction);
+    List<SongSearchResponseDto> findSongKeysetPageByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor);
+    List<SongSearchResponseDto> findSongListByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction);
     List<SongArtistDetailResponseDto> findSongList(Long userId, Long artistId, int size);
     List<SongArtistDetailResponseDto> findSongByArtistKeyset(Long userId, Long artistId, SortType sortType, SortDirection sortDirection, CursorParam cursor, int size);
 }

@@ -69,10 +69,9 @@ public class ArtistAdminService {
     @Transactional(readOnly = true)
     public KeysetResponse<ArtistSearchResponseDto> getArtistList(String word, CursorParam cursor) {
 
-        String[] words = word == null ? null : word.split("\\s+");
         final int size = DETAIL_SIZE;
 
-        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(words, size, ADMIN_VIEW, null, null, cursor);
+        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(word, size, ADMIN_VIEW, null, null, cursor);
 
         return KeysetResponse.of(content, size, last -> new NextCursor(last.getArtistId(), null));
     }

@@ -1,9 +1,12 @@
 package com.example.peachmusic.domain.artist.repository;
 
+import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
+import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.CursorParam;
 import com.example.peachmusic.common.query.SearchWordCondition;
+import com.example.peachmusic.common.repository.KeysetPolicy;
 import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
@@ -18,33 +21,36 @@ import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
 public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final KeysetPolicy keysetPolicy;
 
-    public ArtistCustomRepositoryImpl(EntityManager em) {
+    public ArtistCustomRepositoryImpl(EntityManager em, KeysetPolicy keysetPolicy) {
         queryFactory = new JPAQueryFactory(em);
+        this.keysetPolicy = keysetPolicy;
     }
 
     /**
      * 검색 - 자세히 보기
      */
     @Override
-    public List<ArtistSearchResponseDto> findArtistKeysetPageByWord(String[] words, int size, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor) {
-        return baseQuery(words, isAdmin, sortType, direction, cursor).limit(size+1).fetch(); // 요청한 사이즈보다 하나 더 많은 데이터를 조회
+    public List<ArtistSearchResponseDto> findArtistKeysetPageByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor) {
+        return baseQuery(word, isAdmin, sortType, direction, cursor).limit(size+1).fetch(); // 요청한 사이즈보다 하나 더 많은 데이터를 조회
     }
 
     /**
      * 검색 - 미리보기
      */
     @Override
-    public List<ArtistSearchResponseDto> findArtistListByWord(String[] words, int size, boolean isAdmin, SortType sortType, SortDirection direction) {
-        return baseQuery(words, isAdmin, sortType, direction, null).limit(size).fetch();
+    public List<ArtistSearchResponseDto> findArtistListByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction) {
+        return baseQuery(word, isAdmin, sortType, direction, null).limit(size).fetch();
     }
 
     /**
      * 기본 쿼리
      */
-    private JPAQuery<ArtistSearchResponseDto> baseQuery(String[] words, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor) {
+    private JPAQuery<ArtistSearchResponseDto> baseQuery(String word, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor) {
 
-        boolean isAsc = sortType == null || direction == SortDirection.ASC;
+        keysetPolicy.validateCursor(sortType, cursor); // 커서 검증
+        boolean isAsc = keysetPolicy.isAscending(sortType, direction);
 
         List<OrderSpecifier<?>> orderList = new ArrayList<>();
         OrderSpecifier<?> main = mainOrder(sortType, isAsc);
@@ -56,22 +62,22 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
         return queryFactory
                 .select(Projections.constructor(ArtistSearchResponseDto.class, artist.artistId, artist.artistName, artist.likeCount, artist.isDeleted))
                 .from(artist)
-                .where(searchCondition(words, isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
+                .where(searchCondition(word, isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
                 .orderBy(orderList.toArray(OrderSpecifier[]::new)); // Keyset 조건에 사용되는 커서 순서대로 정렬
     }
 
     /**
      * 검색 조건
      */
-    private BooleanExpression searchCondition(String[] words, boolean isAdmin) {
+    private BooleanExpression searchCondition(String word, boolean isAdmin) {
 
-        if (words == null) {
+        if (word == null) {
             return null;
         }
 
         BooleanExpression condition = null;
 
-        for (String w : words) { // 검색 단어가 여러개인 경우 하나씩 조건에 넣어서 and로 묶음
+        for (String w : word.split("\\s+")) { // 검색 단어가 여러개인 경우 하나씩 조건에 넣어서 and로 묶음
             condition = addCondition(condition, SearchWordCondition.wordMatch(artist.artistName, w));
         }
 
@@ -115,7 +121,7 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
         return switch (sortType) {
             case LIKE -> likeCountKeyset(asc, cursor);
             case NAME -> nameKeyset(asc, cursor);
-            default -> null;
+            default -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
         };
     }
 
@@ -153,7 +159,7 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
         return switch (sortType) {
             case LIKE -> asc ? artist.likeCount.asc() : artist.likeCount.desc();
             case NAME -> asc ? artist.artistName.asc() : artist.artistName.desc();
-            default -> null;
+            default -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
         };
     }
 

@@ -6,7 +6,6 @@ import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.*;
-import com.example.peachmusic.common.service.KeysetPolicy;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.artist.entity.Artist;
@@ -27,7 +26,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
-import java.util.EnumSet;
 import java.util.List;
 import static com.example.peachmusic.common.constants.SearchViewSize.*;
 import static com.example.peachmusic.common.constants.UserViewScope.PUBLIC_VIEW;
@@ -44,7 +42,6 @@ public class SongService {
     private final SongLikeRepository songLikeRepository;
     private final ArtistRepository artistRepository;
     private final UserService userService;
-    private final KeysetPolicy keysetPolicy;
     private final RedisTemplate<String,String> redisTemplate;
 
     public static final String MUSIC_DAILY_KEY = "music";
@@ -92,10 +89,8 @@ public class SongService {
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
 
         SortType sortType = SortType.RELEASE_DATE;
-        keysetPolicy.validateCursor(sortType, cursor);
-
-        final int size = DETAIL_SIZE;
         SortDirection direction = sortType.getDefaultDirection();
+        final int size = DETAIL_SIZE;
 
         List<SongArtistDetailResponseDto> content = songRepository.findSongByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, direction, cursor, size);
 
@@ -108,20 +103,9 @@ public class SongService {
     @Transactional(readOnly = true)
     public KeysetResponse<SongSearchResponseDto> searchSongPage(SearchConditionParam condition) {
 
-        if (!EnumSet.of(LIKE, NAME, RELEASE_DATE, PLAY).contains(condition.getSortType())) {
-            throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
-        }
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), condition.getCursor());
 
-        CursorParam cursor = condition.getCursor();
-        keysetPolicy.validateCursor(condition.getSortType(), cursor); // 커서 검증
-
-        String[] words = condition.getWord().split("\\s+");
-        final int size = DETAIL_SIZE;
-        SortDirection direction = keysetPolicy.resolveSortDirection(condition.getSortType(), condition.getDirection());
-
-        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(words, size, PUBLIC_VIEW, condition.getSortType(), direction, cursor);
-
-        return KeysetResponse.of(content, size, last -> last.toCursor(condition.getSortType()));
+        return KeysetResponse.of(content, DETAIL_SIZE, last -> last.toCursor(condition.getSortType()));
     }
 
     /**
@@ -129,8 +113,7 @@ public class SongService {
      */
     @Transactional(readOnly = true)
     public List<SongSearchResponseDto> searchSongList(String word) {
-        String[] words = word.split("\\s+");
-        return songRepository.findSongListByWord(words, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
+        return songRepository.findSongListByWord(word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
     }
 
     /**

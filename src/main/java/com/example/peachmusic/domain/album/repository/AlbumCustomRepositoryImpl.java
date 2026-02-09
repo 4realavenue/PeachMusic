@@ -6,6 +6,7 @@ import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.CursorParam;
 import com.example.peachmusic.common.query.SearchWordCondition;
+import com.example.peachmusic.common.repository.KeysetPolicy;
 import com.example.peachmusic.domain.album.dto.response.AlbumArtistDetailResponseDto;
 import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
 import com.example.peachmusic.domain.artist.entity.QArtist;
@@ -29,25 +30,27 @@ import static com.example.peachmusic.domain.artistalbum.entity.QArtistAlbum.arti
 public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
 
     private final JPAQueryFactory queryFactory;
+    private final KeysetPolicy keysetPolicy;
 
-    public AlbumCustomRepositoryImpl(EntityManager em) {
+    public AlbumCustomRepositoryImpl(EntityManager em, KeysetPolicy keysetPolicy) {
         queryFactory = new JPAQueryFactory(em);
+        this.keysetPolicy = keysetPolicy;
     }
 
     /**
      * 검색 - 자세히 보기
      */
     @Override
-    public List<AlbumSearchResponseDto> findAlbumKeysetPageByWord(String[] words, int size, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor) {
-        return baseQuery(words, isAdmin, sortType, direction, cursor).limit(size+1).fetch(); // 요청한 사이즈보다 하나 더 많은 데이터를 조회
+    public List<AlbumSearchResponseDto> findAlbumKeysetPageByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor) {
+        return baseQuery(word, isAdmin, sortType, direction, cursor).limit(size+1).fetch(); // 요청한 사이즈보다 하나 더 많은 데이터를 조회
     }
 
     /**
      * 검색 - 미리보기
      */
     @Override
-    public List<AlbumSearchResponseDto> findAlbumListByWord(String[] words, int size, boolean isAdmin, SortType sortType, SortDirection direction) {
-        return baseQuery(words, isAdmin, sortType, direction, null).limit(size).fetch();
+    public List<AlbumSearchResponseDto> findAlbumListByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction) {
+        return baseQuery(word, isAdmin, sortType, direction, null).limit(size).fetch();
     }
 
     /**
@@ -69,9 +72,10 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
     /**
      * 기본 쿼리
      */
-    private JPAQuery<AlbumSearchResponseDto> baseQuery(String[] words, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor) {
+    private JPAQuery<AlbumSearchResponseDto> baseQuery(String word, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor) {
 
-        boolean isAsc = direction == SortDirection.ASC;
+        keysetPolicy.validateCursor(sortType, cursor); // 커서 검증
+        boolean isAsc = keysetPolicy.isAscending(sortType, direction);
 
         List<OrderSpecifier<?>> orderList = new ArrayList<>();
         OrderSpecifier<?> main = mainOrder(sortType, isAsc);
@@ -88,7 +92,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
                 .from(album)
                 .join(artistAlbum).on(artistAlbum.album.eq(album))
                 .join(artist).on(artistAlbum.artist.eq(artist))
-                .where(searchCondition(words, isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
+                .where(searchCondition(word, isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
                 .groupBy(album.albumId) // 아티스트 이름을 문자열로 합치는데 앨범 id를 기준으로 함
                 .orderBy(orderList.toArray(OrderSpecifier[]::new)); // Keyset 조건에 사용되는 커서 순서대로 정렬
     }
@@ -98,6 +102,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
      */
     private JPAQuery<AlbumArtistDetailResponseDto> baseQueryByArtist(Long userId, Long artistId, SortType sortType, SortDirection direction, CursorParam cursor) {
 
+        keysetPolicy.validateCursor(sortType, cursor); // 커서 검증
         boolean isAsc = direction == SortDirection.ASC;
 
         List<OrderSpecifier<?>> orderList = new ArrayList<>();
@@ -124,15 +129,15 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
     /**
      * 검색 조건
      */
-    private BooleanExpression searchCondition(String[] words, boolean isAdmin) {
+    private BooleanExpression searchCondition(String word, boolean isAdmin) {
 
-        if (words == null) {
+        if (word == null) {
             return null;
         }
 
         BooleanExpression condition = null;
 
-        for (String w : words) { // 검색 단어가 여러개인 경우 하나씩 조건에 넣어서 and로 묶음
+        for (String w : word.split("\\s+")) { // 검색 단어가 여러개인 경우 하나씩 조건에 넣어서 and로 묶음
             condition = addCondition(condition, SearchWordCondition.wordMatch(album.albumName, w).or(artistNameExists(w)));
         }
 
@@ -198,7 +203,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
             case LIKE -> likeCountKeyset(asc, cursor);
             case NAME -> nameKeyset(asc, cursor);
             case RELEASE_DATE -> dateKeyset(asc, cursor);
-            case PLAY -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
+            default -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
         };
     }
 
@@ -245,7 +250,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
             case LIKE -> asc ? album.likeCount.asc() : album.likeCount.desc();
             case NAME -> asc ? album.albumName.asc() : album.albumName.desc();
             case RELEASE_DATE -> asc ? album.albumReleaseDate.asc() : album.albumReleaseDate.desc();
-            case PLAY -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
+            default -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
         };
     }
 
