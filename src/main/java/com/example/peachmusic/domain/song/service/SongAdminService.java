@@ -175,13 +175,7 @@ public class SongAdminService extends AbstractKeysetService {
 
         String newPath = storeAudio(audio, findSong.getName());
 
-        try {
-            findSong.updateAudio(newPath);
-        } catch (RuntimeException e) {
-            // DB 반영 실패하면 새로 저장한 파일 정리
-            cleanupFileQuietly(newPath);
-            throw e;
-        }
+        findSong.updateAudio(newPath);
 
         if (oldPath != null && !oldPath.equals(newPath) && isManagedFilePath(oldPath)) {
             fileStorageService.deleteFileByPath(oldPath);
