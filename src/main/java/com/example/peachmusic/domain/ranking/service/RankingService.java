@@ -1,12 +1,13 @@
 package com.example.peachmusic.domain.ranking.service;
 
-import com.example.peachmusic.common.model.PageResponse;
+import com.example.peachmusic.domain.StaticNumber;
 import com.example.peachmusic.domain.ranking.model.RankingResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
@@ -20,19 +21,20 @@ public class RankingService {
 
     private final RedisTemplate<String, String> redisTemplate;
 
-    public PageResponse<RankingResponseDto> findMusicTop100(int page , int limit) {
+    public List<RankingResponseDto> findMusicTop100() {
 
         LocalDate currentDate = LocalDate.now();
 
+
         // 현재일로부터 1주의 데이터를 리스트로 만들어 나열함
         List<String> keyList = List.of(
-                MUSIC_DAILY_KEY + currentDate.toString(),
-                MUSIC_DAILY_KEY + currentDate.minusDays(1).toString(),
-                MUSIC_DAILY_KEY + currentDate.minusDays(2).toString(),
-                MUSIC_DAILY_KEY + currentDate.minusDays(3).toString(),
-                MUSIC_DAILY_KEY + currentDate.minusDays(4).toString(),
-                MUSIC_DAILY_KEY + currentDate.minusDays(5).toString(),
-                MUSIC_DAILY_KEY + currentDate.minusDays(6).toString()
+                MUSIC_DAILY_KEY + currentDate,
+                MUSIC_DAILY_KEY + currentDate.minusDays(1),
+                MUSIC_DAILY_KEY + currentDate.minusDays(2),
+                MUSIC_DAILY_KEY + currentDate.minusDays(3),
+                MUSIC_DAILY_KEY + currentDate.minusDays(4),
+                MUSIC_DAILY_KEY + currentDate.minusDays(5),
+                MUSIC_DAILY_KEY + currentDate.minusDays(6)
         );
 
         // 위 List로 값을 묶어서 music_rank:last1weeks 에 저장
@@ -41,25 +43,21 @@ public class RankingService {
         // 1주간의 데이터를 병합함
         redisTemplate.opsForZSet().unionAndStore(keyList.get(0), keyList.subList(1,keyList.size()), destKey);
 
-        int start = (page - 1) * limit;
-        int end = start + limit - 1;
+        // TTL 설정
+        redisTemplate.expire(destKey, Duration.ofDays(StaticNumber.RESET_DATE));
 
         // 1주간의 데이터를 합친것 중 상위 Top 100 뽑아냄
         Set<TypedTuple<String>> result = redisTemplate
-                .opsForZSet().reverseRangeWithScores(destKey, start, end);
+                .opsForZSet().reverseRangeWithScores(destKey, 0, 100);
 
         // 결과가 빈값이면 빈리스트 반환
-        if (result == null || result.isEmpty()) {
-            return new PageResponse<>(true,"조회 완료했습니다.", new PageResponse.PageData<>(Collections.emptyList(), 0, 0, limit, page));
+        if ( result == null ) {
+            return Collections.emptyList();
         }
 
         // Set<typedTuple<String>> -> List<RankingDto> 변환
-        List<RankingResponseDto> content = result.stream().map(RankingResponseDto::of).toList();
-
-        long totalElements = redisTemplate.opsForZSet().size(destKey);
-        int totalPages = (int) Math.ceil((double) totalElements / limit);
-
-        // 페이지 응답 생성
-        return new PageResponse<>(true,"조회 완료했습니다.",new PageResponse.PageData<>(content, totalElements, totalPages, limit, page));
+        return result.stream()
+                .map(RankingResponseDto::of)
+                .toList();
     }
 }

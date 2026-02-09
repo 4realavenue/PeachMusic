@@ -4,6 +4,7 @@ import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.filter.JwtUtil;
 import com.example.peachmusic.common.model.AuthUser;
+import com.example.peachmusic.domain.Mail.Service.MailService;
 import com.example.peachmusic.domain.user.dto.request.LoginRequestDto;
 import com.example.peachmusic.domain.user.dto.request.UserCreateRequestDto;
 import com.example.peachmusic.domain.user.dto.response.LoginResponseDto;
@@ -25,9 +26,9 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final MailCheckService mailCheckService;
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final MailService mailService;
 
 
     /**
@@ -36,12 +37,8 @@ public class AuthService {
     @Transactional
     public UserCreateResponseDto createUser(UserCreateRequestDto request) {
 
-        if (!mailCheckService.isEmailVerified(request.getEmail())) {
+        if (!mailService.isEmailVerified(request.getEmail())) {
             throw new CustomException(ErrorCode.EMAIL_NOT_VERIFIED);
-        }
-
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new CustomException(ErrorCode.USER_EXIST_EMAIL);
         }
 
         if (userRepository.existsByNickname(request.getNickname())) {

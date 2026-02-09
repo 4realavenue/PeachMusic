@@ -9,6 +9,7 @@ import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.Cursor;
 import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.common.service.AbstractKeysetService;
+import com.example.peachmusic.domain.StaticNumber;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.song.dto.response.SongGetDetailResponseDto;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.function.Function;
@@ -132,11 +134,17 @@ public class SongService extends AbstractKeysetService {
         Song song = songRepository.findById(songId).orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
         // 키에 날짜 반영
-        String key =  MUSIC_DAILY_KEY + currentDate.toString();
+        String key =  MUSIC_DAILY_KEY + currentDate;
         // music:2025-02-04
 
+        // 레디스에 이름과 id 동시 저장을 위해 조합
+        String value = song.getName() + ":" + songId;
+
         // Redis에 저장
-        redisTemplate.opsForZSet().incrementScore(key, songId.toString(),1);
+        redisTemplate.opsForZSet().incrementScore(key, value ,1);
+
+        //TTL 설정
+        redisTemplate.expire(key, Duration.ofDays(StaticNumber.RESET_DATE));
 
         // DB에 저장
         song.addPlayCount();
