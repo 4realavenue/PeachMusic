@@ -20,7 +20,6 @@ import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import java.util.ArrayList;
 import java.util.List;
 import static com.example.peachmusic.domain.album.entity.QAlbum.album;
 import static com.example.peachmusic.domain.albumlike.entity.QAlbumLike.albumLike;
@@ -77,13 +76,6 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
         keysetPolicy.validateCursor(sortType, cursor); // 커서 검증
         boolean isAsc = keysetPolicy.isAscending(sortType, direction);
 
-        List<OrderSpecifier<?>> orderList = new ArrayList<>();
-        OrderSpecifier<?> main = mainOrder(sortType, isAsc);
-        if (main != null) {
-            orderList.add(main);
-        }
-        orderList.add(idOrder(isAsc)); // id 정렬은 항상 함
-
         // 아티스트 이름을 문자열로 합치기
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
 
@@ -94,7 +86,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
                 .join(artist).on(artistAlbum.artist.eq(artist))
                 .where(searchCondition(word, isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
                 .groupBy(album.albumId) // 아티스트 이름을 문자열로 합치는데 앨범 id를 기준으로 함
-                .orderBy(orderList.toArray(OrderSpecifier[]::new)); // Keyset 조건에 사용되는 커서 순서대로 정렬
+                .orderBy(keysetOrder(sortType, isAsc)); // Keyset 조건에 사용되는 커서 순서대로 정렬
     }
 
     /**
@@ -104,13 +96,6 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
 
         keysetPolicy.validateCursor(sortType, cursor); // 커서 검증
         boolean isAsc = direction == SortDirection.ASC;
-
-        List<OrderSpecifier<?>> orderList = new ArrayList<>();
-        OrderSpecifier<?> main = mainOrder(sortType, isAsc);
-        if (main != null) {
-            orderList.add(main);
-        }
-        orderList.add(idOrder(isAsc)); // id 정렬은 항상 함
 
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
 
@@ -122,7 +107,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
                 .leftJoin(albumLike).on(albumLike.album.eq(album).and(albumLike.user.userId.eq(userId)))
                 .where(artist.artistId.eq(artistId), album.isDeleted.isFalse(), keysetCondition(sortType, isAsc, cursor))
                 .groupBy(album.albumId)
-                .orderBy(orderList.toArray(OrderSpecifier[]::new));
+                .orderBy(keysetOrder(sortType, isAsc));
     }
 
 
@@ -236,6 +221,20 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
     private BooleanExpression dateKeyset(boolean asc, CursorParam cursor) {
         BooleanExpression dateCondition = asc ? album.albumReleaseDate.gt(cursor.getLastDate()) : album.albumReleaseDate.lt(cursor.getLastDate());
         return dateCondition.or(album.albumReleaseDate.eq(cursor.getLastDate()).and(idKeyset(asc, cursor.getLastId())));
+    }
+
+    /**
+     * keyset 정렬
+     */
+    private OrderSpecifier<?>[] keysetOrder(SortType sortType, boolean isAsc) {
+
+        OrderSpecifier<?> main = mainOrder(sortType, isAsc);
+
+        if (main != null) {
+            return new OrderSpecifier<?>[] {main, idOrder(isAsc)};
+        }
+
+        return new OrderSpecifier<?>[] {idOrder(isAsc)};
     }
 
     /**

@@ -14,7 +14,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import java.util.ArrayList;
 import java.util.List;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
 
@@ -52,18 +51,11 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
         keysetPolicy.validateCursor(sortType, cursor); // 커서 검증
         boolean isAsc = keysetPolicy.isAscending(sortType, direction);
 
-        List<OrderSpecifier<?>> orderList = new ArrayList<>();
-        OrderSpecifier<?> main = mainOrder(sortType, isAsc);
-        if (main != null) {
-            orderList.add(main);
-        }
-        orderList.add(idOrder(isAsc)); // id 정렬은 항상 함
-
         return queryFactory
                 .select(Projections.constructor(ArtistSearchResponseDto.class, artist.artistId, artist.artistName, artist.likeCount, artist.isDeleted))
                 .from(artist)
                 .where(searchCondition(word, isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
-                .orderBy(orderList.toArray(OrderSpecifier[]::new)); // Keyset 조건에 사용되는 커서 순서대로 정렬
+                .orderBy(keysetOrder(sortType, isAsc)); // Keyset 조건에 사용되는 커서 순서대로 정렬
     }
 
     /**
@@ -146,6 +138,20 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
     private BooleanExpression nameKeyset(boolean asc, CursorParam cursor) {
         BooleanExpression nameCondition = asc ? artist.artistName.gt(cursor.getLastName()) : artist.artistName.lt(cursor.getLastName());
         return nameCondition.or(artist.artistName.eq(cursor.getLastName()).and(idKeyset(asc, cursor.getLastId())));
+    }
+
+    /**
+     * keyset 정렬
+     */
+    private OrderSpecifier<?>[] keysetOrder(SortType sortType, boolean isAsc) {
+
+        OrderSpecifier<?> main = mainOrder(sortType, isAsc);
+
+        if (main != null) {
+            return new OrderSpecifier<?>[] {main, idOrder(isAsc)};
+        }
+
+        return new OrderSpecifier<?>[] {idOrder(isAsc)};
     }
 
     /**
