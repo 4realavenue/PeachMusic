@@ -2,15 +2,16 @@ package com.example.peachmusic.domain.songlike.service;
 
 import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.model.AuthUser;
+import com.example.peachmusic.common.retry.LockRetryExecutor;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
-import com.example.peachmusic.domain.songlike.repository.SongLikeRepository;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.repository.UserRepository;
 import com.example.peachmusic.domain.user.service.UserService;
 import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -31,7 +33,10 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,10 +44,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(SongLikeTxServiceTest.TestBeans.class)
-class SongLikeTxServiceTest {
+@EnableRetry
+@Import({SongLikeService.class, SongLikeCommand.class, LockRetryExecutor.class})
+class SongLikeServiceTest {
 
-    private static final Logger log = LoggerFactory.getLogger(SongLikeTxServiceTest.class);
+    private static final Logger log = LoggerFactory.getLogger(SongLikeServiceTest.class);
 
     @Autowired
     SongRepository songRepository;
@@ -54,7 +60,7 @@ class SongLikeTxServiceTest {
     AlbumRepository albumRepository;
 
     @Autowired
-    private SongLikeTxService songLikeTxService;
+    private SongLikeService songLikeService;
 
     @Autowired
     PlatformTransactionManager transactionManager;
@@ -68,11 +74,21 @@ class SongLikeTxServiceTest {
         UserService userService(UserRepository userRepository) {
             return new UserService(userRepository);
         }
+    }
 
-        @Bean
-        SongLikeTxService songLikeTxService(SongLikeRepository songLikeRepository, SongRepository songRepository) {
-            return new SongLikeTxService(songLikeRepository, songRepository);
-        }
+    @BeforeEach
+    void setUp() {
+        TransactionTemplate tx = new TransactionTemplate(transactionManager);
+
+        tx.execute(status -> {
+            em.createNativeQuery("SET FOREIGN_KEY_CHECKS = 0").executeUpdate();
+            em.createNativeQuery("TRUNCATE TABLE song_likes").executeUpdate();
+            em.createNativeQuery("TRUNCATE TABLE songs").executeUpdate();
+            em.createNativeQuery("TRUNCATE TABLE albums").executeUpdate();
+            em.createNativeQuery("TRUNCATE TABLE users").executeUpdate();
+            em.createNativeQuery("SET FOREIGN_KEY_CHECKS = 1").executeUpdate();
+            return null;
+        });
     }
 
     @Test
@@ -136,7 +152,7 @@ class SongLikeTxServiceTest {
             executor.submit(() -> {
                 try {
                     AuthUser authUser = new AuthUser(userId, "test" + userId + "@test.com", UserRole.USER, 0L);
-                    retryOnLock(() -> songLikeTxService.doLikeSong(authUser, songId));
+                    songLikeService.likeSong(authUser, songId);
 
                     successCount.incrementAndGet();
                 } catch (Exception e) {
@@ -175,22 +191,6 @@ class SongLikeTxServiceTest {
         log.info("Song pairCount = {}", pairCount);
 
         assertThat(likeCount).isEqualTo(pairCount);
-    }
-
-    private void retryOnLock(Runnable action) {
-        int maxRetry = 3;
-        for (int i = 0; i < maxRetry; i++) {
-            try {
-                action.run();
-                return;
-            } catch (org.springframework.dao.CannotAcquireLockException e) {
-                if (i == maxRetry - 1) {
-                    throw e;
-                }
-                try { Thread.sleep(10L + ThreadLocalRandom.current().nextLong(20)); }
-                catch (InterruptedException ignored) {}
-            }
-        }
     }
 
     @Test
@@ -251,7 +251,7 @@ class SongLikeTxServiceTest {
         for (int i = 0; i < threadCount; i++) {
             executor.submit(() -> {
                 try {
-                    songLikeTxService.doLikeSong(authUser, songId);
+                    songLikeService.likeSong(authUser, songId);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     errorCount.incrementAndGet();
