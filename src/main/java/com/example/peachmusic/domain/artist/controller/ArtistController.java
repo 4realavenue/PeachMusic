@@ -1,22 +1,15 @@
 package com.example.peachmusic.domain.artist.controller;
 
 import com.example.peachmusic.common.model.*;
-import com.example.peachmusic.domain.album.dto.response.AlbumArtistDetailResponseDto;
 import com.example.peachmusic.domain.artist.dto.response.ArtistGetDetailResponseDto;
 import com.example.peachmusic.domain.artist.dto.response.ArtistPreviewResponseDto;
-import com.example.peachmusic.domain.artist.service.ArtistService;
 import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
-import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
+import com.example.peachmusic.domain.artist.service.ArtistService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
@@ -51,33 +44,6 @@ public class ArtistController {
         ArtistPreviewResponseDto responseDto = artistService.getArtistDetailPreview(authUser, artistId);
 
         return ResponseEntity.ok(CommonResponse.success("아티스트의 앨범 및 음원 미리보기가 성공했습니다.", responseDto));
-    }
-
-    /**
-     * 아티스트 앨범 전체 보기
-     */
-    @GetMapping("/artists/{artistId}/albums")
-    public ResponseEntity<CommonResponse<KeysetResponse<AlbumArtistDetailResponseDto>>> getArtistAlbums(
-            @AuthenticationPrincipal AuthUser authUser,
-            @PathVariable Long artistId,
-            @ModelAttribute CursorParam cursor
-    ) {
-        KeysetResponse<AlbumArtistDetailResponseDto> responseDto = artistService.getArtistAlbums(authUser, artistId, cursor);
-        return ResponseEntity.ok(CommonResponse.success("아티스트의 앨범 전체 조회에 성공했습니다.", responseDto));
-    }
-
-
-    /**
-     * 아티스트 음원 전체 보기
-     */
-    @GetMapping("/artists/{artistId}/songs")
-    public ResponseEntity<CommonResponse<KeysetResponse<SongArtistDetailResponseDto>>> getArtistSongs(
-            @AuthenticationPrincipal AuthUser authUser,
-            @PathVariable Long artistId,
-            @ModelAttribute CursorParam cursor
-    ) {
-        KeysetResponse<SongArtistDetailResponseDto> responseDto = artistService.getArtistSongs(authUser, artistId, cursor);
-        return ResponseEntity.ok(CommonResponse.success("아티스트의 음원 전체 조회에 성공했습니다.", responseDto));
     }
 
     /**
