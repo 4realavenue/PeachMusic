@@ -1,43 +1,45 @@
 package com.example.peachmusic.domain.albumlike.service;
 
 import com.example.peachmusic.common.model.AuthUser;
+import com.example.peachmusic.common.model.Cursor;
+import com.example.peachmusic.common.model.KeysetResponse;
+import com.example.peachmusic.common.retry.LockRetryExecutor;
+import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.domain.albumlike.dto.response.AlbumLikeResponseDto;
+import com.example.peachmusic.domain.albumlike.dto.response.AlbumLikedItemResponseDto;
+import com.example.peachmusic.domain.albumlike.repository.AlbumLikeRepository;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.AssertionFailure;
-import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.function.Supplier;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class AlbumLikeService {
+public class AlbumLikeService extends AbstractKeysetService {
 
-    private final AlbumLikeTxService albumLikeTxService;
+    private final LockRetryExecutor lockRetryExecutor;
+    private final AlbumLikeCommand albumLikeCommand;
+    private final AlbumLikeRepository albumLikeRepository;
 
-    /**
-     * 재시도 역할만 담당하고, 실제 DB 작업은 TxService에서 처리
-     */
+    private static final int KEYSET_SIZE = 10;
+
     public AlbumLikeResponseDto likeAlbum(AuthUser authUser, Long albumId) {
-        return retryOnLock(() -> albumLikeTxService.doLikeAlbum(authUser, albumId));
+        return lockRetryExecutor.execute(() -> albumLikeCommand.doLikeAlbum(authUser, albumId));
     }
 
-    /**
-     * 락/데드락 발생 시 재시도하는 공통 로직
-     */
-    private AlbumLikeResponseDto retryOnLock(Supplier<AlbumLikeResponseDto> action) {
-        int maxRetry = 2;
+    @Transactional(readOnly = true)
+    public KeysetResponse<AlbumLikedItemResponseDto> getMyLikedAlbum(Long userId, Long lastLikeId) {
 
-        for (int i = 0; i <= maxRetry; i++) {
-            try {
-                return action.get();
-            } catch (PessimisticLockingFailureException e) {
-                if (i == maxRetry) {
-                    throw e;
-                }
-            }
-        }
-        // 논리적으로 도달 불가: 성공 시 return, 실패 시 위에서 예외 throw
-        throw new AssertionFailure("unreachable");
+        List<AlbumLikedItemResponseDto> content = albumLikeRepository.findMyLikedAlbumWithCursor(userId, lastLikeId, KEYSET_SIZE);
+
+        // Cursor는 albumLikeId(lastId) 기준으로만 구성
+        // 단일 정렬 기준이므로 lastSortValue는 사용하지 않음
+        return toKeysetResponse(content, KEYSET_SIZE, likedAlbum -> new Cursor(likedAlbum.getAlbumLikeId(), null));
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isAlbumLiked(Long albumId, Long userId) {
+        return albumLikeRepository.existsByAlbum_AlbumIdAndUser_UserId(albumId, userId);
     }
 }
