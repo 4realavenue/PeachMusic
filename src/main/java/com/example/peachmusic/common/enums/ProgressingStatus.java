@@ -1,6 +1,6 @@
 package com.example.peachmusic.common.enums;
 
-public enum JobStatus {
+public enum ProgressingStatus {
 
     // url만 있는 상태
     NOT_READY,
