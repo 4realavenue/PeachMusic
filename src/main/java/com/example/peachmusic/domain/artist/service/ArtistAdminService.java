@@ -125,14 +125,14 @@ public class ArtistAdminService extends AbstractKeysetService {
 
         Artist foundArtist = getArtistOrThrow(artistId, false, ErrorCode.ARTIST_DETAIL_NOT_FOUND);
 
+        foundArtist.delete();
+
         List<Long> albumIdList = artistAlbumRepository.findAlbumIdListByArtistIdAndIsDeleted(artistId, false);
 
         if (!albumIdList.isEmpty()) {
             songRepository.softDeleteByAlbumIdList(albumIdList);
             albumRepository.softDeleteByAlbumIdList(albumIdList);
         }
-
-        foundArtist.delete();
     }
 
     /**
@@ -144,14 +144,14 @@ public class ArtistAdminService extends AbstractKeysetService {
 
         Artist foundArtist = getArtistOrThrow(artistId, true, ErrorCode.ARTIST_DETAIL_NOT_FOUND);
 
+        foundArtist.restore();
+
         List<Long> albumIdList = artistAlbumRepository.findAlbumIdListByArtistIdAndIsDeleted(artistId, true);
 
         if (!albumIdList.isEmpty()) {
             songRepository.restoreByAlbumIdList(albumIdList);
             albumRepository.restoreByAlbumIdList(albumIdList);
         }
-
-        foundArtist.restore();
     }
 
     private Artist getArtistOrThrow(Long artistId, boolean isDeleted, ErrorCode errorCode) {
