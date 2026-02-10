@@ -12,14 +12,11 @@ import com.example.peachmusic.domain.playlistsong.dto.response.PlaylistSongAddRe
 import com.example.peachmusic.domain.playlistsong.dto.response.PlaylistSongDeleteSongResponseDto;
 import com.example.peachmusic.domain.playlistsong.entity.PlaylistSong;
 import com.example.peachmusic.domain.playlistsong.repository.PlaylistSongRepository;
-import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -74,31 +71,15 @@ public class PlaylistSongService {
             throw new CustomException(ErrorCode.PLAYLIST_ADD_SONG_REQUIRED);
         }
 
-        List<Long> distinctRequestSongIdList = requestDto.getSongIdList().stream().distinct().toList();
+        Set<Long> validRequestSongIdSet = songRepository.findSongIdListBySongIdList(requestDto.getSongIdList());
 
-        List<Long> validRequestSongIdList = songRepository.findSongIdListBySongIdList(distinctRequestSongIdList);
+        Set<Long> duplicationSongIdSet = playlistSongRepository.findSongIdListByPlaylist_PlaylistIdAndSong_SongId(findPlaylist.getPlaylistId(), validRequestSongIdSet);
 
-        List<Long> duplicationSongIdList = playlistSongRepository.findSongIdListByPlaylist_PlaylistIdAndSong_SongId(findPlaylist.getPlaylistId(), validRequestSongIdList);
+        List<Long> validSongIdList = validRequestSongIdSet.stream()
+                .filter(songId -> !duplicationSongIdSet.contains(songId)).toList();
 
-        Set<Long> duplicationSongIdSet = new HashSet<>(duplicationSongIdList);
-
-        List<Long> validSongIdList = new ArrayList<>();
-
-        for (Long songId : validRequestSongIdList) {
-            if (!duplicationSongIdSet.contains(songId)) {
-                validSongIdList.add(songId);
-            }
-        }
-
-        List<PlaylistSong> playlistSongList = new ArrayList<>();
-
-        for (Long validSongId : validSongIdList) {
-            Song song = songRepository.getReferenceById(validSongId);
-
-            PlaylistSong playlistSong = new PlaylistSong(song, findPlaylist);
-
-            playlistSongList.add(playlistSong);
-        }
+        List<PlaylistSong> playlistSongList = validSongIdList.stream()
+                .map(songRepository::getReferenceById).map(song -> new PlaylistSong(song, findPlaylist)).toList();
 
         playlistSongRepository.saveAll(playlistSongList);
 
@@ -125,21 +106,12 @@ public class PlaylistSongService {
             throw new CustomException(ErrorCode.PLAYLIST_REMOVE_SONG_REQUIRED);
         }
 
-        List<Long> distinctRequestSongIdList = requestDto.getSongIdList().stream().distinct().toList();
+        Set<Long> validRequestSongIdSet = songRepository.findSongIdListBySongIdList(requestDto.getSongIdList());
 
-        List<Long> validRequestSongIdList = songRepository.findSongIdListBySongIdList(distinctRequestSongIdList);
+        Set<Long> duplicationSongIdSet = playlistSongRepository.findSongIdListByPlaylist_PlaylistIdAndSong_SongId(findPlaylist.getPlaylistId(), validRequestSongIdSet);
 
-        List<Long> duplicationSongIdList = playlistSongRepository.findSongIdListByPlaylist_PlaylistIdAndSong_SongId(findPlaylist.getPlaylistId(), validRequestSongIdList);
-
-        Set<Long> duplicationSongIdSet = new HashSet<>(duplicationSongIdList);
-
-        List<Long> validSongIdList = new ArrayList<>();
-
-        for (Long songId : validRequestSongIdList) {
-            if (duplicationSongIdSet.contains(songId)) {
-                validSongIdList.add(songId);
-            }
-        }
+        List<Long> validSongIdList = validRequestSongIdSet.stream()
+                .filter(duplicationSongIdSet::contains).toList();
 
         playlistSongRepository.deletePlaylistSongByPlaylist_PlaylistIdAndSong_SongId(findPlaylist.getPlaylistId(), validSongIdList);
 

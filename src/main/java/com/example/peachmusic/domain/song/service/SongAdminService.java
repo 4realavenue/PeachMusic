@@ -2,7 +2,7 @@ package com.example.peachmusic.domain.song.service;
 
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.FileType;
-import com.example.peachmusic.common.enums.JobStatus;
+import com.example.peachmusic.common.enums.ProgressingStatus;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.Cursor;
 import com.example.peachmusic.common.model.KeysetResponse;
@@ -26,8 +26,8 @@ import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songgenre.entity.SongGenre;
 import com.example.peachmusic.domain.songgenre.repository.SongGenreRepository;
-import com.example.peachmusic.domain.streamingjob.entity.StreamingJob;
-import com.example.peachmusic.domain.streamingjob.repository.StreamingJobRepository;
+import com.example.peachmusic.domain.songprogressingstatus.entity.SongProgressingStatus;
+import com.example.peachmusic.domain.songprogressingstatus.repository.SongProgressingStatusRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -49,7 +49,7 @@ public class SongAdminService extends AbstractKeysetService {
     private final ArtistSongRepository artistSongRepository;
     private final ArtistAlbumRepository artistAlbumRepository;
     private final FileStorageService fileStorageService;
-    private final StreamingJobRepository streamingJobRepository;
+    private final SongProgressingStatusRepository streamingJobRepository;
 
     /**
      * 음원 생성
@@ -95,7 +95,7 @@ public class SongAdminService extends AbstractKeysetService {
                     .map(Genre::getGenreName)
                     .toList();
 
-            StreamingJob streamingJob = new StreamingJob(song, JobStatus.READY);
+            SongProgressingStatus streamingJob = new SongProgressingStatus(song, ProgressingStatus.READY);
 
             streamingJobRepository.save(streamingJob);
 
