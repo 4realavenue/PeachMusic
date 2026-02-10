@@ -1,13 +1,8 @@
 package com.example.peachmusic.domain.artist.service;
 
-import com.example.peachmusic.common.enums.SortDirection;
-import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
-import com.example.peachmusic.common.model.AuthUser;
-import com.example.peachmusic.common.model.Cursor;
-import com.example.peachmusic.common.model.KeysetResponse;
-import com.example.peachmusic.common.service.AbstractKeysetService;
+import com.example.peachmusic.common.model.*;
 import com.example.peachmusic.domain.album.dto.response.AlbumArtistDetailResponseDto;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.artist.dto.response.ArtistPreviewResponseDto;
@@ -21,16 +16,15 @@ import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.LocalDate;
 import java.util.List;
-import java.util.function.Function;
+import static com.example.peachmusic.common.constants.SearchViewSize.*;
+import static com.example.peachmusic.common.constants.UserViewScope.PUBLIC_VIEW;
 import static com.example.peachmusic.common.enums.SortDirection.DESC;
 import static com.example.peachmusic.common.enums.SortType.LIKE;
-import static com.example.peachmusic.common.enums.SortType.NAME;
 
 @Service
 @RequiredArgsConstructor
-public class ArtistService extends AbstractKeysetService {
+public class ArtistService {
 
     private final ArtistRepository artistRepository;
     private final SongRepository songRepository;
@@ -66,7 +60,7 @@ public class ArtistService extends AbstractKeysetService {
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
 
-        int size = 5;
+        int size = PREVIEW_SIZE;
         List<AlbumArtistDetailResponseDto> albumList = albumRepository.findAlbumList(authUser.getUserId(), foundArtist.getArtistId(), size);
         List<SongArtistDetailResponseDto> songList = songRepository.findSongList(authUser.getUserId(), foundArtist.getArtistId(), size);
 
@@ -74,67 +68,14 @@ public class ArtistService extends AbstractKeysetService {
     }
 
     /**
-     * 아티스트의 앨범 자세히 보기
-     */
-    @Transactional(readOnly = true)
-    public KeysetResponse<AlbumArtistDetailResponseDto> getArtistAlbums(AuthUser authUser, Long artistId, Long lastId, LocalDate lastDate) {
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
-
-        final int size = 10;
-        SortType sortType = SortType.RELEASE_DATE;
-        validateArtistCursor(sortType, lastId, lastDate);
-
-        List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, SortDirection.DESC, lastId, lastDate, size);
-
-        return toKeysetResponse(content, size, last -> new Cursor(last.getAlbumId(), last.getAlbumReleaseDate()));
-    }
-
-    /**
-     * 아티스트의 음원 자세히 보기
-     */
-    @Transactional(readOnly = true)
-    public KeysetResponse<SongArtistDetailResponseDto> getArtistSongs(AuthUser authUser, Long artistId, Long lastId, LocalDate lastDate) {
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
-
-        final int size = 10;
-        SortType sortType = SortType.RELEASE_DATE;
-        validateArtistCursor(sortType, lastId, lastDate);
-
-        List<SongArtistDetailResponseDto> content = songRepository.findSongByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, SortDirection.DESC, lastId, lastDate, size);
-
-        return toKeysetResponse(content, size, last -> new Cursor(last.getAlbumId(), last.getAlbumReleaseDate()));
-    }
-
-    /**
      * 아티스트 검색 - 자세히 보기
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<ArtistSearchResponseDto> searchArtistPage(String word, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
+    public KeysetResponse<ArtistSearchResponseDto> searchArtistPage(SearchConditionParam condition, CursorParam cursor) {
 
-        validateWord(word); // 단어 검증
-        if (!sortType.equals(LIKE) && !sortType.equals(NAME)) { // 정렬 기준 검증
-            throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
-        }
-        validateCursor(sortType, lastId, lastLike, lastName); // 커서 검증
+        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
 
-        String[] words = word.split("\\s+");
-        final int size = 10;
-        final boolean isAdmin = false;
-        direction = resolveSortDirection(sortType, direction);
-
-        // 아티스트 조회
-        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(words, size, isAdmin, sortType, direction, lastId, lastLike, lastName);
-
-        // 정렬 기준에 따라 커서 결정
-        Function<ArtistSearchResponseDto, Cursor> cursorExtractor = switch (sortType) {
-            case LIKE -> last -> new Cursor(last.getArtistId(), last.getLikeCount());
-            case NAME -> last -> new Cursor(last.getArtistId(), last.getArtistName());
-            default -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
-        };
-
-        return toKeysetResponse(content, size, cursorExtractor);
+        return KeysetResponse.of(content, DETAIL_SIZE, last -> last.toCursor(condition.getSortType()));
     }
 
     /**
@@ -144,9 +85,6 @@ public class ArtistService extends AbstractKeysetService {
      */
     @Transactional(readOnly = true)
     public List<ArtistSearchResponseDto> searchArtistList(String word) {
-        String[] words = word.split("\\s+");
-        final int size = 5;
-        final boolean isAdmin = false;
-        return artistRepository.findArtistListByWord(words, size, isAdmin, LIKE, DESC);
+        return artistRepository.findArtistListByWord(word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC);
     }
 }

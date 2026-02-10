@@ -1,6 +1,6 @@
-package com.example.peachmusic.domain.searchhistory.service;
+package com.example.peachmusic.domain.search.service;
 
-import com.example.peachmusic.domain.searchhistory.dto.SearchPopularResponseDto;
+import com.example.peachmusic.domain.search.dto.SearchPopularResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
@@ -19,14 +19,13 @@ import java.util.concurrent.TimeUnit;
 public class SearchHistoryService {
 
     private final RedisTemplate<String, String> redisTemplate;
-    private final String SEARCH_KEY = "searchWord:";
+    private static final String SEARCH_KEY = "searchWord:";
 
     /**
      * Redis zset 사용하여 날짜+시간마다 검색어 횟수 기록
      * - TTL을 설정하여 24시간 뒤면 삭제됨
      * @param word 검색어
      */
-    @Transactional
     public void recordSearch(String word) {
 
         // 매 시간마다 검색어 랭킹 기록
