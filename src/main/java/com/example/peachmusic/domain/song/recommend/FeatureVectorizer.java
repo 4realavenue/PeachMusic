@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.song.service;
+package com.example.peachmusic.domain.song.recommend;
 
 import com.example.peachmusic.domain.song.dto.SongFeatureDto;
 import org.springframework.stereotype.Component;
@@ -17,10 +17,10 @@ import java.util.Map;
 public class FeatureVectorizer {
 
     // 휴리스틱 기반 가중치 -> 장르 > 스피드 > 태그 > 악기 순으로 중요 => 총 합 1.0
-    private static final double GENRE_WEIGHT = 0.4;
-    private static final double SPEED_WEIGHT = 0.3;
+    private static final double GENRE_WEIGHT = 0.6;
+    private static final double SPEED_WEIGHT = 0.15;
     private static final double TAG_WEIGHT = 0.2;
-    private static final double INSTRUMENT_WEIGHT = 0.1;
+    private static final double INSTRUMENT_WEIGHT = 0.05;
 
     // Song -> Feature vector 변환 메서드
     // 반환되는 Map은 <key, value> -> key:(ex. g:rock, t:happy, i:guitar), value:해당 feature 가중치
@@ -45,24 +45,29 @@ public class FeatureVectorizer {
         return songVectorMap;
     }
 
-    // User Feature vector 변환 메서드 -> 좋아요와 플레이리스트 음원들의 벡터를 합산 후 사용자 취향 프로파일 생성
     public Map<String, Double> vectorizeUserMap(List<SongFeatureDto> seedSongList) {
-        // User 취향 백터
         Map<String, Double> userVectorMap = new HashMap<>();
 
-        // 각 음원 벡터 누적
-        for (SongFeatureDto songfeaturedto : seedSongList) {
-            Map<String, Double> songVectorMap = vectorizeSongMap(songfeaturedto);
+        // seedSongList가 최신순 또는 과거순으로 정렬되어 있다고 가정
+        int totalSongs = seedSongList.size();
+
+        for (int i = 0; i < totalSongs; i++) {
+            SongFeatureDto song = seedSongList.get(i);
+            Map<String, Double> songVectorMap = vectorizeSongMap(song);
+
+            // 시간 가중치(Recency Weight) 계산
+            // i가 클수록(최근일수록) 가중치가 1.0에 가까워짐
+            double timeWeight = (double) (i + 1) / totalSongs;
+
             for (String key : songVectorMap.keySet()) {
                 double songValue = songVectorMap.get(key);
-                double songUserValue = userVectorMap.getOrDefault(key, 0.0);
+                double weightedValue = songValue * timeWeight; // 가중치 적용!
 
-                // 기존 값 + 현재 음원 값 누적
-                userVectorMap.put(key, songValue + songUserValue);
+                double currentUserValue = userVectorMap.getOrDefault(key, 0.0);
+                userVectorMap.put(key, currentUserValue + weightedValue);
             }
         }
 
-        // 최종 유저 벡터 정규화
         l2Normalize(userVectorMap);
         return userVectorMap;
     }
@@ -95,6 +100,8 @@ public class FeatureVectorizer {
             vector.put("g:" + validGenreName, perGenreWeight);
         }
     }
+
+
 
     // 태그, 악기 공통 처리 -> 문자열 기반 데이터여서 쉼표로 분리, 전체 가중치를 토큰의 수만큼 균등하게 분재
     private void addTokenList(Map<String, Double> vector, String raw, String prefix, double totalWeight) {

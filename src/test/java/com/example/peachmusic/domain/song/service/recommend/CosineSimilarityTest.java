@@ -1,5 +1,6 @@
-package com.example.peachmusic.domain.song.service;
+package com.example.peachmusic.domain.song.service.recommend;
 
+import com.example.peachmusic.domain.song.recommend.CosineSimilarity;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
