@@ -71,7 +71,6 @@ public class JamendoBatchJdbcRepository {
         });
     }
 
-
     public void insertArtistSongs(List<ArtistSongRow> rows) {
         if (rows.isEmpty()) {
             return;

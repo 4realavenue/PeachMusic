@@ -10,29 +10,28 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.Duration;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class WorkerService {
 
-    @Value("${worker.base-url}")
-    private String workerBaseUrl;
+    private final WebClient webClient;
+
+    private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(6);
 
     /**
      * (Worker) 다운로드 재시도 요청
      */
     public void tryDownloadSong(WorkerTryRequestDto requestDto) {
 
-        WebClient webClient = WebClient.builder()
-                .baseUrl(workerBaseUrl)
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .build();
-
         webClient.method(HttpMethod.POST)
-                .uri("/worker/songs/download")
+                .uri("/worker/songs/download-request")
                 .bodyValue(requestDto)
                 .retrieve()
-                .bodyToMono(Void.class)
+                .toBodilessEntity()
+                .doOnError(exception -> log.error("Worker 불러오기 실패 : {}", exception.getMessage()))
                 .subscribe();
     }
 
@@ -41,16 +40,12 @@ public class WorkerService {
      */
     public void tryTranscodeSong(WorkerTryRequestDto requestDto) {
 
-        WebClient webClient = WebClient.builder()
-                .baseUrl(workerBaseUrl)
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .build();
-
         webClient.method(HttpMethod.POST)
-                .uri("/worker/songs/transcode")
+                .uri("/worker/songs/transcode-request")
                 .bodyValue(requestDto)
                 .retrieve()
-                .bodyToMono(Void.class)
+                .toBodilessEntity()
+                .doOnError(exception -> log.error("Worker 불러오기 실패 : {}", exception.getMessage()))
                 .subscribe();
     }
 }
