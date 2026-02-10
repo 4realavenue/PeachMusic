@@ -3,6 +3,9 @@ package com.example.peachmusic.domain.album.service;
 import com.example.peachmusic.common.enums.FileType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
+import com.example.peachmusic.common.model.CursorParam;
+import com.example.peachmusic.common.model.NextCursor;
+import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.common.storage.FileStorageService;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.dto.request.AlbumCreateRequestDto;
@@ -17,17 +20,14 @@ import com.example.peachmusic.domain.artistalbum.repository.ArtistAlbumRepositor
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-
-import static com.example.peachmusic.common.enums.UserRole.ADMIN;
+import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
+import static com.example.peachmusic.common.constants.UserViewScope.ADMIN_VIEW;
 
 @Service
 @RequiredArgsConstructor
@@ -81,12 +81,16 @@ public class AlbumAdminService {
 
     /**
      * 전체 앨범 조회 기능 (관리자 전용)
-     * @param pageable 페이지네이션 및 정렬 정보 (기본 정렬: albumId ASC)
      * @return 앨범 목록 페이징 조회 결과
      */
     @Transactional(readOnly = true)
-    public Page<AlbumSearchResponseDto> getAlbumList(String word, Pageable pageable) {
-        return albumRepository.findAlbumPageByWord(word, pageable, ADMIN);
+    public KeysetResponse<AlbumSearchResponseDto> getAlbumList(String word, CursorParam cursor) {
+
+        final int size = DETAIL_SIZE;
+
+        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(word, size, ADMIN_VIEW, null, null, cursor);
+
+        return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), null));
     }
 
     /**
@@ -99,10 +103,6 @@ public class AlbumAdminService {
     public AlbumUpdateResponseDto updateAlbumInfo(Long albumId, AlbumUpdateRequestDto requestDto) {
 
         Album foundAlbum = getAlbumOrThrow(albumId);
-
-        if (!hasUpdateFields(requestDto)) {
-            throw new CustomException(ErrorCode.ALBUM_UPDATE_NO_CHANGES);
-        }
 
         foundAlbum.updateAlbumInfo(requestDto);
 
@@ -230,11 +230,6 @@ public class AlbumAdminService {
         return artistAlbumRepository.findAllByAlbum_AlbumId(albumId).stream()
                 .map(artist -> ArtistSummaryDto.from(artist.getArtist()))
                 .toList();
-    }
-
-    private boolean hasUpdateFields(AlbumUpdateRequestDto requestDto) {
-        return (requestDto.getAlbumName() != null && !requestDto.getAlbumName().isBlank())
-                || requestDto.getAlbumReleaseDate() != null;
     }
 
     private String storeAlbumImage(MultipartFile albumImage, String albumName) {

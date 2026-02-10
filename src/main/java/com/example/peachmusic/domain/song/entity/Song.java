@@ -59,8 +59,14 @@ public class Song extends BaseEntity {
     @Column(name = "like_count", nullable = false)
     private Long likeCount = 0L;
 
+    @Column(name = "streaming_status")
+    private boolean streamingStatus = false; // 기본값 = 스트리밍 불가능
+
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
+
+    @Column(name = "play_count", nullable = false)
+    private Long playCount = 0L;
 
     public Song(Album album, String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags) {
         this.album = album;
@@ -112,17 +118,11 @@ public class Song extends BaseEntity {
         this.isDeleted = false;
     }
 
-    public void unlikeSong() {
-        if (this.likeCount > 0) {
-            this.likeCount--;
-        }
-    }
-
-    public void likeSong() {
-        this.likeCount++;
-    }
-
     public void updateAudio(String audio) {
         this.audio = audio;
+    }
+
+    public void addPlayCount() {
+        this.playCount++;
     }
 }

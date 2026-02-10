@@ -17,19 +17,19 @@ public enum ErrorCode {
     AUTH_PASSWORD_REQUIRED(HttpStatus.BAD_REQUEST, "이메일과 비밀번호를 입력해 주세요."),
     AUTH_INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 올바르지 않습니다."),
     AUTH_NAME_NICKNAME_REQUIRED(HttpStatus.BAD_REQUEST, "이름과 닉네임을 입력해 주세요."),
-    ALBUM_UPDATE_NO_CHANGES(HttpStatus.BAD_REQUEST, "수정할 값이 없습니다."),
     ALBUM_NAME_REQUIRED(HttpStatus.BAD_REQUEST, "앨범 이름 입력은 필수입니다."),
     AUTH_EMAIL_CERTIFICATION_FAILED(HttpStatus.BAD_REQUEST, "이메일 인증에 실패 했습니다."),
     AUTH_TOKEN_REQUIRED(HttpStatus.BAD_REQUEST, "토큰에 버전 정보가 없습니다."),
-    FILE_REQUIRED(HttpStatus.BAD_REQUEST, "파일은 등록은 필수입니다."),
+    FILE_REQUIRED(HttpStatus.BAD_REQUEST, "파일 등록은 필수입니다."),
     IMAGE_TOO_LARGE(HttpStatus.BAD_REQUEST, "이미지 파일 용량이 너무 큽니다."),
     IMAGE_INVALID_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 이미지 파일 형식입니다."),
     AUDIO_TOO_LARGE(HttpStatus.BAD_REQUEST, "음원 파일 용량이 너무 큽니다."),
     AUDIO_INVALID_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 음원 파일 형식입니다."),
-    ARTIST_UPDATE_NO_CHANGES(HttpStatus.BAD_REQUEST, "수정할 값이 없습니다."),
     ARTIST_DEBUT_DATE_INVALID(HttpStatus.BAD_REQUEST, "데뷔일은 오늘 이후일 수 없습니다."),
     EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "이메일이 인증되지 않았습니다."),
     JAMENDO_INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "시작 날짜는 종료 날짜보다 이전이어야 합니다."),
+    MISSING_CURSOR_PARAMETER(HttpStatus.BAD_REQUEST, "정렬 기준에 필요한 커서 파라미터가 누락되었습니다."),
+    UNSUPPORTED_SORT_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 정렬 방식입니다"),
 
     // 401
     AUTH_CERTIFICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "로그인이 필요한 서비스 입니다."),
@@ -67,6 +67,7 @@ public enum ErrorCode {
     SONG_EXIST_ACTIVATION_SONG(HttpStatus.CONFLICT, "이미 활성화 된 음원입니다."),
     ALBUM_EXIST_IMAGE(HttpStatus.CONFLICT, "이미 동일한 앨범 이미지가 존재합니다."),
     EMAIL_ALREADY_VERIFIED(HttpStatus.CONFLICT,"이미 검증된 이메일입니다."),
+    LIKE_CONFLICT(HttpStatus.CONFLICT, "요청이 많아 잠시 후 다시 시도해주세요."),
 
     // 500
     SEARCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "일시적인 오류로 검색에 실패했습니다."),

@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
@@ -21,28 +22,28 @@ public class JamendoBatchJdbcRepository {
         }
 
         String insertSQL = """
-            INSERT INTO songs (
-                jamendo_song_id, album_id, name, duration, license_ccurl,
-                position, audio, vocalinstrumental, lang, speed,
-                instruments, vartags, like_count
-            )
-            SELECT
-                ?, a.album_id, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0
-            FROM albums a
-            WHERE a.jamendo_album_id = ?
-            ON DUPLICATE KEY UPDATE
-                name = VALUES(name),
-                duration = VALUES(duration),
-                license_ccurl = VALUES(license_ccurl),
-                position = VALUES(position),
-                audio = VALUES(audio),
-                vocalinstrumental = VALUES(vocalinstrumental),
-                lang = VALUES(lang),
-                speed = VALUES(speed),
-                instruments = VALUES(instruments),
-                vartags = VALUES(vartags),
-                modified_at = CURRENT_TIMESTAMP
-        """;
+                    INSERT INTO songs (
+                        jamendo_song_id, album_id, name, duration, license_ccurl,
+                        position, audio, vocalinstrumental, lang, speed,
+                        instruments, vartags, like_count
+                    )
+                    SELECT
+                        ?, a.album_id, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0
+                    FROM albums a
+                    WHERE a.jamendo_album_id = ?
+                    ON DUPLICATE KEY UPDATE
+                        name = VALUES(name),
+                        duration = VALUES(duration),
+                        license_ccurl = VALUES(license_ccurl),
+                        position = VALUES(position),
+                        audio = VALUES(audio),
+                        vocalinstrumental = VALUES(vocalinstrumental),
+                        lang = VALUES(lang),
+                        speed = VALUES(speed),
+                        instruments = VALUES(instruments),
+                        vartags = VALUES(vartags),
+                        modified_at = CURRENT_TIMESTAMP
+                """;
 
         jdbcTemplate.batchUpdate(insertSQL, new BatchPreparedStatementSetter() {
 
@@ -70,23 +71,21 @@ public class JamendoBatchJdbcRepository {
         });
     }
 
-
-
     public void insertArtistSongs(List<ArtistSongRow> rows) {
         if (rows.isEmpty()) {
             return;
         }
 
         String insertSQL = """
-            INSERT IGNORE INTO artist_songs (artist_id, song_id)
-            SELECT
-                ar.artist_id,
-                s.song_id
-            FROM artists ar
-            JOIN songs s
-            WHERE ar.jamendo_artist_id = ?
-              AND s.jamendo_song_id = ?
-        """;
+                    INSERT IGNORE INTO artist_songs (artist_id, song_id)
+                    SELECT
+                        ar.artist_id,
+                        s.song_id
+                    FROM artists ar
+                    JOIN songs s
+                    WHERE ar.jamendo_artist_id = ?
+                      AND s.jamendo_song_id = ?
+                """;
 
         jdbcTemplate.batchUpdate(insertSQL, new BatchPreparedStatementSetter() {
 
@@ -110,15 +109,15 @@ public class JamendoBatchJdbcRepository {
         }
 
         String insertSQL = """
-            INSERT IGNORE INTO artist_albums (artist_id, album_id)
-            SELECT
-                ar.artist_id,
-                al.album_id
-            FROM artists ar
-            JOIN albums al
-            WHERE ar.jamendo_artist_id = ?
-              AND al.jamendo_album_id = ?
-        """;
+                    INSERT IGNORE INTO artist_albums (artist_id, album_id)
+                    SELECT
+                        ar.artist_id,
+                        al.album_id
+                    FROM artists ar
+                    JOIN albums al
+                    WHERE ar.jamendo_artist_id = ?
+                      AND al.jamendo_album_id = ?
+                """;
 
         jdbcTemplate.batchUpdate(insertSQL, new BatchPreparedStatementSetter() {
 
@@ -142,13 +141,13 @@ public class JamendoBatchJdbcRepository {
         }
 
         String insertSQL = """
-            INSERT IGNORE INTO song_genres (song_id, genre_id)
-            SELECT
-                s.song_id, g.genre_id
-            FROM songs s
-            JOIN genres g ON g.genre_name = ?
-            WHERE s.jamendo_song_id = ?
-        """;
+                    INSERT IGNORE INTO song_genres (song_id, genre_id)
+                    SELECT
+                        s.song_id, g.genre_id
+                    FROM songs s
+                    JOIN genres g ON g.genre_name = ?
+                    WHERE s.jamendo_song_id = ?
+                """;
 
         jdbcTemplate.batchUpdate(insertSQL, new BatchPreparedStatementSetter() {
 
@@ -172,13 +171,13 @@ public class JamendoBatchJdbcRepository {
         }
 
         String insertSQL = """
-            INSERT INTO artists
-            (artist_name, jamendo_artist_id, like_count)
-            VALUES (?, ?, 0)
-            ON DUPLICATE KEY UPDATE
-                artist_name = VALUES(artist_name),
-                modified_at = CURRENT_TIMESTAMP
-        """;
+                    INSERT INTO artists
+                    (artist_name, jamendo_artist_id, like_count)
+                    VALUES (?, ?, 0)
+                    ON DUPLICATE KEY UPDATE
+                        artist_name = VALUES(artist_name),
+                        modified_at = CURRENT_TIMESTAMP
+                """;
 
         jdbcTemplate.batchUpdate(insertSQL, new BatchPreparedStatementSetter() {
 
@@ -202,15 +201,15 @@ public class JamendoBatchJdbcRepository {
         }
 
         String insertSQL = """
-            INSERT INTO albums
-            (album_name, album_release_date, album_image, jamendo_album_id, like_count)
-            VALUES (?, ?, ?, ?, 0)
-            ON DUPLICATE KEY UPDATE
-                album_name = VALUES(album_name),
-                album_release_date = VALUES(album_release_date),
-                album_image = VALUES(album_image),
-                modified_at = CURRENT_TIMESTAMP
-        """;
+                    INSERT INTO albums
+                    (album_name, album_release_date, album_image, jamendo_album_id, like_count)
+                    VALUES (?, ?, ?, ?, 0)
+                    ON DUPLICATE KEY UPDATE
+                        album_name = VALUES(album_name),
+                        album_release_date = VALUES(album_release_date),
+                        album_image = VALUES(album_image),
+                        modified_at = CURRENT_TIMESTAMP
+                """;
 
         jdbcTemplate.batchUpdate(insertSQL, new BatchPreparedStatementSetter() {
 
@@ -236,11 +235,11 @@ public class JamendoBatchJdbcRepository {
         }
 
         String insertSQL = """
-            INSERT INTO genres (genre_name)
-            VALUES (?)
-            ON DUPLICATE KEY UPDATE
-                genre_name = VALUES(genre_name)
-        """;
+                    INSERT INTO genres (genre_name)
+                    VALUES (?)
+                    ON DUPLICATE KEY UPDATE
+                        genre_name = VALUES(genre_name)
+                """;
 
         jdbcTemplate.batchUpdate(insertSQL, new BatchPreparedStatementSetter() {
 
@@ -248,6 +247,38 @@ public class JamendoBatchJdbcRepository {
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 GenreRow r = rows.get(i);
                 ps.setString(1, r.genreName());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return rows.size();
+            }
+        });
+    }
+
+    public void upsertSongProgressingStatus(List<SongProgressingStatusRow> rows) {
+        if (rows.isEmpty()) {
+            return;
+        }
+
+        String insertSQL = """
+                INSERT INTO song_progressing_status (song_id, progressing_status)
+                SELECT
+                s.song_id,
+                ?
+                FROM songs s
+                WHERE s.jamendo_song_id = ?
+                ON DUPLICATE KEY UPDATE
+                progressing_status = VALUES(progressing_status)
+                """;
+
+        jdbcTemplate.batchUpdate(insertSQL, new BatchPreparedStatementSetter() {
+
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                SongProgressingStatusRow r = rows.get(i);
+                ps.setString(1, r.progressingStatus());
+                ps.setLong(2, r.jamendoSongId());
             }
 
             @Override

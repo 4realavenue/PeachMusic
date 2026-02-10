@@ -2,7 +2,11 @@ package com.example.peachmusic.domain.song.service;
 
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.FileType;
+import com.example.peachmusic.common.enums.ProgressingStatus;
 import com.example.peachmusic.common.exception.CustomException;
+import com.example.peachmusic.common.model.CursorParam;
+import com.example.peachmusic.common.model.NextCursor;
+import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.common.storage.FileStorageService;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
@@ -22,18 +26,18 @@ import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songgenre.entity.SongGenre;
 import com.example.peachmusic.domain.songgenre.repository.SongGenreRepository;
+import com.example.peachmusic.domain.songprogressingstatus.entity.SongProgressingStatus;
+import com.example.peachmusic.domain.songprogressingstatus.repository.SongProgressingStatusRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import static com.example.peachmusic.common.enums.UserRole.ADMIN;
+import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
+import static com.example.peachmusic.common.constants.UserViewScope.ADMIN_VIEW;
 
 @Slf4j
 @Service
@@ -47,6 +51,7 @@ public class SongAdminService {
     private final ArtistSongRepository artistSongRepository;
     private final ArtistAlbumRepository artistAlbumRepository;
     private final FileStorageService fileStorageService;
+    private final SongProgressingStatusRepository streamingJobRepository;
 
     /**
      * 음원 생성
@@ -92,6 +97,10 @@ public class SongAdminService {
                     .map(Genre::getGenreName)
                     .toList();
 
+            SongProgressingStatus streamingJob = new SongProgressingStatus(song, ProgressingStatus.READY);
+
+            streamingJobRepository.save(streamingJob);
+
             return AdminSongCreateResponseDto.from(saveSong, genreNameList, findAlbum);
 
         } catch (RuntimeException e) {
@@ -105,8 +114,13 @@ public class SongAdminService {
      * 음원 전체 조회
      */
     @Transactional(readOnly = true)
-    public Page<SongSearchResponseDto> getSongAll(String word, Pageable pageable) {
-        return songRepository.findSongPageByWord(word, pageable, ADMIN);
+    public KeysetResponse<SongSearchResponseDto> getSongList(String word, CursorParam cursor) {
+
+        final int size = DETAIL_SIZE;
+
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(word, size, ADMIN_VIEW, null, null, cursor);
+
+        return KeysetResponse.of(content, size, last -> new NextCursor(last.getSongId(), null));
     }
 
     /**
@@ -161,15 +175,9 @@ public class SongAdminService {
 
         String newPath = storeAudio(audio, findSong.getName());
 
-        try {
-            findSong.updateAudio(newPath);
-        } catch (RuntimeException e) {
-            // DB 반영 실패하면 새로 저장한 파일 정리
-            cleanupFileQuietly(newPath);
-            throw e;
-        }
+        findSong.updateAudio(newPath);
 
-        if (oldPath != null && !oldPath.equals(newPath)) {
+        if (oldPath != null && !oldPath.equals(newPath) && isManagedFilePath(oldPath)) {
             fileStorageService.deleteFileByPath(oldPath);
         }
 
@@ -222,5 +230,9 @@ public class SongAdminService {
         String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         String baseName = "PeachMusic_song_" + name + "_" + date;
         return fileStorageService.storeFile(audio, FileType.AUDIO, baseName);
+    }
+
+    private boolean isManagedFilePath(String path) {
+        return !path.startsWith("https://");
     }
 }

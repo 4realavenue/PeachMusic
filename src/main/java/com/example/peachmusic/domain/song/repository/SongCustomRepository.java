@@ -1,14 +1,20 @@
 package com.example.peachmusic.domain.song.repository;
 
-import com.example.peachmusic.common.enums.UserRole;
+import com.example.peachmusic.common.enums.SortDirection;
+import com.example.peachmusic.common.enums.SortType;
+import com.example.peachmusic.common.model.CursorParam;
+import com.example.peachmusic.domain.album.dto.response.SongSummaryDto;
+import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface SongCustomRepository {
 
-    Page<SongSearchResponseDto> findSongPageByWord(String word, Pageable pageable, UserRole role);
+    List<SongSearchResponseDto> findSongKeysetPageByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor);
+    List<SongSearchResponseDto> findSongListByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction);
+    List<SongArtistDetailResponseDto> findSongList(Long userId, Long artistId, int size);
+    List<SongArtistDetailResponseDto> findSongByArtistKeyset(Long userId, Long artistId, SortType sortType, SortDirection sortDirection, CursorParam cursor, int size);
 
-    List<SongSearchResponseDto> findSongListByWord(String word, int limit);
+    List<SongSummaryDto> findSongSummaryListByAlbumId(Long albumId);
 }
+

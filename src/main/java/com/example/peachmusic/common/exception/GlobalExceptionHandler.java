@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
 
     // Valid 예외 - 공통 응답
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<CommonResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<CommonResponse<Void>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
 
         String message = Objects.requireNonNull(ex.getBindingResult().getFieldError()).getDefaultMessage();
 
@@ -32,7 +32,7 @@ public class GlobalExceptionHandler {
 
     // Custom 예외 - 공통 응답
     @ExceptionHandler(value = CustomException.class)
-    public ResponseEntity<CommonResponse> handlerCustomException(CustomException ex) {
+    public ResponseEntity<CommonResponse<Void>> handlerCustomException(CustomException ex) {
 
         log.error("CustomException 발생 : {} ", ex.getMessage());
 
@@ -41,7 +41,7 @@ public class GlobalExceptionHandler {
 
     // 필수 파라미터가 누락되었을 때
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<CommonResponse> handleMissingParam(MissingServletRequestParameterException ex) {
+    public ResponseEntity<CommonResponse<Void>> handleMissingParam(MissingServletRequestParameterException ex) {
 
         String param = switch (ex.getParameterName()) {
             case "word" -> "검색어";
@@ -56,7 +56,7 @@ public class GlobalExceptionHandler {
 
     // 파라미터 타입 불일치
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<CommonResponse> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+    public ResponseEntity<CommonResponse<Void>> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
 
         log.error("MethodArgumentTypeMismatchException 발생 : {} ", ex.getMessage());
 
@@ -65,7 +65,7 @@ public class GlobalExceptionHandler {
             case "albumId" -> "앨범";
             case "songId" -> "음원";
             case "playlistId" -> "플레이리스트";
-            default -> "요청 값";
+            default -> ex.getName();
         };
 
         String message = param + " 요청 값이 올바르지 않습니다.";
@@ -75,7 +75,7 @@ public class GlobalExceptionHandler {
 
     // Request Body를 읽을 수 없을 때(Json 형식 오류 / Body 내부 타입 불일치)
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<CommonResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+    public ResponseEntity<CommonResponse<Void>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
 
         log.error("HttpMessageNotReadableException 발생 : {}", ex.getMessage());
 
@@ -86,7 +86,7 @@ public class GlobalExceptionHandler {
 
     // Request Method 불일치
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<CommonResponse> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException ex) {
+    public ResponseEntity<CommonResponse<Void>> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException ex) {
 
         log.error("HttpRequestMethodNotSupportedException 발생 : {}", ex.getMessage());
 
@@ -105,7 +105,7 @@ public class GlobalExceptionHandler {
 
     // 서버에 존재하지 않는 url로 접근 요청 시
     @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<CommonResponse> handleNoHandlerFoundException(NoHandlerFoundException ex) {
+    public ResponseEntity<CommonResponse<Void>> handleNoHandlerFoundException(NoHandlerFoundException ex) {
 
         log.error("NoHandlerFoundException 발생 : {}", ex.getMessage());
 
@@ -116,7 +116,7 @@ public class GlobalExceptionHandler {
 
     // 예외처리 안전망
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<CommonResponse> handleException(Exception ex) {
+    public ResponseEntity<CommonResponse<Void>> handleException(Exception ex) {
 
         log.error("{} Exception 발생 : {}", ex, ex.getMessage());
 
@@ -124,4 +124,5 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CommonResponse.fail(message));
     }
+
 }

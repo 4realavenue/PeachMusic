@@ -3,19 +3,20 @@ package com.example.peachmusic.domain.user.service;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.exception.CustomException;
+import com.example.peachmusic.common.model.NextCursor;
+import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.domain.user.dto.response.admin.UserAdminGetResponseDto;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
+import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
 
 @Service
 @RequiredArgsConstructor
 public class UserAdminService {
-
 
     private final UserRepository userRepository;
 
@@ -23,11 +24,11 @@ public class UserAdminService {
      *  (관리자) 유저 목록 조회
      */
     @Transactional(readOnly = true)
-    public Page<UserAdminGetResponseDto> getAllUser(String word, Pageable pageable) {
+    public KeysetResponse<UserAdminGetResponseDto> getUserList(String word, Long lastId) {
+        final int size = DETAIL_SIZE;
+        List<UserAdminGetResponseDto> content = userRepository.findUserKeysetPageByWord(word, size, lastId);
 
-        Page<User> users = userRepository.findALLByWord(word, pageable);
-
-        return users.map(UserAdminGetResponseDto::from);
+        return KeysetResponse.of(content, size, last -> new NextCursor(last.getUserId(), null));
     }
 
     /**

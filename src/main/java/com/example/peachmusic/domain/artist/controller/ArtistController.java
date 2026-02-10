@@ -1,23 +1,15 @@
 package com.example.peachmusic.domain.artist.controller;
 
-import com.example.peachmusic.common.model.AuthUser;
-import com.example.peachmusic.common.model.CommonResponse;
+import com.example.peachmusic.common.model.*;
 import com.example.peachmusic.domain.artist.dto.response.ArtistGetDetailResponseDto;
-import com.example.peachmusic.common.model.PageResponse;
-import com.example.peachmusic.domain.artist.service.ArtistService;
+import com.example.peachmusic.domain.artist.dto.response.ArtistPreviewResponseDto;
 import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
+import com.example.peachmusic.domain.artist.service.ArtistService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,25 +26,40 @@ public class ArtistController {
     @GetMapping("/artists/{artistId}")
     public ResponseEntity<CommonResponse<ArtistGetDetailResponseDto>> getArtistDetail(
             @AuthenticationPrincipal AuthUser authUser,
-            @PathVariable("artistId") Long artistId) {
-
+            @PathVariable("artistId") Long artistId
+    ) {
        ArtistGetDetailResponseDto responseDto = artistService.getArtistDetail(authUser, artistId);
 
        return ResponseEntity.ok(CommonResponse.success("아티스트 조회에 성공했습니다.", responseDto));
     }
 
     /**
+     * 아티스트의 앨범 및 음원 미리보기
+     */
+    @GetMapping("/artists/{artistId}/preview")
+    public ResponseEntity<CommonResponse<ArtistPreviewResponseDto>> getArtistDetailPreview(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable("artistId") Long artistId
+    ) {
+        ArtistPreviewResponseDto responseDto = artistService.getArtistDetailPreview(authUser, artistId);
+
+        return ResponseEntity.ok(CommonResponse.success("아티스트의 앨범 및 음원 미리보기가 성공했습니다.", responseDto));
+    }
+
+    /**
      * 아티스트 검색
-     * @param word 검색어
-     * @param pageable 페이징 정보 - 인기순 정렬
-     * @return 아티스트 검색 응답 DTO (아티스트 id, 이름, 좋아요 수)
+     * - Keyset 페이징 적용
+     * - 좋아요 많은 순이 기본 정렬
+     * @param condition 검색어, 정렬 기준, 정렬 방향, 커서
+     * @return 아티스트 검색 결과, 다음 데이터 있는지 여부, 커서
      */
     @GetMapping("/search/artists")
-    public ResponseEntity<PageResponse<ArtistSearchResponseDto>> searchArtist(
-            @RequestParam String word,
-            @PageableDefault(size = 10, sort = "likeCount", direction = Sort.Direction.DESC) Pageable pageable
+    public ResponseEntity<CommonResponse<KeysetResponse<ArtistSearchResponseDto>>> searchArtist(
+            @Valid @ModelAttribute SearchConditionParam condition,
+            @ModelAttribute CursorParam cursor
     ) {
-        Page<ArtistSearchResponseDto> result = artistService.searchArtistPage(word, pageable);
-        return ResponseEntity.ok(PageResponse.success("아티스트 검색이 완료되었습니다.", result));
+        KeysetResponse<ArtistSearchResponseDto> responseDto = artistService.searchArtistPage(condition, cursor);
+
+        return ResponseEntity.ok(CommonResponse.success("아티스트 검색이 완료되었습니다.", responseDto));
     }
 }

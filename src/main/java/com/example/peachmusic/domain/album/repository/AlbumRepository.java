@@ -2,8 +2,12 @@ package com.example.peachmusic.domain.album.repository;
 
 import com.example.peachmusic.domain.album.entity.Album;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface AlbumRepository extends JpaRepository<Album, Long>, AlbumCustomRepository {
@@ -20,4 +24,37 @@ public interface AlbumRepository extends JpaRepository<Album, Long>, AlbumCustom
     // 비활성 상태(isDeleted=true)인 앨범 조회
     Optional<Album> findByAlbumIdAndIsDeletedTrue(Long albumId);
 
+    @Query("""
+        select a.likeCount
+        from Album a
+        where a.albumId = :albumId
+        and a.isDeleted = false
+        """)
+    Long findLikeCountByAlbumId(@Param("albumId") Long albumId);
+
+    @Modifying
+    @Query("update Album a set a.likeCount = a.likeCount + 1 where a.albumId = :albumId")
+    void incrementLikeCount(@Param("albumId") Long albumId);
+
+    @Modifying
+    @Query("update Album a set a.likeCount = a.likeCount - 1 where a.albumId = :albumId and a.likeCount > 0")
+    void decrementLikeCount(@Param("albumId") Long albumId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        update Album a
+        set a.isDeleted = true
+        where a.isDeleted = false
+        and a.albumId in :albumIdList
+        """)
+    void softDeleteByAlbumIdList(@Param("albumIdList") List<Long> albumIdList);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        update Album a
+        set a.isDeleted = false
+        where a.isDeleted = true
+        and a.albumId in :albumIdList
+        """)
+    void restoreByAlbumIdList(@Param("albumIdList") List<Long> albumIdList);
 }

@@ -2,14 +2,11 @@ package com.example.peachmusic.domain.user.controller;
 
 import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.model.CommonResponse;
-import com.example.peachmusic.common.model.PageResponse;
+import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.domain.user.dto.request.UserRoleChangeRequestDto;
 import com.example.peachmusic.domain.user.dto.response.admin.UserAdminGetResponseDto;
 import com.example.peachmusic.domain.user.service.UserAdminService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,20 +21,20 @@ public class UserAdminController {
      *  유저 목록 조회
      */
     @GetMapping("/admin/users")
-    public ResponseEntity<PageResponse<UserAdminGetResponseDto>> getUsers(
+    public ResponseEntity<CommonResponse<KeysetResponse<UserAdminGetResponseDto>>> getUserList(
             @RequestParam(required = false) String word,
-            @PageableDefault(size = 10, page = 0, sort = "userId") Pageable pageable
+            @RequestParam(required = false) Long lastId
     ) {
-        Page<UserAdminGetResponseDto> response = useradminService.getAllUser(word, pageable);
+        KeysetResponse<UserAdminGetResponseDto> response = useradminService.getUserList(word, lastId);
 
-        return ResponseEntity.ok(PageResponse.success("유저 목록 조회를 성공했습니다.", response));
+        return ResponseEntity.ok(CommonResponse.success("유저 목록 조회에 성공했습니다.", response));
     }
 
     /**
      *  유저 삭제
      */
     @DeleteMapping("/admin/users/{userId}/delete")
-    public ResponseEntity deleteUser(
+    public ResponseEntity<CommonResponse<Void>> deleteUser(
             @PathVariable Long userId
     ) {
         useradminService.deleteUser(userId);
@@ -49,7 +46,7 @@ public class UserAdminController {
      *  유저 복구
      */
     @PatchMapping("/admin/users/{userId}/restore")
-    public ResponseEntity updateUser(
+    public ResponseEntity<CommonResponse<Void>> updateUser(
             @PathVariable Long userId
     ) {
         useradminService.restorationUser(userId);

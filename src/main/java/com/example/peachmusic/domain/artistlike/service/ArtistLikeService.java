@@ -1,60 +1,44 @@
 package com.example.peachmusic.domain.artistlike.service;
 
-import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.model.AuthUser;
-import com.example.peachmusic.domain.artist.entity.Artist;
-import com.example.peachmusic.domain.artist.repository.ArtistRepository;
-import com.example.peachmusic.domain.artistlike.entity.ArtistLike;
+import com.example.peachmusic.common.model.KeysetResponse;
+import com.example.peachmusic.common.model.NextCursor;
+import com.example.peachmusic.common.retry.LockRetryExecutor;
 import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikeResponseDto;
+import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikedItemResponseDto;
 import com.example.peachmusic.domain.artistlike.repository.ArtistLikeRepository;
-import com.example.peachmusic.domain.user.entity.User;
-import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
 
 @Service
 @RequiredArgsConstructor
 public class ArtistLikeService {
 
+    private final LockRetryExecutor lockRetryExecutor;
+    private final ArtistLikeCommand artistLikeCommand;
     private final ArtistLikeRepository artistLikeRepository;
-    private final ArtistRepository artistRepository;
-    private final UserService userService;
 
-    /**
-     * 아티스트 좋아요 토글 기능
-     *
-     * @param authUser 인증된 사용자 정보
-     * @param artistId 좋아요 토글할 아티스트 ID
-     * @return 토글 처리 결과(최종 좋아요 상태 및 좋아요 수)
-     */
-    @Transactional
+    private static final int SIZE = DETAIL_SIZE;
+
     public ArtistLikeResponseDto likeArtist(AuthUser authUser, Long artistId) {
+        return lockRetryExecutor.execute(() -> artistLikeCommand.doLikeArtist(authUser, artistId));
+    }
 
-        User findUser = userService.findUser(authUser);
+    @Transactional(readOnly = true)
+    public KeysetResponse<ArtistLikedItemResponseDto> getMyLikedArtist(Long userId, Long lastLikeId) {
 
-        Long userId = authUser.getUserId();
+        List<ArtistLikedItemResponseDto> content = artistLikeRepository.findMyLikedArtistWithCursor(userId, lastLikeId, SIZE);
 
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
+        return KeysetResponse.of(content, SIZE, likedArtist -> new NextCursor(likedArtist.getArtistLikeId(), null));
+    }
 
-        // 요청 전 좋아요 상태 확인
-        boolean alreadyLiked = artistLikeRepository.existsByArtist_ArtistIdAndUser_UserId(artistId, userId);
-
-        // 이미 좋아요 상태면 취소
-        if (alreadyLiked) {
-            artistLikeRepository.deleteByArtist_ArtistIdAndUser_UserId(artistId, userId);
-            foundArtist.decreaseLikeCount();
-        } else {
-            // 좋아요 상태가 아니면 등록
-            artistLikeRepository.save(new ArtistLike(findUser, foundArtist));
-            foundArtist.increaseLikeCount();
-        }
-
-        // 처리 후 최종 좋아요 상태
-        boolean liked = !alreadyLiked;
-
-        return ArtistLikeResponseDto.of(foundArtist.getArtistId(), foundArtist.getArtistName(), liked, foundArtist.getLikeCount());
+    @Transactional(readOnly = true)
+    public boolean isArtistLiked(Long artistId, Long userId) {
+        return artistLikeRepository.existsByArtist_ArtistIdAndUser_UserId(artistId, userId);
     }
 }

@@ -1,23 +1,15 @@
 package com.example.peachmusic.domain.album.controller;
 
-import com.example.peachmusic.common.model.AuthUser;
-import com.example.peachmusic.common.model.CommonResponse;
+import com.example.peachmusic.common.model.*;
+import com.example.peachmusic.domain.album.dto.response.AlbumArtistDetailResponseDto;
 import com.example.peachmusic.domain.album.dto.response.AlbumGetDetailResponseDto;
-import com.example.peachmusic.common.model.PageResponse;
 import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
 import com.example.peachmusic.domain.album.service.AlbumService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,25 +26,40 @@ public class AlbumController {
     @GetMapping("/albums/{albumId}")
     public ResponseEntity<CommonResponse<AlbumGetDetailResponseDto>> getAlbumDetail(
             @AuthenticationPrincipal AuthUser authUser,
-            @PathVariable("albumId") Long albumId) {
-
+            @PathVariable("albumId") Long albumId
+    ) {
         AlbumGetDetailResponseDto responseDto = albumService.getAlbumDetail(authUser, albumId);
 
         return ResponseEntity.ok(CommonResponse.success("앨범 조회에 성공했습니다.", responseDto));
     }
 
     /**
+     * 아티스트 단건 조회 시 앨범 전체 보기
+     */
+    @GetMapping("/artists/{artistId}/albums")
+    public ResponseEntity<CommonResponse<KeysetResponse<AlbumArtistDetailResponseDto>>> getArtistAlbums(
+            @AuthenticationPrincipal AuthUser authUser,
+            @PathVariable Long artistId,
+            @ModelAttribute CursorParam cursor
+    ) {
+        KeysetResponse<AlbumArtistDetailResponseDto> responseDto = albumService.getArtistAlbums(authUser, artistId, cursor);
+        return ResponseEntity.ok(CommonResponse.success("아티스트의 앨범 전체 조회에 성공했습니다.", responseDto));
+    }
+
+    /**
      * 앨범 검색
-     * @param word 검색어
-     * @param pageable 페이징 정보 - 인기순 정렬
-     * @return 앨범 검색 응답 DTO (앨범 id, 이름, 발매일, 이미지, 좋아요 수)
+     * - Keyset 페이징 적용
+     * - 좋아요 많은 순이 기본 정렬
+     * @param condition 검색어, 정렬 기준, 정렬 방향, 커서
+     * @return 앨범 검색 결과, 다음 데이터 있는지 여부, 커서
      */
     @GetMapping("/search/albums")
-    public ResponseEntity<PageResponse<AlbumSearchResponseDto>> searchAlbum(
-            @RequestParam String word,
-            @PageableDefault(size = 10, sort = "likeCount", direction = Sort.Direction.DESC) Pageable pageable
+    public ResponseEntity<CommonResponse<KeysetResponse<AlbumSearchResponseDto>>> searchAlbum(
+            @Valid @ModelAttribute SearchConditionParam condition,
+            @ModelAttribute CursorParam cursor
     ) {
-        Page<AlbumSearchResponseDto> result = albumService.searchAlbumPage(word, pageable);
-        return ResponseEntity.ok(PageResponse.success("앨범 검색이 완료되었습니다.", result));
+        KeysetResponse<AlbumSearchResponseDto> responseDto = albumService.searchAlbumPage(condition, cursor);
+
+        return ResponseEntity.ok(CommonResponse.success("앨범 검색이 완료되었습니다.", responseDto));
     }
 }

@@ -2,26 +2,34 @@ package com.example.peachmusic.domain.artist.service;
 
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
-import com.example.peachmusic.common.model.AuthUser;
+import com.example.peachmusic.common.model.*;
+import com.example.peachmusic.domain.album.dto.response.AlbumArtistDetailResponseDto;
+import com.example.peachmusic.domain.album.repository.AlbumRepository;
+import com.example.peachmusic.domain.artist.dto.response.ArtistPreviewResponseDto;
 import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.dto.response.ArtistGetDetailResponseDto;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
 import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
-import com.example.peachmusic.domain.artistlike.repository.ArtistLikeRepository;
+import com.example.peachmusic.domain.artistlike.service.ArtistLikeService;
+import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
+import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
-import static com.example.peachmusic.common.enums.UserRole.USER;
+import static com.example.peachmusic.common.constants.SearchViewSize.*;
+import static com.example.peachmusic.common.constants.UserViewScope.PUBLIC_VIEW;
+import static com.example.peachmusic.common.enums.SortDirection.DESC;
+import static com.example.peachmusic.common.enums.SortType.LIKE;
 
 @Service
 @RequiredArgsConstructor
 public class ArtistService {
 
     private final ArtistRepository artistRepository;
-    private final ArtistLikeRepository artistLikeRepository;
+    private final SongRepository songRepository;
+    private final AlbumRepository albumRepository;
+    private final ArtistLikeService artistLikeService;
 
     /**
      * 아티스트 단건 조회 기능
@@ -38,21 +46,36 @@ public class ArtistService {
 
         if (authUser != null) {
             Long userId = authUser.getUserId();
-            isLiked = artistLikeRepository.existsByArtist_ArtistIdAndUser_UserId(artistId, userId);
+            isLiked = artistLikeService.isArtistLiked(artistId, userId);
         }
 
         return ArtistGetDetailResponseDto.from(foundArtist, isLiked);
     }
 
     /**
-     * 아티스트 검색 - 자세히 보기
-     * @param word 검색어
-     * @param pageable 페이징 정보 - 인기순 정렬
-     * @return 페이징된 아티스트 검색 응답 DTO
+     * 아티스트의 앨범 및 음원 미리보기
      */
     @Transactional(readOnly = true)
-    public Page<ArtistSearchResponseDto> searchArtistPage(String word, Pageable pageable) {
-        return artistRepository.findArtistPageByWord(word, pageable, USER);
+    public ArtistPreviewResponseDto getArtistDetailPreview(AuthUser authUser, Long artistId) {
+        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
+
+        int size = PREVIEW_SIZE;
+        List<AlbumArtistDetailResponseDto> albumList = albumRepository.findAlbumList(authUser.getUserId(), foundArtist.getArtistId(), size);
+        List<SongArtistDetailResponseDto> songList = songRepository.findSongList(authUser.getUserId(), foundArtist.getArtistId(), size);
+
+        return ArtistPreviewResponseDto.of(albumList, songList);
+    }
+
+    /**
+     * 아티스트 검색 - 자세히 보기
+     */
+    @Transactional(readOnly = true)
+    public KeysetResponse<ArtistSearchResponseDto> searchArtistPage(SearchConditionParam condition, CursorParam cursor) {
+
+        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
+
+        return KeysetResponse.of(content, DETAIL_SIZE, last -> last.toCursor(condition.getSortType()));
     }
 
     /**
@@ -62,7 +85,6 @@ public class ArtistService {
      */
     @Transactional(readOnly = true)
     public List<ArtistSearchResponseDto> searchArtistList(String word) {
-        final int limit = 5;
-        return artistRepository.findArtistListByWord(word, limit);
+        return artistRepository.findArtistListByWord(word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC);
     }
 }
