@@ -1,6 +1,7 @@
 package com.example.peachmusic.domain.album.controller;
 
 import com.example.peachmusic.common.model.CommonResponse;
+import com.example.peachmusic.common.model.CursorParam;
 import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.domain.album.dto.request.AlbumCreateRequestDto;
 import com.example.peachmusic.domain.album.dto.request.AlbumUpdateRequestDto;
@@ -45,9 +46,9 @@ public class AlbumAdminController {
     @GetMapping("/admin/albums")
     public ResponseEntity<CommonResponse<KeysetResponse<AlbumSearchResponseDto>>> getAlbumList(
             @RequestParam(required = false) String word,
-            @RequestParam(required = false) Long lastId
+            @ModelAttribute CursorParam cursor
     ) {
-        KeysetResponse<AlbumSearchResponseDto> responseDtoPage = albumAdminService.getAlbumList(word, lastId);
+        KeysetResponse<AlbumSearchResponseDto> responseDtoPage = albumAdminService.getAlbumList(word, cursor);
 
         return ResponseEntity.ok(CommonResponse.success("앨범 목록 조회에 성공했습니다.", responseDtoPage));
     }

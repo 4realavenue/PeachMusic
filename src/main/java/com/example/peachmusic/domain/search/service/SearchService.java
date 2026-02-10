@@ -1,10 +1,10 @@
-package com.example.peachmusic.domain.searchhistory.service;
+package com.example.peachmusic.domain.search.service;
 
 import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
 import com.example.peachmusic.domain.album.service.AlbumService;
 import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
 import com.example.peachmusic.domain.artist.service.ArtistService;
-import com.example.peachmusic.domain.searchhistory.dto.SearchPreviewResponseDto;
+import com.example.peachmusic.domain.search.dto.SearchPreviewResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.example.peachmusic.domain.song.service.SongService;
 import lombok.RequiredArgsConstructor;

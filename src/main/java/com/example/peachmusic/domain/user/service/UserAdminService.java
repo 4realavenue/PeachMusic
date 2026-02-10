@@ -3,9 +3,8 @@ package com.example.peachmusic.domain.user.service;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.common.model.Cursor;
+import com.example.peachmusic.common.model.NextCursor;
 import com.example.peachmusic.common.model.KeysetResponse;
-import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.domain.user.dto.response.admin.UserAdminGetResponseDto;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.repository.UserRepository;
@@ -13,10 +12,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
 
 @Service
 @RequiredArgsConstructor
-public class UserAdminService extends AbstractKeysetService {
+public class UserAdminService {
 
     private final UserRepository userRepository;
 
@@ -25,10 +25,10 @@ public class UserAdminService extends AbstractKeysetService {
      */
     @Transactional(readOnly = true)
     public KeysetResponse<UserAdminGetResponseDto> getUserList(String word, Long lastId) {
-        final int size = 10;
+        final int size = DETAIL_SIZE;
         List<UserAdminGetResponseDto> content = userRepository.findUserKeysetPageByWord(word, size, lastId);
 
-        return toKeysetResponse(content, size, last -> new Cursor(last.getUserId(), null));
+        return KeysetResponse.of(content, size, last -> new NextCursor(last.getUserId(), null));
     }
 
     /**

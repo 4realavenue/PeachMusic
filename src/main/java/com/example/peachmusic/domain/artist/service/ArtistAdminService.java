@@ -3,9 +3,9 @@ package com.example.peachmusic.domain.artist.service;
 import com.example.peachmusic.common.enums.FileType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.enums.ErrorCode;
-import com.example.peachmusic.common.model.Cursor;
+import com.example.peachmusic.common.model.CursorParam;
+import com.example.peachmusic.common.model.NextCursor;
 import com.example.peachmusic.common.model.KeysetResponse;
-import com.example.peachmusic.common.service.AbstractKeysetService;
 import com.example.peachmusic.common.storage.FileStorageService;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.artist.dto.response.ArtistImageUpdateResponseDto;
@@ -26,10 +26,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
+import static com.example.peachmusic.common.constants.UserViewScope.ADMIN_VIEW;
 
 @Service
 @RequiredArgsConstructor
-public class ArtistAdminService extends AbstractKeysetService {
+public class ArtistAdminService {
 
     private final ArtistRepository artistRepository;
     private final SongRepository songRepository;
@@ -65,15 +67,13 @@ public class ArtistAdminService extends AbstractKeysetService {
      * @return 아티스트 목록 페이징 조회 결과
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<ArtistSearchResponseDto> getArtistList(String word, Long lastId) {
+    public KeysetResponse<ArtistSearchResponseDto> getArtistList(String word, CursorParam cursor) {
 
-        String[] words = word == null ? null : word.split("\\s+");
-        final int size = 10;
-        final boolean isAdmin = true; // 관리자용
+        final int size = DETAIL_SIZE;
 
-        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(words, size, isAdmin, null, null, lastId, null, null);
+        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(word, size, ADMIN_VIEW, null, null, cursor);
 
-        return toKeysetResponse(content, size, last -> new Cursor(last.getArtistId(), null));
+        return KeysetResponse.of(content, size, last -> new NextCursor(last.getArtistId(), null));
     }
 
     /**
