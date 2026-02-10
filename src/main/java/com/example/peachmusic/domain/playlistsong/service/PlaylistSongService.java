@@ -73,7 +73,7 @@ public class PlaylistSongService {
 
         Set<Long> validRequestSongIdSet = songRepository.findSongIdListBySongIdList(requestDto.getSongIdList());
 
-        Set<Long> duplicationSongIdSet = playlistSongRepository.findSongIdListByPlaylist_PlaylistIdAndSong_SongId(findPlaylist.getPlaylistId(), validRequestSongIdSet);
+        Set<Long> duplicationSongIdSet = playlistSongRepository.findSongIdSetByPlaylist_PlaylistIdAndSong_SongIdList(findPlaylist.getPlaylistId(), validRequestSongIdSet);
 
         List<Long> validSongIdList = validRequestSongIdSet.stream()
                 .filter(songId -> !duplicationSongIdSet.contains(songId)).toList();
@@ -108,7 +108,7 @@ public class PlaylistSongService {
 
         Set<Long> validRequestSongIdSet = songRepository.findSongIdListBySongIdList(requestDto.getSongIdList());
 
-        Set<Long> duplicationSongIdSet = playlistSongRepository.findSongIdListByPlaylist_PlaylistIdAndSong_SongId(findPlaylist.getPlaylistId(), validRequestSongIdSet);
+        Set<Long> duplicationSongIdSet = playlistSongRepository.findSongIdSetByPlaylist_PlaylistIdAndSong_SongIdList(findPlaylist.getPlaylistId(), validRequestSongIdSet);
 
         List<Long> validSongIdList = validRequestSongIdSet.stream()
                 .filter(duplicationSongIdSet::contains).toList();

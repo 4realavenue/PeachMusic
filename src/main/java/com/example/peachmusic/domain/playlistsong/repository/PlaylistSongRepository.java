@@ -19,7 +19,7 @@ public interface PlaylistSongRepository extends JpaRepository<PlaylistSong, Long
             select ps.song.songId from PlaylistSong ps
             where ps.playlist.playlistId = :playlistId and ps.song.songId in (:songIdList)
             """)
-    Set<Long> findSongIdListByPlaylist_PlaylistIdAndSong_SongId(Long playlistId, Set<Long> songIdList);
+    Set<Long> findSongIdSetByPlaylist_PlaylistIdAndSong_SongIdList(Long playlistId, Set<Long> songIdList);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
