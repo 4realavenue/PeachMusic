@@ -1,11 +1,9 @@
-package com.example.peachmusic.domain.user.controller;
+package com.example.peachmusic.domain.mail.controller;
 
-import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.CommonResponse;
-import com.example.peachmusic.domain.user.dto.request.SendEmailRequestDto;
-import com.example.peachmusic.domain.user.dto.request.VerifyCodeRequestDto;
-import com.example.peachmusic.domain.user.service.MailCheckService;
-import com.example.peachmusic.domain.user.service.MailService;
+import com.example.peachmusic.domain.mail.service.MailService;
+import com.example.peachmusic.domain.mail.dto.SendEmailRequestDto;
+import com.example.peachmusic.domain.mail.dto.VerifyCodeRequestDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,14 +18,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class MailController {
 
     private final MailService mailService;
-    private final MailCheckService mailCheckService;
 
     /**
      *  이메일 발송
      */
     @PostMapping("/auth/email/code-send")
     public ResponseEntity<CommonResponse<Void>> sendVerificationCode(@Valid @RequestBody SendEmailRequestDto request) {
-        mailCheckService.sendCodeToEmail(request.getEmail());
+        mailService.sendCodeToEmail(request.getEmail());
         return ResponseEntity.ok(CommonResponse.success("인증 코드가 발송되었습니다."));
     }
 
@@ -36,14 +33,7 @@ public class MailController {
      */
     @PostMapping("/auth/email/verify-code")
     public ResponseEntity<CommonResponse<Void>> verifyCode(@Valid @RequestBody VerifyCodeRequestDto request) {
-        boolean isVerified;
-        try {
-            isVerified = mailCheckService.verifyEmailCode(request.getEmail(), request.getCode());
-        } catch (CustomException e) {
-            return ResponseEntity.status(e.getErrorCode().getStatus())
-                    .body(CommonResponse.fail(e.getMessage()));
-        }
-
-        return ResponseEntity.ok(CommonResponse.success("이메일 인증이 완료되었습니다."));
+        CommonResponse<Void> response = mailService.verifyEmailCode(request.getEmail(), request.getCode());
+        return ResponseEntity.ok(response);
     }
 }

@@ -10,9 +10,17 @@ public class RankingResponseDto {
 
     private final String title;
     private final Long score;
+    private final Long id;
+
 
     // Tuple을 사용하여 RankingResponseDto를 생성하는 메서드
     public static RankingResponseDto of(TypedTuple<String> tuple) {
-        return new RankingResponseDto(tuple.getValue(), tuple.getScore().longValue());
+
+        String[] values = tuple.getValue().split(":");
+        String title = values[0];
+        Long id =  Long.valueOf(values[1]);
+
+        return new RankingResponseDto(title, tuple.getScore().longValue(), id);
+
     }
 }

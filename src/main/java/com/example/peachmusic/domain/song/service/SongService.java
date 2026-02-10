@@ -1,6 +1,7 @@
 package com.example.peachmusic.domain.song.service;
 
 import com.example.peachmusic.common.annotation.RedisLock;
+import com.example.peachmusic.common.constants.RedisResetTime;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
@@ -25,12 +26,16 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
-import static com.example.peachmusic.common.constants.SearchViewSize.*;
+
+import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
+import static com.example.peachmusic.common.constants.SearchViewSize.PREVIEW_SIZE;
 import static com.example.peachmusic.common.constants.UserViewScope.PUBLIC_VIEW;
 import static com.example.peachmusic.common.enums.SortDirection.DESC;
-import static com.example.peachmusic.common.enums.SortType.*;
+import static com.example.peachmusic.common.enums.SortType.LIKE;
 
 @Service
 @RequiredArgsConstructor
@@ -127,11 +132,17 @@ public class SongService {
         Song song = songRepository.findById(songId).orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
         // 키에 날짜 반영
-        String key =  MUSIC_DAILY_KEY + currentDate.toString();
+        String key =  MUSIC_DAILY_KEY + currentDate;
         // music:2025-02-04
 
+        // 레디스에 이름과 id 동시 저장을 위해 조합
+        String value = song.getName() + ":" + songId;
+
         // Redis에 저장
-        redisTemplate.opsForZSet().incrementScore(key, songId.toString(),1);
+        redisTemplate.opsForZSet().incrementScore(key, value ,1);
+
+        //TTL 설정
+        redisTemplate.expire(key, Duration.ofDays(RedisResetTime.RESET_DATE));
 
         // DB에 저장
         song.addPlayCount();

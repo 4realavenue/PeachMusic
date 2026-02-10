@@ -65,7 +65,6 @@ public class UserService {
     /**
      * DB에서 유저 조회
      */
-    @Transactional
     public User findUser(AuthUser authUser) {
         return userRepository.findById(authUser.getUserId())
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));

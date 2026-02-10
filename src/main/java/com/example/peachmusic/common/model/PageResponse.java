@@ -21,11 +21,11 @@ public class PageResponse<T> {
         this.timestamp = LocalDateTime.now();
     }
 
-
     // 페이지 응답
     public static <T> PageResponse<T> success(String message, Page<T> page) {
         return new PageResponse<>(true, message, new PageData<>(page));
     }
+
 
 
     /**
@@ -48,5 +48,6 @@ public class PageResponse<T> {
             this.size = page.getSize();
             this.number = page.getNumber();
         }
+
     }
 }

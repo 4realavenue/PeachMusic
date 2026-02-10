@@ -7,6 +7,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
+
 import java.util.UUID;
 
 @Aspect
@@ -27,20 +28,25 @@ public class RedisLockAspect {
         Object arg = args[0];
         String key = keyPreFix + ":" + arg;
 
-        // 락 획득 실패시 예외 처리하고 끝내지 말고 동시에 들어온게 3개가 있다면 차례대로 락을 획들할때까지 돌려주는 로직
-        while (!lockService.tryLock(key, value, redisLock.timeout())) {
+        // 락 획득 실패 시 대기하는 로직
+        while (true) {
+            if (lockService.tryLock(key, value, redisLock.timeout())) {
+                break; // 락을 획득하면 루프를 탈출
+            }
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                Thread.currentThread().interrupt(); // interrupt로 작업중단 OS에서 interrupt를 걸면 작동
+                throw new RuntimeException("락 획득 대기중에 중단되었습니다.", e);
             }
         }
 
-        // locked가 True -> 락을 획득한 경우에 실행
         try {
             return joinPoint.proceed();
+        } catch (Throwable throwable) {
+            throw throwable;
         } finally {
-            lockService.unlock(key, value);
+            lockService.unlock(key, value); // 락 해제
         }
     }
 }
