@@ -1,8 +1,8 @@
 package com.example.peachmusic.domain.song.dto.response;
 
-import com.example.peachmusic.common.enums.JobStatus;
 import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.model.NextCursor;
+import com.example.peachmusic.common.enums.ProgressingStatus;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import java.time.LocalDate;
@@ -19,7 +19,7 @@ public class SongSearchResponseDto {
     private final Long likeCount;
     private final Long playCount;
     private final boolean isDeleted;
-    private final JobStatus jobStatus;
+    private final ProgressingStatus progressingStatus;
 
     public NextCursor toCursor(SortType sortType) {
         return switch (sortType) {
@@ -29,4 +29,5 @@ public class SongSearchResponseDto {
             case PLAY -> new NextCursor(songId, playCount);
         };
     }
+
 }

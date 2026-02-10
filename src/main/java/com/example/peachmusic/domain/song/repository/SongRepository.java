@@ -30,15 +30,11 @@ public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRep
 
     List<Song> findAllByAlbum_AlbumIdAndIsDeletedFalseAndStreamingStatusTrue(Long albumId);
 
-    // 여러 앨범 음원 조회
-    List<Song> findAllByAlbum_AlbumIdInAndIsDeletedFalse(List<Long> albumIdList);
-    List<Song> findAllByAlbum_AlbumIdInAndIsDeletedTrue(List<Long> albumIdList);
-
     @Query("""
             select s.songId from Song s
-            where s.songId in (:songIdList)
+            where s.songId in (:songIdSet)
             """)
-    List<Long> findSongIdListBySongIdList(List<Long> songIdList);
+    Set<Long> findSongIdSetBySongIdSet(Set<Long> songIdSet);
 
     boolean existsByAudioAndSongIdNot(String audio, Long songId);
 
@@ -70,4 +66,22 @@ public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRep
     @Modifying
     @Query("update Song s set s.likeCount = s.likeCount - 1 where s.songId = :songId and s.likeCount > 0")
     void decrementLikeCount(@Param("songId") Long songId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        update Song s
+        set s.isDeleted = true
+        where s.isDeleted = false
+        and s.album.albumId in :albumIdList
+        """)
+    void softDeleteByAlbumIdList(@Param("albumIdList") List<Long> albumIdList);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        update Song s
+        set s.isDeleted = false
+        where s.isDeleted = true
+        and s.album.albumId in :albumIdList
+        """)
+    void restoreByAlbumIdList(@Param(("albumIdList")) List<Long> albumIdList);
 }

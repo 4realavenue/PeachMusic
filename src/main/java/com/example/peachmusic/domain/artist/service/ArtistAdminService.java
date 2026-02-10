@@ -7,7 +7,7 @@ import com.example.peachmusic.common.model.CursorParam;
 import com.example.peachmusic.common.model.NextCursor;
 import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.common.storage.FileStorageService;
-import com.example.peachmusic.domain.album.entity.Album;
+import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.artist.dto.response.ArtistImageUpdateResponseDto;
 import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.dto.request.ArtistCreateRequestDto;
@@ -17,7 +17,6 @@ import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto
 import com.example.peachmusic.domain.artist.dto.response.ArtistUpdateResponseDto;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
 import com.example.peachmusic.domain.artistalbum.repository.ArtistAlbumRepository;
-import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -37,6 +36,7 @@ public class ArtistAdminService {
     private final SongRepository songRepository;
     private final ArtistAlbumRepository artistAlbumRepository;
     private final FileStorageService fileStorageService;
+    private final AlbumRepository albumRepository;
 
     /**
      * 아티스트 생성 기능 (관리자 전용)
@@ -87,10 +87,6 @@ public class ArtistAdminService {
 
         Artist foundArtist = getArtistOrThrow(artistId, false, ErrorCode.ARTIST_NOT_FOUND);
 
-        if (!hasUpdateFields(requestDto)) {
-            throw new CustomException(ErrorCode.ARTIST_UPDATE_NO_CHANGES);
-        }
-
         foundArtist.updateArtistInfo(requestDto);
 
         return ArtistUpdateResponseDto.from(foundArtist);
@@ -129,20 +125,14 @@ public class ArtistAdminService {
 
         Artist foundArtist = getArtistOrThrow(artistId, false, ErrorCode.ARTIST_DETAIL_NOT_FOUND);
 
-        List<Album> foundAlbumList = artistAlbumRepository.findAlbumsByArtistIdAndIsDeleted(artistId, false);
+        foundArtist.delete();
 
-        List<Long> albumIdList = foundAlbumList.stream()
-                .map(Album::getAlbumId)
-                .toList();
+        List<Long> albumIdList = artistAlbumRepository.findAlbumIdListByArtistIdAndIsDeleted(artistId, false);
 
         if (!albumIdList.isEmpty()) {
-            List<Song> foundSongList = songRepository.findAllByAlbum_AlbumIdInAndIsDeletedFalse(albumIdList);
-            foundSongList.forEach(Song::deleteSong);
+            songRepository.softDeleteByAlbumIdList(albumIdList);
+            albumRepository.softDeleteByAlbumIdList(albumIdList);
         }
-
-        foundAlbumList.forEach(Album::delete);
-
-        foundArtist.delete();
     }
 
     /**
@@ -154,20 +144,14 @@ public class ArtistAdminService {
 
         Artist foundArtist = getArtistOrThrow(artistId, true, ErrorCode.ARTIST_DETAIL_NOT_FOUND);
 
-        List<Album> foundAlbumList = artistAlbumRepository.findAlbumsByArtistIdAndIsDeleted(artistId, true);
+        foundArtist.restore();
 
-        List<Long> albumIdList = foundAlbumList.stream()
-                .map(Album::getAlbumId)
-                .toList();
+        List<Long> albumIdList = artistAlbumRepository.findAlbumIdListByArtistIdAndIsDeleted(artistId, true);
 
         if (!albumIdList.isEmpty()) {
-            List<Song> foundSongList = songRepository.findAllByAlbum_AlbumIdInAndIsDeletedTrue(albumIdList);
-            foundSongList.forEach(Song::restoreSong);
+            songRepository.restoreByAlbumIdList(albumIdList);
+            albumRepository.restoreByAlbumIdList(albumIdList);
         }
-
-        foundAlbumList.forEach(Album::restore);
-
-        foundArtist.restore();
     }
 
     private Artist getArtistOrThrow(Long artistId, boolean isDeleted, ErrorCode errorCode) {
@@ -177,14 +161,6 @@ public class ArtistAdminService {
 
     private String normalize(String value) {
         return (value != null && !value.isBlank()) ? value.trim() : null;
-    }
-
-    private boolean hasUpdateFields(ArtistUpdateRequestDto requestDto) {
-        return (requestDto.getArtistName() != null && !requestDto.getArtistName().isBlank())
-                || (requestDto.getCountry() != null && !requestDto.getCountry().isBlank())
-                || requestDto.getArtistType() != null
-                || requestDto.getDebutDate() != null
-                || (requestDto.getBio() != null && !requestDto.getBio().isBlank());
     }
 
     private String storeProfileImage(MultipartFile profileImage, String artistName) {

@@ -65,4 +65,8 @@ public class AlbumLikeTxService {
         }
         return AlbumLikeResponseDto.of(albumId, albumName, liked, likeCount);
     }
+
+    public boolean isAlbumLiked(Long albumId, Long userId) {
+        return albumLikeRepository.existsByAlbum_AlbumIdAndUser_UserId(albumId, userId);
+    }
 }

@@ -104,10 +104,6 @@ public class AlbumAdminService {
 
         Album foundAlbum = getAlbumOrThrow(albumId);
 
-        if (!hasUpdateFields(requestDto)) {
-            throw new CustomException(ErrorCode.ALBUM_UPDATE_NO_CHANGES);
-        }
-
         foundAlbum.updateAlbumInfo(requestDto);
 
         if (albumRepository.existsByAlbumNameAndAlbumReleaseDateAndIsDeletedFalseAndAlbumIdNot(
@@ -234,11 +230,6 @@ public class AlbumAdminService {
         return artistAlbumRepository.findAllByAlbum_AlbumId(albumId).stream()
                 .map(artist -> ArtistSummaryDto.from(artist.getArtist()))
                 .toList();
-    }
-
-    private boolean hasUpdateFields(AlbumUpdateRequestDto requestDto) {
-        return (requestDto.getAlbumName() != null && !requestDto.getAlbumName().isBlank())
-                || requestDto.getAlbumReleaseDate() != null;
     }
 
     private String storeAlbumImage(MultipartFile albumImage, String albumName) {

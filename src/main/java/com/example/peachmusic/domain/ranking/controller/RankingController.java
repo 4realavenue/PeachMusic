@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -21,10 +20,8 @@ public class RankingController {
 
     @GetMapping("/songs/ranking/Top100")
     public ResponseEntity<CommonResponse<List<RankingResponseDto>>> findTop100Music(
-            @RequestParam(required = false) int page,
-            @RequestParam(defaultValue = "10") int limit
     ) {
-        List<RankingResponseDto> result = rankingService.findMusicTop100(page, limit);
+        List<RankingResponseDto> result = rankingService.findMusicTop100();
         return ResponseEntity.ok(CommonResponse.success("조회 완료했습니다.", result));
     }
 }

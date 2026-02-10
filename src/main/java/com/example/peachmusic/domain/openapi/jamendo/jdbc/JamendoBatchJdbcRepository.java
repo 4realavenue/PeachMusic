@@ -71,7 +71,6 @@ public class JamendoBatchJdbcRepository {
         });
     }
 
-
     public void insertArtistSongs(List<ArtistSongRow> rows) {
         if (rows.isEmpty()) {
             return;
@@ -257,28 +256,28 @@ public class JamendoBatchJdbcRepository {
         });
     }
 
-    public void upsertStreamingJobs(List<StreamingJobRow> rows) {
+    public void upsertSongProgressingStatus(List<SongProgressingStatusRow> rows) {
         if (rows.isEmpty()) {
             return;
         }
 
         String insertSQL = """
-                    INSERT INTO streaming_jobs (song_id, job_status)
-                    SELECT
-                    s.song_id,
-                    ?
-                    FROM songs s
-                    WHERE s.jamendo_song_id = ?
-                    ON DUPLICATE KEY UPDATE
-                        job_status = VALUES(job_status)
+                INSERT INTO song_progressing_status (song_id, progressing_status)
+                SELECT
+                s.song_id,
+                ?
+                FROM songs s
+                WHERE s.jamendo_song_id = ?
+                ON DUPLICATE KEY UPDATE
+                progressing_status = VALUES(progressing_status)
                 """;
 
         jdbcTemplate.batchUpdate(insertSQL, new BatchPreparedStatementSetter() {
 
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                StreamingJobRow r = rows.get(i);
-                ps.setString(1, r.jobStatus());
+                SongProgressingStatusRow r = rows.get(i);
+                ps.setString(1, r.progressingStatus());
                 ps.setLong(2, r.jamendoSongId());
             }
 

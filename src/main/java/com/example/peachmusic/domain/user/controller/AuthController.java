@@ -6,7 +6,6 @@ import com.example.peachmusic.domain.user.dto.request.LoginRequestDto;
 import com.example.peachmusic.domain.user.dto.request.UserCreateRequestDto;
 import com.example.peachmusic.domain.user.dto.response.LoginResponseDto;
 import com.example.peachmusic.domain.user.service.AuthService;
-import com.example.peachmusic.domain.user.service.MailCheckService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final MailCheckService mailCheckService;
     private final AuthService authService;
 
     /**
