@@ -3,7 +3,6 @@ package com.example.peachmusic.domain.song.service;
 import com.example.peachmusic.domain.song.dto.response.SongRecommendationResponseDto;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RecommendColdStartService {
