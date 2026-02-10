@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class SearchHistoryService {
 
     private final RedisTemplate<String, String> redisTemplate;
-    private final String SEARCH_KEY = "searchWord:";
+    private static final String SEARCH_KEY = "searchWord:";
 
     /**
      * Redis zset 사용하여 날짜+시간마다 검색어 횟수 기록
