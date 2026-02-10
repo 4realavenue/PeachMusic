@@ -1,6 +1,6 @@
 package com.example.peachmusic.domain.ranking.service;
 
-import com.example.peachmusic.domain.StaticNumber;
+import com.example.peachmusic.common.constants.RedisResetTime;
 import com.example.peachmusic.domain.ranking.model.RankingResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -44,7 +44,7 @@ public class RankingService {
         redisTemplate.opsForZSet().unionAndStore(keyList.get(0), keyList.subList(1,keyList.size()), destKey);
 
         // TTL 설정
-        redisTemplate.expire(destKey, Duration.ofDays(StaticNumber.RESET_DATE));
+        redisTemplate.expire(destKey, Duration.ofDays(RedisResetTime.RESET_DATE));
 
         // 1주간의 데이터를 합친것 중 상위 Top 100 뽑아냄
         Set<TypedTuple<String>> result = redisTemplate

@@ -1,6 +1,7 @@
 package com.example.peachmusic.domain.song.service;
 
 import com.example.peachmusic.common.annotation.RedisLock;
+import com.example.peachmusic.common.constants.RedisResetTime;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
@@ -29,10 +30,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
-import static com.example.peachmusic.common.constants.SearchViewSize.*;
+
+import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
+import static com.example.peachmusic.common.constants.SearchViewSize.PREVIEW_SIZE;
 import static com.example.peachmusic.common.constants.UserViewScope.PUBLIC_VIEW;
 import static com.example.peachmusic.common.enums.SortDirection.DESC;
-import static com.example.peachmusic.common.enums.SortType.*;
+import static com.example.peachmusic.common.enums.SortType.LIKE;
 
 @Service
 @RequiredArgsConstructor
@@ -139,7 +142,7 @@ public class SongService {
         redisTemplate.opsForZSet().incrementScore(key, value ,1);
 
         //TTL 설정
-        redisTemplate.expire(key, Duration.ofDays(StaticNumber.RESET_DATE));
+        redisTemplate.expire(key, Duration.ofDays(RedisResetTime.RESET_DATE));
 
         // DB에 저장
         song.addPlayCount();
