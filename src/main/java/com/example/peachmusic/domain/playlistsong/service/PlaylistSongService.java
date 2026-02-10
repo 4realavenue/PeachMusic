@@ -46,7 +46,8 @@ public class PlaylistSongService {
 
         List<PlaylistSong> findPlaylistSong = playlistSongRepository.findAllByPlaylist(findPlaylist);
 
-        List<PlaylistGetSongResponseDto.SongResponseDto> playlistSongDtoList = findPlaylistSong.stream().map(PlaylistGetSongResponseDto.SongResponseDto::from).toList();
+        List<PlaylistGetSongResponseDto.SongResponseDto> playlistSongDtoList = findPlaylistSong.stream()
+                .map(PlaylistGetSongResponseDto.SongResponseDto::from).toList();
 
         return PlaylistGetSongResponseDto.from(findPlaylist, playlistSongDtoList);
 
@@ -71,7 +72,7 @@ public class PlaylistSongService {
             throw new CustomException(ErrorCode.PLAYLIST_ADD_SONG_REQUIRED);
         }
 
-        Set<Long> validRequestSongIdSet = songRepository.findSongIdListBySongIdList(requestDto.getSongIdList());
+        Set<Long> validRequestSongIdSet = songRepository.findSongIdSetBySongIdList(requestDto.getSongIdList());
 
         Set<Long> duplicationSongIdSet = playlistSongRepository.findSongIdSetByPlaylist_PlaylistIdAndSong_SongIdList(findPlaylist.getPlaylistId(), validRequestSongIdSet);
 
@@ -106,7 +107,7 @@ public class PlaylistSongService {
             throw new CustomException(ErrorCode.PLAYLIST_REMOVE_SONG_REQUIRED);
         }
 
-        Set<Long> validRequestSongIdSet = songRepository.findSongIdListBySongIdList(requestDto.getSongIdList());
+        Set<Long> validRequestSongIdSet = songRepository.findSongIdSetBySongIdList(requestDto.getSongIdList());
 
         Set<Long> duplicationSongIdSet = playlistSongRepository.findSongIdSetByPlaylist_PlaylistIdAndSong_SongIdList(findPlaylist.getPlaylistId(), validRequestSongIdSet);
 
