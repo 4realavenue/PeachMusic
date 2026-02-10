@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.song.service;
+package com.example.peachmusic.domain.song.recommend;
 
 import java.util.Map;
 
