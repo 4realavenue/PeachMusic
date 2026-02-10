@@ -1,7 +1,7 @@
 package com.example.peachmusic.domain.mail.controller;
 
 import com.example.peachmusic.common.model.CommonResponse;
-import com.example.peachmusic.domain.mail.Service.MailService;
+import com.example.peachmusic.domain.mail.service.MailService;
 import com.example.peachmusic.domain.mail.dto.SendEmailRequestDto;
 import com.example.peachmusic.domain.mail.dto.VerifyCodeRequestDto;
 import jakarta.validation.Valid;

@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.mail.Service;
+package com.example.peachmusic.domain.mail.service;
 
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.exception.CustomException;
