@@ -8,12 +8,12 @@ import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songlike.dto.response.SongLikeResponseDto;
 import com.example.peachmusic.domain.songlike.repository.SongLikeRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
+@Component
 @RequiredArgsConstructor
-public class SongLikeTxService {
+public class SongLikeCommand {
 
     private final SongLikeRepository songLikeRepository;
     private final SongRepository songRepository;
@@ -29,30 +29,35 @@ public class SongLikeTxService {
         Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
+        boolean liked;
+
         int deleted = songLikeRepository.deleteBySongIdAndUserId(songId, userId);
 
         if (deleted == 1) {
             songRepository.decrementLikeCount(songId);
+            liked = false;
+        } else {
+            int inserted = songLikeRepository.insertIgnore(userId, songId);
 
-            return buildResponse(songId, findSong.getName(), false);
+            if (inserted == 1) {
+                songRepository.incrementLikeCount(songId);
+            }
+            liked = true;
         }
-
-        int inserted = songLikeRepository.insertIgnore(userId, songId);
-
-        if (inserted == 1) {
-            songRepository.incrementLikeCount(songId);
-
-            return buildResponse(songId, findSong.getName(), true);
-        }
-        return buildResponse(songId, findSong.getName(), true);
+        Long likeCount = getSongLikeCount(songId);
+        return createSongLikeResponse(songId, findSong.getName(), liked, likeCount);
     }
 
-    private SongLikeResponseDto buildResponse(Long songId, String songName, boolean liked) {
+    private Long getSongLikeCount(Long songId) {
         Long likeCount = songRepository.findLikeCountBySongId(songId);
 
         if (likeCount == null) {
             throw new CustomException(ErrorCode.SONG_NOT_FOUND);
         }
-        return SongLikeResponseDto.of(songId, songName, liked, likeCount);
+        return likeCount;
+    }
+
+    private SongLikeResponseDto createSongLikeResponse(Long songId, String name, boolean liked, Long likeCount) {
+        return SongLikeResponseDto.of(songId, name, liked, likeCount);
     }
 }
