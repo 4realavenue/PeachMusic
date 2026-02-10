@@ -63,7 +63,7 @@ public class AlbumAdminController {
     @PatchMapping("/admin/albums/{albumId}")
     public ResponseEntity<CommonResponse<AlbumUpdateResponseDto>> updateAlbum(
             @PathVariable("albumId") Long albumId,
-            @RequestBody AlbumUpdateRequestDto requestDto
+            @Valid @RequestBody AlbumUpdateRequestDto requestDto
     ) {
         AlbumUpdateResponseDto responseDto = albumAdminService.updateAlbumInfo(albumId, requestDto);
 

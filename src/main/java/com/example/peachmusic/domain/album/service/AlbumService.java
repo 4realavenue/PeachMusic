@@ -8,17 +8,16 @@ import com.example.peachmusic.common.model.*;
 import com.example.peachmusic.domain.album.dto.response.*;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
+import com.example.peachmusic.domain.albumlike.service.AlbumLikeTxService;
 import com.example.peachmusic.domain.albumlike.repository.AlbumLikeRepository;
 import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
 import com.example.peachmusic.domain.artistalbum.entity.ArtistAlbum;
 import com.example.peachmusic.domain.artistalbum.repository.ArtistAlbumRepository;
-import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.ArrayList;
 import java.util.List;
 import static com.example.peachmusic.common.constants.SearchViewSize.*;
 import static com.example.peachmusic.common.constants.UserViewScope.PUBLIC_VIEW;
@@ -32,6 +31,7 @@ public class AlbumService {
     private final AlbumRepository albumRepository;
     private final ArtistAlbumRepository artistAlbumRepository;
     private final SongRepository songRepository;
+    private final AlbumLikeTxService albumLikeTxService;
     private final AlbumLikeRepository albumLikeRepository;
     private final ArtistRepository artistRepository;
 
@@ -52,23 +52,14 @@ public class AlbumService {
 
         if (authUser != null) {
             Long userId = authUser.getUserId();
-            isLiked = albumLikeRepository.existsByAlbum_AlbumIdAndUser_UserId(albumId, userId);
+            isLiked = albumLikeTxService.isAlbumLiked(albumId, userId);
         }
 
-        List<ArtistAlbum> artistAlbumList = artistAlbumRepository.findAllByAlbum_AlbumIdAndArtist_IsDeletedFalse(albumId);
-        List<ArtistSummaryDto> artistSummaryDtoList = new ArrayList<>();
-        for (ArtistAlbum artistAlbum : artistAlbumList) {
-            Artist artist = artistAlbum.getArtist();
-            artistSummaryDtoList.add(new ArtistSummaryDto(artist.getArtistId(), artist.getArtistName()));
-        }
+        List<ArtistSummaryDto> artistAlbumList = artistAlbumRepository.findArtistSummaryListByAlbumId(albumId);
 
-        List<Song> songList = songRepository.findAllByAlbum_AlbumIdAndIsDeletedFalseAndStreamingStatusTrue(albumId);
-        List<SongSummaryDto> songSummaryDtoList = new ArrayList<>();
-        for (Song song : songList) {
-            songSummaryDtoList.add(new SongSummaryDto(song.getPosition(), song.getSongId(), song.getName(), song.getDuration(), song.getLikeCount()));
-        }
+        List<SongSummaryDto> songList = songRepository.findSongSummaryListByAlbumId(albumId);
 
-        return AlbumGetDetailResponseDto.from(foundAlbum, artistSummaryDtoList, songSummaryDtoList, isLiked);
+        return AlbumGetDetailResponseDto.from(foundAlbum, artistAlbumList, songList, isLiked);
     }
 
     /**
