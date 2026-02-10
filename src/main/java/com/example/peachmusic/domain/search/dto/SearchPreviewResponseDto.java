@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.searchhistory.dto;
+package com.example.peachmusic.domain.search.dto;
 
 import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
 import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
