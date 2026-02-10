@@ -8,12 +8,12 @@ import com.example.peachmusic.domain.artist.repository.ArtistRepository;
 import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikeResponseDto;
 import com.example.peachmusic.domain.artistlike.repository.ArtistLikeRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
+@Component
 @RequiredArgsConstructor
-public class ArtistLikeTxService {
+public class ArtistLikeCommand {
 
     private final ArtistLikeRepository artistLikeRepository;
     private final ArtistRepository artistRepository;
@@ -33,34 +33,31 @@ public class ArtistLikeTxService {
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
 
+        boolean liked;
+
         int deleted = artistLikeRepository.deleteByArtistIdAndUserId(artistId, userId);
 
         if (deleted == 1) {
             artistRepository.decrementLikeCount(artistId);
+            liked = false;
+        } else {
+            int inserted = artistLikeRepository.insertIgnore(userId, artistId);
 
-            return buildResponse(artistId, foundArtist.getArtistName(), false);
+            if (inserted == 1) {
+                artistRepository.incrementLikeCount(artistId);
+            }
+            liked = true;
         }
-
-        int inserted = artistLikeRepository.insertIgnore(userId, artistId);
-
-        if (inserted == 1) {
-            artistRepository.incrementLikeCount(artistId);
-
-            return buildResponse(artistId, foundArtist.getArtistName(), true);
-        }
-        return buildResponse(artistId, foundArtist.getArtistName(), true);
+        Long likeCount = getArtistLikeCount(artistId);
+        return ArtistLikeResponseDto.of(artistId, foundArtist.getArtistName(), liked, likeCount);
     }
 
-    private ArtistLikeResponseDto buildResponse(Long artistId, String artistName, boolean liked) {
+    private Long getArtistLikeCount(Long artistId) {
         Long likeCount = artistRepository.findLikeCountByArtistId(artistId);
 
         if (likeCount == null) {
             throw new CustomException(ErrorCode.ARTIST_NOT_FOUND);
         }
-        return ArtistLikeResponseDto.of(artistId, artistName, liked, likeCount);
-    }
-
-    public boolean isArtistLiked(Long artistId, Long userId) {
-        return artistLikeRepository.existsByArtist_ArtistIdAndUser_UserId(artistId, userId);
+        return likeCount;
     }
 }

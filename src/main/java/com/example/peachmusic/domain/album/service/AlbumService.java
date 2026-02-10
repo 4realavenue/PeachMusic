@@ -8,11 +8,9 @@ import com.example.peachmusic.common.model.*;
 import com.example.peachmusic.domain.album.dto.response.*;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
-import com.example.peachmusic.domain.albumlike.service.AlbumLikeTxService;
-import com.example.peachmusic.domain.albumlike.repository.AlbumLikeRepository;
+import com.example.peachmusic.domain.albumlike.service.AlbumLikeService;
 import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
-import com.example.peachmusic.domain.artistalbum.entity.ArtistAlbum;
 import com.example.peachmusic.domain.artistalbum.repository.ArtistAlbumRepository;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,8 +29,7 @@ public class AlbumService {
     private final AlbumRepository albumRepository;
     private final ArtistAlbumRepository artistAlbumRepository;
     private final SongRepository songRepository;
-    private final AlbumLikeTxService albumLikeTxService;
-    private final AlbumLikeRepository albumLikeRepository;
+    private final AlbumLikeService albumLikeService;
     private final ArtistRepository artistRepository;
 
     /**
@@ -52,7 +49,7 @@ public class AlbumService {
 
         if (authUser != null) {
             Long userId = authUser.getUserId();
-            isLiked = albumLikeTxService.isAlbumLiked(albumId, userId);
+            isLiked = albumLikeService.isAlbumLiked(albumId, userId);
         }
 
         List<ArtistSummaryDto> artistAlbumList = artistAlbumRepository.findArtistSummaryListByAlbumId(albumId);

@@ -8,12 +8,12 @@ import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.albumlike.dto.response.AlbumLikeResponseDto;
 import com.example.peachmusic.domain.albumlike.repository.AlbumLikeRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
+@Component
 @RequiredArgsConstructor
-public class AlbumLikeTxService {
+public class AlbumLikeCommand {
 
     private final AlbumLikeRepository albumLikeRepository;
     private final AlbumRepository albumRepository;
@@ -33,40 +33,37 @@ public class AlbumLikeTxService {
         Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 
+        boolean liked;
+
         int deleted = albumLikeRepository.deleteByAlbumIdAndUserId(albumId, userId);
 
         if (deleted == 1) {
             // 취소 성공 -> 카운트 -1 (원자 업데이트)
             albumRepository.decrementLikeCount(albumId);
+            liked = false;
+        } else {
+            int inserted = albumLikeRepository.insertIgnore(userId, albumId);
 
-            return buildResponse(albumId, foundAlbum.getAlbumName(), false);
+            if (inserted == 1) {
+                albumRepository.incrementLikeCount(albumId);
+            }
+            liked = true; // inserted==0 이어도 최종 상태는 좋아요(true)
         }
 
-        int inserted = albumLikeRepository.insertIgnore(userId, albumId);
-
-        if (inserted == 1) {
-            albumRepository.incrementLikeCount(albumId);
-
-            return buildResponse(albumId, foundAlbum.getAlbumName(), true);
-        }
-        // inserted == 0: 이미 좋아요가 존재함 (동시 요청으로 다른 요청이 먼저 생성했을 수 있음)
-        return buildResponse(albumId, foundAlbum.getAlbumName(), true);
+        Long likeCount = getAlbumLikeCount(albumId);
+        return AlbumLikeResponseDto.of(albumId, foundAlbum.getAlbumName(), liked, likeCount);
     }
 
     /**
      * 좋아요 수는 DB에서 직접 업데이트되므로
      * 응답 시점에 최신 값을 가져오기 위해 likeCount만 다시 조회
      */
-    private AlbumLikeResponseDto buildResponse(Long albumId, String albumName, boolean liked) {
+    private Long getAlbumLikeCount(Long albumId) {
         Long likeCount = albumRepository.findLikeCountByAlbumId(albumId);
 
         if (likeCount == null) {
             throw new CustomException(ErrorCode.ALBUM_NOT_FOUND);
         }
-        return AlbumLikeResponseDto.of(albumId, albumName, liked, likeCount);
-    }
-
-    public boolean isAlbumLiked(Long albumId, Long userId) {
-        return albumLikeRepository.existsByAlbum_AlbumIdAndUser_UserId(albumId, userId);
+        return likeCount;
     }
 }

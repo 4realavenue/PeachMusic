@@ -4,11 +4,11 @@ import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.CommonResponse;
 import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.domain.albumlike.dto.response.AlbumLikedItemResponseDto;
-import com.example.peachmusic.domain.albumlike.service.AlbumLikeQueryService;
+import com.example.peachmusic.domain.albumlike.service.AlbumLikeService;
 import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikedItemResponseDto;
-import com.example.peachmusic.domain.artistlike.service.ArtistLikeQueryService;
+import com.example.peachmusic.domain.artistlike.service.ArtistLikeService;
 import com.example.peachmusic.domain.songlike.dto.response.SongLikedItemResponseDto;
-import com.example.peachmusic.domain.songlike.service.SongLikeQueryService;
+import com.example.peachmusic.domain.songlike.service.SongLikeService;
 import com.example.peachmusic.domain.user.dto.request.UserUpdateRequestDto;
 import com.example.peachmusic.domain.user.dto.response.UserGetResponseDto;
 import com.example.peachmusic.domain.user.dto.response.admin.UserUpdateResponseDto;
@@ -25,9 +25,9 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
-    private final AlbumLikeQueryService albumLikeQueryService;
-    private final ArtistLikeQueryService artistLikeQueryService;
-    private final SongLikeQueryService songLikeQueryService;
+    private final AlbumLikeService albumLikeService;
+    private final ArtistLikeService artistLikeService;
+    private final SongLikeService songLikeService;
 
     /**
      *  내 정보 조회
@@ -78,7 +78,7 @@ public class UserController {
     ) {
         Long userId = authUser.getUserId();
 
-        KeysetResponse<AlbumLikedItemResponseDto> responseDtoPage = albumLikeQueryService.getMyLikedAlbum(userId, lastLikeId);
+        KeysetResponse<AlbumLikedItemResponseDto> responseDtoPage = albumLikeService.getMyLikedAlbum(userId, lastLikeId);
         return ResponseEntity.ok(CommonResponse.success("좋아요한 앨범 목록 조회에 성공했습니다.", responseDtoPage));
     }
 
@@ -97,7 +97,7 @@ public class UserController {
     ) {
         Long userId = authUser.getUserId();
 
-        KeysetResponse<ArtistLikedItemResponseDto> responseDtoPage = artistLikeQueryService.getMyLikedArtist(userId, lastLikeId);
+        KeysetResponse<ArtistLikedItemResponseDto> responseDtoPage = artistLikeService.getMyLikedArtist(userId, lastLikeId);
         return ResponseEntity.ok(CommonResponse.success("좋아요한 아티스트 목록 조회에 성공했습니다.", responseDtoPage));
     }
 
@@ -116,7 +116,7 @@ public class UserController {
     ) {
         Long userId = authUser.getUserId();
 
-        KeysetResponse<SongLikedItemResponseDto> responseDtoPage = songLikeQueryService.getMyLikedSong(userId, lastLikeId);
+        KeysetResponse<SongLikedItemResponseDto> responseDtoPage = songLikeService.getMyLikedSong(userId, lastLikeId);
         return ResponseEntity.ok(CommonResponse.success("좋아요한 음원 목록 조회에 성공했습니다.", responseDtoPage));
     }
 }
