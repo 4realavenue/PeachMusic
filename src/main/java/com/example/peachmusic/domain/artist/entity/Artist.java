@@ -74,10 +74,8 @@ public class Artist extends BaseEntity {
             this.artistType = requestDto.getArtistType();
         }
 
-        if (requestDto.getDebutDate() != null) {
-            if (requestDto.getDebutDate().isAfter(LocalDate.now())) {
-                throw new CustomException(ErrorCode.ARTIST_DEBUT_DATE_INVALID);
-            }
+        if (requestDto.getDebutDate() != null && requestDto.getDebutDate().isAfter(LocalDate.now())) {
+            throw new CustomException(ErrorCode.ARTIST_DEBUT_DATE_INVALID);
         }
         this.debutDate = requestDto.getDebutDate();
     }

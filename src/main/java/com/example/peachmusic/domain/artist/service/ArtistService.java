@@ -10,7 +10,7 @@ import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.dto.response.ArtistGetDetailResponseDto;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
 import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
-import com.example.peachmusic.domain.artistlike.repository.ArtistLikeRepository;
+import com.example.peachmusic.domain.artistlike.service.ArtistLikeTxService;
 import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +27,9 @@ import static com.example.peachmusic.common.enums.SortType.LIKE;
 public class ArtistService {
 
     private final ArtistRepository artistRepository;
-    private final ArtistLikeRepository artistLikeRepository;
     private final SongRepository songRepository;
     private final AlbumRepository albumRepository;
+    private final ArtistLikeTxService artistLikeTxService;
 
     /**
      * 아티스트 단건 조회 기능
@@ -46,7 +46,7 @@ public class ArtistService {
 
         if (authUser != null) {
             Long userId = authUser.getUserId();
-            isLiked = artistLikeRepository.existsByArtist_ArtistIdAndUser_UserId(artistId, userId);
+            isLiked = artistLikeTxService.isArtistLiked(artistId, userId);
         }
 
         return ArtistGetDetailResponseDto.from(foundArtist, isLiked);
