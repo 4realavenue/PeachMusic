@@ -67,6 +67,7 @@ public enum ErrorCode {
     SONG_EXIST_ACTIVATION_SONG(HttpStatus.CONFLICT, "이미 활성화 된 음원입니다."),
     ALBUM_EXIST_IMAGE(HttpStatus.CONFLICT, "이미 동일한 앨범 이미지가 존재합니다."),
     EMAIL_ALREADY_VERIFIED(HttpStatus.CONFLICT,"이미 검증된 이메일입니다."),
+    LIKE_CONFLICT(HttpStatus.CONFLICT, "요청이 많아 잠시 후 다시 시도해주세요."),
 
     // 500
     SEARCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "일시적인 오류로 검색에 실패했습니다."),
