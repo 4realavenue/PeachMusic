@@ -1,7 +1,7 @@
 package com.example.peachmusic.domain.openapi.jamendo.service;
 
 import com.example.peachmusic.common.enums.ErrorCode;
-import com.example.peachmusic.common.enums.JobStatus;
+import com.example.peachmusic.common.enums.ProgressingStatus;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.domain.openapi.jamendo.dto.*;
 import com.example.peachmusic.domain.openapi.jamendo.jdbc.JamendoBatchJdbcRepository;
@@ -10,9 +10,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -34,7 +36,7 @@ public class JamendoSongService {
      */
     @Transactional
     public void importInitJamendo(JamendoInitRequestDto request) {
-        if(request.getStartDate().isAfter(request.getEndDate())) {
+        if (request.getStartDate().isAfter(request.getEndDate())) {
             throw new CustomException(ErrorCode.JAMENDO_INVALID_DATE_RANGE);
         }
         String dateBetween = request.getStartDate() + "_" + request.getEndDate();
@@ -138,10 +140,10 @@ public class JamendoSongService {
                 successCount++;
             }
 
-            List<StreamingJobRow> streamingJobRows = songList.stream()
-                    .map(song -> new StreamingJobRow(
+            List<SongProgressingStatusRow> songProgressingStatusRows = songList.stream()
+                    .map(song -> new SongProgressingStatusRow(
                             song.jamendoSongId(),
-                            JobStatus.NOT_READY.name()
+                            ProgressingStatus.NOT_READY.name()
                     ))
                     .toList();
 
@@ -150,7 +152,7 @@ public class JamendoSongService {
             batchJdbcRepository.upsertAlbums(albumRowList);
             batchJdbcRepository.upsertGenres(genreRowList);
             batchJdbcRepository.upsertSongs(songList);
-            batchJdbcRepository.upsertStreamingJobs(streamingJobRows);
+            batchJdbcRepository.upsertSongProgressingStatus(songProgressingStatusRows);
 
             // 관계는 상태가 아니라 존재여부여서 insert ignore
             batchJdbcRepository.insertArtistSongs(artistSongRowList);

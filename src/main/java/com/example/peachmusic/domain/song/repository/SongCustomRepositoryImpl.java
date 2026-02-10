@@ -25,7 +25,7 @@ import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
 import static com.example.peachmusic.domain.artistsong.entity.QArtistSong.artistSong;
 import static com.example.peachmusic.domain.song.entity.QSong.song;
 import static com.example.peachmusic.domain.songlike.entity.QSongLike.songLike;
-import static com.example.peachmusic.domain.streamingjob.entity.QStreamingJob.streamingJob;
+import static com.example.peachmusic.domain.songprogressingstatus.entity.QSongProgressingStatus.songProgressingStatus;
 
 public class SongCustomRepositoryImpl implements SongCustomRepository {
 
@@ -91,12 +91,12 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
 
         return queryFactory
-                .select(Projections.constructor(SongSearchResponseDto.class, song.songId, song.name, artistNames, album.albumReleaseDate, song.album.albumImage, song.likeCount, song.playCount, song.isDeleted, streamingJob.jobStatus))
+                .select(Projections.constructor(SongSearchResponseDto.class, song.songId, song.name, artistNames, album.albumReleaseDate, song.album.albumImage, song.likeCount, song.playCount, song.isDeleted, songProgressingStatus.progressingStatus))
                 .from(song)
                 .join(artistSong).on(artistSong.song.eq(song))
                 .join(artist).on(artistSong.artist.eq(artist))
                 .join(song.album, album)
-                .join(streamingJob).on(streamingJob.song.eq(song))
+                .join(songProgressingStatus).on(songProgressingStatus.song.eq(song))
                 .where(searchCondition(word, isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
                 .groupBy(song.songId) // 아티스트 이름을 문자열로 합치는데 음원 id를 기준으로 함
                 .orderBy(keysetOrder(sortType, isAsc)); // Keyset 조건에 사용되는 커서 순서대로 정렬
@@ -113,12 +113,12 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
 
         return queryFactory
-                .select(Projections.constructor(SongArtistDetailResponseDto.class, song.songId, song.name, artistNames, song.likeCount, song.album.albumImage, streamingJob.jobStatus, songLike.songLikeId.isNotNull(), album.albumId, album.albumReleaseDate))
+                .select(Projections.constructor(SongArtistDetailResponseDto.class, song.songId, song.name, artistNames, song.likeCount, song.album.albumImage, songProgressingStatus.progressingStatus, songLike.songLikeId.isNotNull(), album.albumId, album.albumReleaseDate))
                 .from(song)
                 .join(artistSong).on(artistSong.song.eq(song))
                 .join(artist).on(artistSong.artist.eq(artist))
                 .join(song.album, album)
-                .join(streamingJob).on(streamingJob.song.eq(song))
+                .join(songProgressingStatus).on(songProgressingStatus.song.eq(song))
                 .leftJoin(songLike).on(songLike.song.eq(song).and(songLike.user.userId.eq(userId)))
                 .where(artist.artistId.eq(artistId), song.isDeleted.isFalse(), song.streamingStatus.isTrue(), keysetCondition(sortType, isAsc, cursor))
                 .groupBy(song.songId)
