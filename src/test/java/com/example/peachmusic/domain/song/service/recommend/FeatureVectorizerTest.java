@@ -1,6 +1,7 @@
-package com.example.peachmusic.domain.song.service;
+package com.example.peachmusic.domain.song.service.recommend;
 
 import com.example.peachmusic.domain.song.dto.SongFeatureDto;
+import com.example.peachmusic.domain.song.recommend.FeatureVectorizer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
