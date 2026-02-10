@@ -14,7 +14,7 @@ public class KeysetPolicy {
      * 커서가 정렬 기준에 맞게 입력됐는지 검증
      */
     public void validateCursor(SortType sortType, CursorParam cursor) {
-        if (sortType.isCursorInvalid(cursor)) {
+        if (sortType != null && sortType.isCursorInvalid(cursor)) {
             throw new CustomException(ErrorCode.MISSING_CURSOR_PARAMETER);
         }
     }
