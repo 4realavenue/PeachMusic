@@ -1,0 +1,1 @@
+RENAME TABLE peach_music.streaming_jobs to peach_music.song_progressing_status;
