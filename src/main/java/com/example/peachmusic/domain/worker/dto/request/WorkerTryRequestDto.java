@@ -10,4 +10,8 @@ import java.util.List;
 public class WorkerTryRequestDto {
 
     private List<Long> songIdList;
+
+    public WorkerTryRequestDto(List<Long> songIdList) {
+        this.songIdList = songIdList;
+    }
 }
