@@ -5,11 +5,11 @@ import com.example.peachmusic.domain.playlistsong.repository.PlaylistSongReposit
 import com.example.peachmusic.domain.song.dto.SongFeatureDto;
 import com.example.peachmusic.domain.song.dto.SongRecommendationScoreDto;
 import com.example.peachmusic.domain.song.dto.response.SongRecommendationResponseDto;
+import com.example.peachmusic.domain.song.recommend.CosineSimilarity;
+import com.example.peachmusic.domain.song.recommend.FeatureVectorizer;
 import com.example.peachmusic.domain.song.repository.SongRepository;
 import com.example.peachmusic.domain.songlike.repository.SongLikeRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
@@ -22,22 +22,23 @@ public class RecommendationService {
     private final SongLikeRepository songLikeRepository;
     private final PlaylistSongRepository playlistSongRepository;
     private final FeatureVectorizer featureVectorizer;
+    private final RecommendColdStartService recommendColdStartService;
 
     /**
      * 음원 추천 기능 메인 메서드
      */
     @Transactional(readOnly = true)
-    public Slice<SongRecommendationResponseDto> getRecommendedSongSlice(AuthUser authUser, Pageable pageable) {
+    public List<SongRecommendationResponseDto> getRecommendedSongList(AuthUser authUser) {
         // 사용자의 좋아요 / 플레이리스트 음원 ID 병합
         List<Long> mergedSongIdList = mergeLikeAndPlaylistSongIdList(authUser.getUserId());
 
+        // 신규 회원이거나 Seed 데이터가 없으면 추천 likeCount가 높은 음원부터 50건 반환
+        if (mergedSongIdList.isEmpty()) {
+            return recommendColdStartService.getTop50();
+        }
+
         // 사용자의 좋아요 / 플레이리스트 음원의 장르 아이디 조회
         List<Long> seedGenreIdList = songRepository.findSeedGenreList(mergedSongIdList);
-
-        // 신규 회원이거나 Seed 데이터가 없으면 추천 likeCount가 높은 음원부터 50건 반환
-        if (mergedSongIdList.isEmpty() || seedGenreIdList.isEmpty()) {
-            return songRepository.findRecommendedSongSliceForColdStart(pageable);
-        }
 
         // songId, 장르, 스피드, 태그, 악기 등 음원 기반 User Profile Vector 생성
         Map<String, Double> userVectorMap = createUserVector(mergedSongIdList);
@@ -49,7 +50,7 @@ public class RecommendationService {
         List<Long> orderBySongIdList = getTopSongIdList(scoredSongList);
 
         // 추천 결과 DB 조회
-        return songRepository.findRecommendedSongSlice(orderBySongIdList, pageable);
+        return songRepository.findRecommendedSongList(orderBySongIdList);
     }
 
     /**
@@ -102,19 +103,32 @@ public class RecommendationService {
         return scoredSongList;
     }
 
+
     /**
-     * 추천 상위 50곡 추출
+     * 추천 상위 50곡 추출 (PriorityQueue 적용)
      */
-    private static List<Long> getTopSongIdList(List<SongRecommendationScoreDto> scoredSongList) {
-        // 유사도 기준 내림차순 정렬
-        scoredSongList.sort((o1, o2) -> Double.compare(o2.getScore(), o1.getScore()));
+    private List<Long> getTopSongIdList(List<SongRecommendationScoreDto> scoredSongList) {
 
-        List<Long> orderBySongIdList = new ArrayList<>();
+        final int LIMIT = 50;
 
-        // 최대 50곡까지만 추출
-        for (int i = 0; i < Math.min(scoredSongList.size(), 50); i++) {
-            orderBySongIdList.add(scoredSongList.get(i).getSongFeatureDto().getSongId());
+        // score 기준 오름차순 Min-Heap
+        PriorityQueue<SongRecommendationScoreDto> heap = new PriorityQueue<>(Comparator.comparingDouble(SongRecommendationScoreDto::getScore));
+
+        // 모든 후보 순회
+        for (SongRecommendationScoreDto dto : scoredSongList) {
+            // 일단 추가
+            heap.offer(dto);
+
+            // 50개 초과하면 가장 작은 점수 제거
+            if (heap.size() > LIMIT) {
+                heap.poll();
+            }
         }
-        return orderBySongIdList;
+
+        // heap → 정렬 → songId 추출
+        return heap.stream()
+                .sorted(Comparator.comparingDouble(SongRecommendationScoreDto::getScore).reversed())
+                .map(dto -> dto.getSongFeatureDto().getSongId())
+                .toList();
     }
 }

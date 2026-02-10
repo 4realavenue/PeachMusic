@@ -7,9 +7,6 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
 import java.util.*;
 import java.util.stream.Collectors;
 import static com.example.peachmusic.domain.album.entity.QAlbum.album;
@@ -49,9 +46,9 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
 
     // 추천 후보군 500개
     @Override
-    public Map<Long, SongFeatureDto> findRecommendFeatureMap(List<Long> songIdList, List<Long> genreId) {
+    public Map<Long, SongFeatureDto> findRecommendFeatureMap(List<Long> songIdList, List<Long> genreIdList) {
         // Seed 데이터가 없으면 종료
-        if(songIdList == null || songIdList.isEmpty() || genreId == null || genreId.isEmpty()) {
+        if(songIdList == null || songIdList.isEmpty() || genreIdList == null || genreIdList.isEmpty()) {
             return Collections.emptyMap();
         }
 
@@ -60,7 +57,7 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
                 .from(song)
                 .leftJoin(songGenre).on(songGenre.song.eq(song))
                 .leftJoin(genre).on(songGenre.genre.eq(genre))
-                .where(song.songId.notIn(songIdList), hasAllFeature(), genre.genreId.in(genreId), isStreamingSuccessStatus())
+                .where(song.songId.notIn(songIdList), hasAllFeature(), genre.genreId.in(genreIdList), isStreamingSuccessStatus())
                 .orderBy(song.likeCount.desc())
                 .limit(500)
                 .fetch();
@@ -72,7 +69,7 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
      * 최종 추천 결과 조회
      */
     @Override
-    public Slice<SongRecommendationResponseDto> findRecommendedSongSlice(List<Long> orderBySongIdList, Pageable pageable) {
+    public List<SongRecommendationResponseDto> findRecommendedSongList(List<Long> orderBySongIdList) {
         // 추천 대상 음원 상세 조회
         List<SongRecommendationResponseDto> result = queryFactory
                 .select(Projections.constructor(SongRecommendationResponseDto.class, song.songId, song.name, artist.artistId, artist.artistName, album.albumId, album.albumName, album.albumImage, song.likeCount))
@@ -87,26 +84,20 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
         Map<Long, SongRecommendationResponseDto> songMap = result.stream()
                 .collect(Collectors.toMap(SongRecommendationResponseDto::getSongId, s -> s));
 
-        // 추천 순서 유지(높은 순위부터 반환) 및 페이징 처리
-        List<SongRecommendationResponseDto> sortedResult = orderBySongIdList.stream() // 추천 순서 기준
+        return orderBySongIdList.stream() // 추천 순서 기준
                 .map(songMap::get) // ID -> DTO 변환
                 .filter(Objects::nonNull) // 없는 데이터 필터링
-                .skip(pageable.getOffset()) // offset만큼 건너뛴
-                .limit(pageable.getPageSize() + 1) // size + 1
                 .collect(Collectors.toCollection(ArrayList::new));
-
-        // Slice 생성
-        return checkEndPage(sortedResult, pageable);
     }
 
     /**
      * cold-start일 경우 likeCount기준으로 추천 반환
      */
     @Override
-    public Slice<SongRecommendationResponseDto> findRecommendedSongSliceForColdStart(Pageable pageable) {
+    public List<SongRecommendationResponseDto> findRecommendedSongListForColdStart() {
 
         // 인기순 음원 50건 조회
-        List<SongRecommendationResponseDto> result = queryFactory
+        return queryFactory
                 .select(Projections.constructor(SongRecommendationResponseDto.class, song.songId, song.name, artist.artistId, artist.artistName, album.albumId, album.albumName, album.albumImage, song.likeCount))
                 .from(song)
                 .leftJoin(song.album, album)
@@ -116,15 +107,6 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
                 .orderBy(song.likeCount.desc())
                 .limit(50)
                 .fetch();
-
-        // 페이징 처리
-        List<SongRecommendationResponseDto> pageResult = result.stream()
-                .skip(pageable.getOffset()) // 앞에서 offset만큼 스킵
-                .limit(pageable.getPageSize() + 1) // size + 1개 가져오기(다음 페이지 확인용)
-                .collect(Collectors.toCollection(ArrayList::new)); // list로 변환
-
-        // Slice 생성
-        return checkEndPage(pageResult, pageable);
     }
 
     @Override
@@ -141,17 +123,6 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
                 .join(genre).on(songGenre.genre.eq(genre))
                 .where(song.songId.in(mergedSongIdList), isStreamingSuccessStatus())
                 .fetch();
-    }
-
-    // 다음페이지 존재 여부 계산
-    private <T> Slice<T> checkEndPage(List<T> songList, Pageable pageable) {
-        boolean hasNext = false;
-        // size 보다 하나 더 있으면 다음 페이지 존재
-        if (songList.size() > pageable.getPageSize()) {
-            hasNext = true;
-            songList.remove(pageable.getPageSize()); // 마지막 제거
-        }
-        return new SliceImpl<>(songList, pageable, hasNext);
     }
 
     // Tuple -> SongFeatureDto Map으로 변환(.transfrom 사용시 오류 발생)
