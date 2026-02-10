@@ -68,13 +68,13 @@ public class PlaylistSongService {
             throw new CustomException(ErrorCode.AUTH_AUTHORIZATION_REQUIRED);
         }
 
-        if (requestDto.getSongIdList() == null || requestDto.getSongIdList().isEmpty()) {
+        if (requestDto.getSongIdSet() == null || requestDto.getSongIdSet().isEmpty()) {
             throw new CustomException(ErrorCode.PLAYLIST_ADD_SONG_REQUIRED);
         }
 
-        Set<Long> validRequestSongIdSet = songRepository.findSongIdSetBySongIdList(requestDto.getSongIdList());
+        Set<Long> validRequestSongIdSet = songRepository.findSongIdSetBySongIdSet(requestDto.getSongIdSet());
 
-        Set<Long> duplicationSongIdSet = playlistSongRepository.findSongIdSetByPlaylist_PlaylistIdAndSong_SongIdList(findPlaylist.getPlaylistId(), validRequestSongIdSet);
+        Set<Long> duplicationSongIdSet = playlistSongRepository.findSongIdSetByPlaylist_PlaylistIdAndSong_SongIdSet(findPlaylist.getPlaylistId(), validRequestSongIdSet);
 
         List<Long> validSongIdList = validRequestSongIdSet.stream()
                 .filter(songId -> !duplicationSongIdSet.contains(songId)).toList();
@@ -103,13 +103,13 @@ public class PlaylistSongService {
             throw new CustomException(ErrorCode.AUTH_AUTHORIZATION_REQUIRED);
         }
 
-        if (requestDto.getSongIdList() == null || requestDto.getSongIdList().isEmpty()) {
+        if (requestDto.getSongIdSet() == null || requestDto.getSongIdSet().isEmpty()) {
             throw new CustomException(ErrorCode.PLAYLIST_REMOVE_SONG_REQUIRED);
         }
 
-        Set<Long> validRequestSongIdSet = songRepository.findSongIdSetBySongIdList(requestDto.getSongIdList());
+        Set<Long> validRequestSongIdSet = songRepository.findSongIdSetBySongIdSet(requestDto.getSongIdSet());
 
-        Set<Long> duplicationSongIdSet = playlistSongRepository.findSongIdSetByPlaylist_PlaylistIdAndSong_SongIdList(findPlaylist.getPlaylistId(), validRequestSongIdSet);
+        Set<Long> duplicationSongIdSet = playlistSongRepository.findSongIdSetByPlaylist_PlaylistIdAndSong_SongIdSet(findPlaylist.getPlaylistId(), validRequestSongIdSet);
 
         List<Long> validSongIdList = validRequestSongIdSet.stream()
                 .filter(duplicationSongIdSet::contains).toList();
