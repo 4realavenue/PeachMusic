@@ -36,9 +36,9 @@ public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRep
 
     @Query("""
             select s.songId from Song s
-            where s.songId in (:songIdList)
+            where s.songId in (:songIdSet)
             """)
-    Set<Long> findSongIdSetBySongIdSet(Set<Long> songIdList);
+    Set<Long> findSongIdSetBySongIdSet(Set<Long> songIdSet);
 
     boolean existsByAudioAndSongIdNot(String audio, Long songId);
 
