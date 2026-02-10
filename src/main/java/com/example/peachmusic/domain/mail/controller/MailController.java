@@ -1,9 +1,9 @@
-package com.example.peachmusic.domain.Mail.controller;
+package com.example.peachmusic.domain.mail.controller;
 
 import com.example.peachmusic.common.model.CommonResponse;
-import com.example.peachmusic.domain.Mail.Service.MailService;
-import com.example.peachmusic.domain.Mail.dto.SendEmailRequestDto;
-import com.example.peachmusic.domain.Mail.dto.VerifyCodeRequestDto;
+import com.example.peachmusic.domain.mail.Service.MailService;
+import com.example.peachmusic.domain.mail.dto.SendEmailRequestDto;
+import com.example.peachmusic.domain.mail.dto.VerifyCodeRequestDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

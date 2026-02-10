@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.Mail.dto;
+package com.example.peachmusic.domain.mail.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

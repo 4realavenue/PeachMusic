@@ -4,7 +4,7 @@ import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.filter.JwtUtil;
 import com.example.peachmusic.common.model.AuthUser;
-import com.example.peachmusic.domain.Mail.Service.MailService;
+import com.example.peachmusic.domain.mail.Service.MailService;
 import com.example.peachmusic.domain.user.dto.request.LoginRequestDto;
 import com.example.peachmusic.domain.user.dto.request.UserCreateRequestDto;
 import com.example.peachmusic.domain.user.dto.response.LoginResponseDto;

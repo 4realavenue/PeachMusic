@@ -26,10 +26,7 @@ public class PageResponse<T> {
         return new PageResponse<>(true, message, new PageData<>(page));
     }
 
-    // 페이지 응답 객체
-    public static <T> PageResponse<T> success(String message, List<T> content, long totalElements, int totalPages, int size, int number) {
-        return new PageResponse<>(true, message, new PageData<>(content, totalElements, totalPages, size, number));
-    }
+
 
     /**
      * 내부 클래스
@@ -52,13 +49,5 @@ public class PageResponse<T> {
             this.number = page.getNumber();
         }
 
-        // Redis를 Page 형식으로 변환
-        public PageData(List<T> content, long totalElements, int totalPages, int size, int number) {
-            this.content = content;
-            this.totalElements = totalElements;
-            this.totalPages = totalPages;
-            this.size = size;
-            this.number = number;
-        }
     }
 }
