@@ -5,13 +5,12 @@ import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.common.model.AuthUser;
-import com.example.peachmusic.common.model.Cursor;
-import com.example.peachmusic.common.model.KeysetResponse;
-import com.example.peachmusic.common.service.AbstractKeysetService;
-import com.example.peachmusic.domain.StaticNumber;
+import com.example.peachmusic.common.model.*;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
+import com.example.peachmusic.domain.artist.entity.Artist;
+import com.example.peachmusic.domain.artist.repository.ArtistRepository;
+import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongGetDetailResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.example.peachmusic.domain.song.entity.Song;
@@ -30,20 +29,20 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.function.Function;
-
+import static com.example.peachmusic.common.constants.SearchViewSize.*;
+import static com.example.peachmusic.common.constants.UserViewScope.PUBLIC_VIEW;
 import static com.example.peachmusic.common.enums.SortDirection.DESC;
-import static com.example.peachmusic.common.enums.SortType.LIKE;
-import static com.example.peachmusic.common.enums.SortType.NAME;
+import static com.example.peachmusic.common.enums.SortType.*;
 
 @Service
 @RequiredArgsConstructor
-public class SongService extends AbstractKeysetService {
+public class SongService {
 
     private final SongRepository songRepository;
     private final SongGenreRepository songGenreRepository;
     private final AlbumRepository albumRepository;
     private final SongLikeRepository songLikeRepository;
+    private final ArtistRepository artistRepository;
     private final UserService userService;
     private final RedisTemplate<String,String> redisTemplate;
 
@@ -83,33 +82,32 @@ public class SongService extends AbstractKeysetService {
     }
 
     /**
+     * 아티스트의 음원 자세히 보기
+     */
+    @Transactional(readOnly = true)
+    public KeysetResponse<SongArtistDetailResponseDto> getArtistSongs(AuthUser authUser, Long artistId, CursorParam cursor) {
+
+        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
+
+        SortType sortType = SortType.RELEASE_DATE;
+        SortDirection direction = sortType.getDefaultDirection();
+        final int size = DETAIL_SIZE;
+
+        List<SongArtistDetailResponseDto> content = songRepository.findSongByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, direction, cursor, size);
+
+        return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), last.getAlbumReleaseDate()));
+    }
+
+    /**
      * 음원 검색 - 자세히 보기
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<SongSearchResponseDto> searchSongPage(String word, SortType sortType, SortDirection direction, Long lastId, Long lastLike, String lastName) {
+    public KeysetResponse<SongSearchResponseDto> searchSongPage(SearchConditionParam condition, CursorParam cursor) {
 
-        validateWord(word); // 단어 검증
-        if (!sortType.equals(LIKE) && !sortType.equals(NAME)) { // 정렬 기준 검증
-            throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
-        }
-        validateCursor(sortType, lastId, lastLike, lastName); // 커서 검증
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
 
-        String[] words = word.split("\\s+");
-        final int size = 10;
-        final boolean isAdmin = false;
-        direction = resolveSortDirection(sortType, direction);
-
-        // 음원 조회
-        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(words, size, isAdmin, sortType, direction, lastId, lastLike, lastName);
-
-        // 정렬 기준에 따라 커서 결정
-        Function<SongSearchResponseDto, Cursor> cursorExtractor = switch (sortType) {
-            case LIKE -> last -> new Cursor(last.getSongId(), last.getLikeCount());
-            case NAME -> last -> new Cursor(last.getSongId(), last.getName());
-            default -> throw new CustomException(ErrorCode.UNSUPPORTED_SORT_TYPE);
-        };
-
-        return toKeysetResponse(content, size, cursorExtractor);
+        return KeysetResponse.of(content, DETAIL_SIZE, last -> last.toCursor(condition.getSortType()));
     }
 
     /**
@@ -117,10 +115,7 @@ public class SongService extends AbstractKeysetService {
      */
     @Transactional(readOnly = true)
     public List<SongSearchResponseDto> searchSongList(String word) {
-        String[] words = word.split("\\s+");
-        final int size = 5;
-        final boolean isAdmin = false;
-        return songRepository.findSongListByWord(words, size, isAdmin, LIKE, DESC); // 좋아요 많은 순
+        return songRepository.findSongListByWord(word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
     }
 
     /**
