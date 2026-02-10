@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class Cursor {
+public class NextCursor {
 
     private final Long lastId;
     private final Object lastSortValue;

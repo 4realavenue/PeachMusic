@@ -1,6 +1,7 @@
 package com.example.peachmusic.domain.artist.controller;
 
 import com.example.peachmusic.common.model.CommonResponse;
+import com.example.peachmusic.common.model.CursorParam;
 import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.domain.artist.dto.request.ArtistCreateRequestDto;
 import com.example.peachmusic.domain.artist.dto.request.ArtistUpdateRequestDto;
@@ -47,9 +48,9 @@ public class ArtistAdminController {
     @GetMapping("/admin/artists")
     public ResponseEntity<CommonResponse<KeysetResponse<ArtistSearchResponseDto>>> getArtistList(
             @RequestParam(required = false) String word,
-            @RequestParam(required = false) Long lastId
+            @ModelAttribute CursorParam cursor
     ) {
-        KeysetResponse<ArtistSearchResponseDto> responseDto = artistAdminService.getArtistList(word, lastId);
+        KeysetResponse<ArtistSearchResponseDto> responseDto = artistAdminService.getArtistList(word, cursor);
 
         return ResponseEntity.ok(CommonResponse.success("아티스트 목록 조회에 성공했습니다.", responseDto));
     }
