@@ -51,7 +51,7 @@ public class AlbumLikeCommand {
         }
 
         Long likeCount = getAlbumLikeCount(albumId);
-        return createAlbumLikeResponse(albumId, foundAlbum.getAlbumName(), liked, likeCount);
+        return AlbumLikeResponseDto.of(albumId, foundAlbum.getAlbumName(), liked, likeCount);
     }
 
     /**
@@ -65,9 +65,5 @@ public class AlbumLikeCommand {
             throw new CustomException(ErrorCode.ALBUM_NOT_FOUND);
         }
         return likeCount;
-    }
-
-    private AlbumLikeResponseDto createAlbumLikeResponse(Long albumId, String albumName, boolean liked, Long likeCount) {
-        return AlbumLikeResponseDto.of(albumId, albumName, liked, likeCount);
     }
 }

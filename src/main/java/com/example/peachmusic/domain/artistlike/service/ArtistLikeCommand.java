@@ -49,7 +49,7 @@ public class ArtistLikeCommand {
             liked = true;
         }
         Long likeCount = getArtistLikeCount(artistId);
-        return createArtistLikeResponse(artistId, foundArtist.getArtistName(), liked, likeCount);
+        return ArtistLikeResponseDto.of(artistId, foundArtist.getArtistName(), liked, likeCount);
     }
 
     private Long getArtistLikeCount(Long artistId) {
@@ -59,9 +59,5 @@ public class ArtistLikeCommand {
             throw new CustomException(ErrorCode.ARTIST_NOT_FOUND);
         }
         return likeCount;
-    }
-
-    private ArtistLikeResponseDto createArtistLikeResponse(Long artistId, String artistName, boolean liked, Long likeCount) {
-        return ArtistLikeResponseDto.of(artistId, artistName, liked, likeCount);
     }
 }

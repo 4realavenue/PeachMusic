@@ -45,7 +45,7 @@ public class SongLikeCommand {
             liked = true;
         }
         Long likeCount = getSongLikeCount(songId);
-        return createSongLikeResponse(songId, findSong.getName(), liked, likeCount);
+        return SongLikeResponseDto.of(songId, findSong.getName(), liked, likeCount);
     }
 
     private Long getSongLikeCount(Long songId) {
@@ -55,9 +55,5 @@ public class SongLikeCommand {
             throw new CustomException(ErrorCode.SONG_NOT_FOUND);
         }
         return likeCount;
-    }
-
-    private SongLikeResponseDto createSongLikeResponse(Long songId, String name, boolean liked, Long likeCount) {
-        return SongLikeResponseDto.of(songId, name, liked, likeCount);
     }
 }
