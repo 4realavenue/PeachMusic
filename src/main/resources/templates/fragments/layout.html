@@ -1,0 +1,36 @@
+<!-- mainLayout -->
+<div th:fragment="mainLayout(content)">
+
+    <div class="layout">
+
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+        <div class="main">
+
+            <div th:replace="~{fragments/player :: player}"></div>
+
+            <main class="content"
+                  th:replace="${content}">
+            </main>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- authLayout -->
+<div th:fragment="authLayout(content)">
+
+    <div class="layout">
+
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+        <main class="content"
+              th:replace="${content}">
+        </main>
+
+    </div>
+
+</div>

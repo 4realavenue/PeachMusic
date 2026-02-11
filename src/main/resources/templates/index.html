@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+
+    <script th:src="@{/js/sidebar.js}" defer></script>
+</head>
+<body>
+
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+    <section>
+        <h1>메인 페이지</h1>
+    </section>
+</div>
+
+</body>
+</html>
