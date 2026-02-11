@@ -49,3 +49,12 @@ peachmusic:
 
 worker:
   base-url: ${WORKER_URL}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always
