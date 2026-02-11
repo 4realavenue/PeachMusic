@@ -58,3 +58,12 @@ r2:
     assets: ${R2_BUCKET_ASSETS}
     media: ${R2_BUCKET_MEDIA}
   public-base: ${ASSETS_PUBLIC_BASE}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always

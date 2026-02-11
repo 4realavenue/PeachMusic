@@ -41,7 +41,6 @@ dependencies {
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-mail', version: '3.0.5'
     implementation 'javax.mail:javax.mail-api:1.6.2'
     implementation group: 'com.sun.mail', name: 'javax.mail', version: '1.6.2'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
@@ -75,6 +74,10 @@ dependencies {
     // storage
     implementation platform('software.amazon.awssdk:bom:2.25.62')
     implementation 'software.amazon.awssdk:s3'
+
+    // 모니터링
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 tasks.named('test') {
