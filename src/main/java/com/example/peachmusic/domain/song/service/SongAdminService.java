@@ -228,7 +228,7 @@ public class SongAdminService {
 
     private String storeAudio(MultipartFile audio, String name) {
         String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        String baseName = "PeachMusic_song_" + name + "_" + date;
+        String baseName = "peachmusic_song_" + name + "_" + date;
         return fileStorageService.storeFile(audio, FileType.AUDIO, baseName);
     }
 

@@ -136,7 +136,7 @@ public class PlaylistService {
 
     private String storePlaylistImage(MultipartFile playlistImage, String playlistName) {
         String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        String baseName = "PeachMusic_playlist_" + playlistName + "_" + date;
+        String baseName = "peachmusic_playlist_" + playlistName + "_" + date;
         return fileStorageService.storeFile(playlistImage, FileType.PLAYLIST_IMAGE, baseName);
     }
 }

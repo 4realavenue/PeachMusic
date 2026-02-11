@@ -165,7 +165,7 @@ public class ArtistAdminService {
 
     private String storeProfileImage(MultipartFile profileImage, String artistName) {
         String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        String baseName = "PeachMusic_artist_" + artistName + "_" + date;
+        String baseName = "peachmusic_artist_" + artistName + "_" + date;
         return fileStorageService.storeFile(profileImage, FileType.ARTIST_PROFILE, baseName);
     }
 }

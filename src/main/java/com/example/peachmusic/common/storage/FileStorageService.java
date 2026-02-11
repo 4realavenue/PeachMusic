@@ -3,23 +3,42 @@ package com.example.peachmusic.common.storage;
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.FileType;
 import com.example.peachmusic.common.exception.CustomException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.net.URI;
 import java.util.Set;
 
 @Service
 public class FileStorageService {
 
     private static final long IMAGE_MAX_SIZE = 5 * 1024 * 1024;
-    private static final Set<String> IMAGE_ALLOWED_EXT = Set.of("jpg", "jpeg", "png", "webp");
+    private static final Set<String> IMAGE_ALLOWED_EXT = Set.of("jpg", "jpeg", "png");
 
     private static final long AUDIO_MAX_SIZE = 30 * 1024 * 1024;
-    private static final Set<String> AUDIO_ALLOWED_EXT = Set.of("mp3", "wav", "flac");
+    private static final Set<String> AUDIO_ALLOWED_EXT = Set.of("mp3", "wav");
+
+    private final S3Client s3Client;
+    private final String assetsBucket;
+    private final String mediaBucket;
+    private final String assetsPublicBase;
+
+    public FileStorageService(S3Client s3Client,
+                              @Value("${r2.bucket.assets}") String assetsBucket,
+                              @Value("${r2.bucket.media}") String mediaBucket,
+                              @Value("${r2.public-base}") String assetsPublicBase
+    ) {
+        this.s3Client = s3Client;
+        this.assetsBucket = assetsBucket;
+        this.mediaBucket = mediaBucket;
+        this.assetsPublicBase = assetsPublicBase;
+    }
 
     /**
      * 이미지, 음원 파일을 서버에 저장하고,
@@ -48,26 +67,37 @@ public class FileStorageService {
 
         String filename = safeBaseName + "." + ext;
 
-        // 프로젝트 실행 경로 기준(user.dir)으로 로컬 저장 디렉토리 지정
-        Path dir = resolveDir(type);
+        String key = buildKey(type, filename);
 
         try {
-            // 디렉토리가 없으면 생성
-            Files.createDirectories(dir);
+            byte[] bytes = file.getBytes();
 
-            // 실제 파일 저장 경로 생성
-            Path target = dir.resolve(filename);
+            String bucket = (type == FileType.AUDIO) ? mediaBucket : assetsBucket;
 
-            // 업로드된 파일을 지정한 경로에 저장
-            file.transferTo(target.toFile());
+            s3Client.putObject(PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .contentType(file.getContentType())
+                    .contentLength((long) bytes.length)
+                    .build(), RequestBody.fromBytes(bytes)
+            );
 
         } catch (IOException e) {
-            // 파일 저장중 예외 발생 시
             throw new CustomException(ErrorCode.FILE_UPLOAD_FAILED);
         }
 
-        // DB에 저장할 파일 접근 경로 반환
-        return "/uploads/" + type.folder() + "/" + filename;
+        if (type == FileType.AUDIO) {
+            return key;
+        } else {
+            return assetsPublicBase.replaceAll("/+$", "") + "/" + key;
+        }
+    }
+
+    private String buildKey(FileType fileType, String fileName) {
+        if (fileType == FileType.AUDIO) {
+            return "storage/audio/" + fileName;
+        }
+        return "storage/image/" + fileType.folder() + "/" + fileName;
     }
 
     private void validateFile(MultipartFile file, FileType type) {
@@ -91,7 +121,7 @@ public class FileStorageService {
         String ext = getExtension(file.getOriginalFilename());
 
         // 확장자가 비어 있거나, 허용된 목록에 없을 경우
-        if (ext.isBlank() || !IMAGE_ALLOWED_EXT.contains(ext))  {
+        if (ext.isBlank() || !IMAGE_ALLOWED_EXT.contains(ext)) {
             throw new CustomException(ErrorCode.IMAGE_INVALID_TYPE);
         }
 
@@ -111,11 +141,6 @@ public class FileStorageService {
         if (ext.isBlank() || !AUDIO_ALLOWED_EXT.contains(ext)) {
             throw new CustomException(ErrorCode.AUDIO_INVALID_TYPE);
         }
-
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("audio/")) {
-            throw new CustomException(ErrorCode.AUDIO_INVALID_TYPE);
-        }
     }
 
     /**
@@ -132,10 +157,6 @@ public class FileStorageService {
         return filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
     }
 
-    private Path resolveDir(FileType type) {
-        return Paths.get(System.getProperty("user.dir"), "uploads", type.folder());
-    }
-
     private String sanitizeBaseName(String input) {
         if (input == null) {
             return "";
@@ -146,8 +167,8 @@ public class FileStorageService {
         // 공백 전부 제거
         s = s.replaceAll("\\s+", "");
 
-        // 파일명에 쓸 수 없는 특수문자 제거
-        s = s.replaceAll("[\\\\/:*?\"<>|.]", "");
+        // 특수문자 제거
+        s = s.replaceAll("[\\\\/:*?\"<>|._-]", "");
 
         // 너무 길면 자르기(서버 안전)
         int max = 80;
@@ -164,16 +185,34 @@ public class FileStorageService {
             return;
         }
 
-        // DB 경로("/uploads/...")에서 앞의 "/"를 제거해 실제 파일 경로로 변환
-        String relative = path.startsWith("/") ? path.substring(1) : path;
+        String key = extractKey(path);
 
-        // 프로젝트 실행 경로 기준으로 삭제할 파일의 전체 경로 생성
-        Path target = Paths.get(System.getProperty("user.dir"), relative);
+        boolean isAudio = key.startsWith("storage/audio/") || key.startsWith("storage/streaming/");
+        String bucket = isAudio ? mediaBucket : assetsBucket;
 
         try {
-            Files.deleteIfExists(target);
-        } catch (IOException e) {
-           throw new CustomException(ErrorCode.FILE_DELETED_FAILED);
+            s3Client.deleteObject(DeleteObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .build());
+        } catch (Exception exception) {
+            throw new CustomException(ErrorCode.FILE_DELETED_FAILED);
         }
+    }
+
+    public String extractKey(String pathOrUrl) {
+        String trimmedPathOrUrl = pathOrUrl.trim();
+
+        if (trimmedPathOrUrl.startsWith("/uploads/")) {
+            throw new CustomException(ErrorCode.FILE_DELETED_FAILED);
+        }
+
+        if (trimmedPathOrUrl.startsWith("http://") || trimmedPathOrUrl.startsWith("https://")) {
+            URI uri = URI.create(trimmedPathOrUrl);
+            String path = uri.getPath();
+            return path.startsWith("/") ? path.substring(1) : path;
+        }
+
+        return trimmedPathOrUrl.startsWith("/") ? trimmedPathOrUrl.substring(1) : trimmedPathOrUrl;
     }
 }

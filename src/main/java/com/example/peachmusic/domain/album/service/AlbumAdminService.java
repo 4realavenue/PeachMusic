@@ -234,7 +234,7 @@ public class AlbumAdminService {
 
     private String storeAlbumImage(MultipartFile albumImage, String albumName) {
         String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        String baseName = "PeachMusic_album_" + albumName + "_" + date;
+        String baseName = "peachmusic_album_" + albumName + "_" + date;
         return fileStorageService.storeFile(albumImage, FileType.ALBUM_IMAGE, baseName);
     }
 
