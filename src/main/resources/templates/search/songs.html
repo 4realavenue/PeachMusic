@@ -22,6 +22,21 @@
                    id="searchInput"
                    placeholder="Search"
                    th:value="${word}">
+
+            <!-- 정렬 기준 -->
+            <select id="sortSelect">
+                <option value="LIKE">좋아요순</option>
+                <option value="PLAY">재생순</option>
+                <option value="RELEASE_DATE">발매일순</option>
+                <option value="NAME">이름순</option>
+            </select>
+
+            <!-- 방향 -->
+            <select id="directionSelect">
+                <option value="DESC">내림차순</option>
+                <option value="ASC">오름차순</option>
+            </select>
+
             <button id="searchBtn">검색</button>
         </div>
 

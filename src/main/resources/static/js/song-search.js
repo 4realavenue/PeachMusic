@@ -3,11 +3,17 @@ let lastSortValue = null;
 let hasNext = true;
 let loading = false;
 
+let currentSort = "LIKE";
+let currentDirection = "DESC";
+
 const listContainer = document.getElementById("songList");
 const loadMoreBtn = document.getElementById("loadMoreBtn");
 const title = document.getElementById("pageTitle");
 const searchBtn = document.getElementById("searchBtn");
 const searchInput = document.getElementById("searchInput");
+const sortSelect = document.getElementById("sortSelect");
+const directionSelect = document.getElementById("directionSelect");
+
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -15,22 +21,68 @@ document.addEventListener("DOMContentLoaded", () => {
 
     title.textContent = `"${initialWord}"와 관련된 곡`;
 
+    /* 초기 정렬값 세팅 */
+    currentSort = sortSelect?.value || "LIKE";
+    currentDirection = directionSelect?.value || "DESC";
+
     loadSongs();
 
-    searchBtn.addEventListener("click", () => {
+    /* 검색 */
+    searchBtn?.addEventListener("click", () => {
         const word = searchInput.value.trim();
         if (!word) return;
         location.href = `/search/songs?word=${encodeURIComponent(word)}`;
     });
 
-    loadMoreBtn.addEventListener("click", () => {
+    /* 정렬 기준 변경 */
+    sortSelect?.addEventListener("change", () => {
+        currentSort = sortSelect.value;
+
+        // 🔥 정렬별 기본 방향 자동 설정
+        switch (currentSort) {
+            case "NAME":
+                currentDirection = "ASC";
+                break;
+            case "LIKE":
+            case "PLAY":
+            case "RELEASE_DATE":
+            default:
+                currentDirection = "DESC";
+        }
+
+        directionSelect.value = currentDirection;
+        resetAndReload();
+    });
+
+    /* 방향 변경 */
+    directionSelect?.addEventListener("change", () => {
+        currentDirection = directionSelect.value;
+        resetAndReload();
+    });
+
+    /* 더보기 */
+    loadMoreBtn?.addEventListener("click", () => {
         if (hasNext && !loading) loadSongs();
     });
 });
 
 
 /* ===============================
-   데이터 정규화 (snake + camel 대응)
+   커서 초기화
+================================ */
+function resetAndReload() {
+    lastId = null;
+    lastSortValue = null;
+    hasNext = true;
+    loading = false;
+    listContainer.innerHTML = "";
+    loadMoreBtn.classList.add("hidden");
+    loadSongs();
+}
+
+
+/* ===============================
+   데이터 정규화
 ================================ */
 function normalizeSong(song) {
     return {
@@ -38,6 +90,8 @@ function normalizeSong(song) {
         name: song.name,
         artistName: song.artistName,
         likeCount: song.likeCount ?? song.like_count ?? 0,
+        playCount: song.playCount ?? song.play_count ?? 0,
+        releaseDate: song.releaseDate ?? song.release_date,
         albumImage: song.albumImage ?? song.album_image ?? '/images/default.png',
         isDeleted: song.isDeleted ?? song.deleted ?? false
     };
@@ -49,18 +103,33 @@ function normalizeSong(song) {
 ================================ */
 async function loadSongs() {
 
-    if (!hasNext) return;
+    if (!hasNext || loading) return;
     loading = true;
 
     const params = new URLSearchParams({
         word: initialWord,
-        sortType: "LIKE",
-        direction: "DESC"
+        sortType: currentSort,
+        direction: currentDirection
     });
 
     if (lastId !== null) {
         params.append("lastId", lastId);
-        params.append("lastLike", lastSortValue);
+
+        // 🔥 sortType에 맞는 커서 파라미터
+        switch (currentSort) {
+            case "LIKE":
+                params.append("lastLike", lastSortValue);
+                break;
+            case "NAME":
+                params.append("lastName", lastSortValue);
+                break;
+            case "PLAY":
+                params.append("lastPlay", lastSortValue);
+                break;
+            case "RELEASE_DATE":
+                params.append("lastDate", lastSortValue);
+                break;
+        }
     }
 
     try {
@@ -82,7 +151,23 @@ async function loadSongs() {
 
         if (hasNext && data.cursor) {
             lastId = data.cursor.lastId;
-            lastSortValue = data.cursor.lastSortValue;
+
+            // 🔥 sortType별 커서값 저장
+            switch (currentSort) {
+                case "LIKE":
+                    lastSortValue = data.cursor.lastLike;
+                    break;
+                case "NAME":
+                    lastSortValue = data.cursor.lastName;
+                    break;
+                case "PLAY":
+                    lastSortValue = data.cursor.lastPlay;
+                    break;
+                case "RELEASE_DATE":
+                    lastSortValue = data.cursor.lastDate;
+                    break;
+            }
+
             loadMoreBtn.classList.remove("hidden");
         } else {
             loadMoreBtn.classList.add("hidden");

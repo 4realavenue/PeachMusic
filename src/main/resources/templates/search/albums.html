@@ -18,11 +18,26 @@
 
         <!-- 검색바 -->
         <div class="search-bar">
+
             <input type="text"
                    id="searchInput"
                    placeholder="Search"
                    th:value="${word}">
+
+            <select id="sortSelect">
+                <option value="LIKE">좋아요순</option>
+                <option value="NAME">이름순</option>
+                <option value="PLAY">재생순</option>
+                <option value="RELEASE_DATE">발매일순</option>
+            </select>
+
+            <select id="directionSelect">
+                <option value="DESC">내림차순</option>
+                <option value="ASC">오름차순</option>
+            </select>
+
             <button id="searchBtn">검색</button>
+
         </div>
 
         <!-- 제목 -->
