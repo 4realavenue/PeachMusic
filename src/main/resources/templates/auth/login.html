@@ -5,41 +5,50 @@
     <meta charset="UTF-8">
     <title>Login | PeachMusic</title>
 
-    <!-- 로그인 전용 CSS만 사용 -->
+    <!-- 공통 CSS -->
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
     <link rel="stylesheet" th:href="@{/css/login.css}">
-    <script type="module" th:src="@{/js/login.js}"></script>
+
+    <!-- 공통 JS -->
+    <script th:src="@{/js/sidebar.js}" defer></script>
 </head>
 
 <body>
 
-<div class="login-content">
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
 
-    <form id="loginForm" class="login-card">
+    <section class="login-content">
 
-        <h2 class="login-title">로그인</h2>
+        <form id="loginForm" class="login-card">
 
-        <div class="login-field">
-            <input type="email" name="email" placeholder="email@example.com" required />
-        </div>
+            <h2 class="login-title">로그인</h2>
 
-        <div class="login-field">
-            <input type="password" name="password" placeholder="Password" required />
-        </div>
+            <div class="login-field">
+                <input type="email" name="email" placeholder="email@example.com" required />
+            </div>
 
-        <label class="remember">
-            <input type="checkbox"/>
-            Remember me
-        </label>
+            <div class="login-field">
+                <input type="password" name="password" placeholder="Password" required />
+            </div>
 
-        <button class="signin-btn" type="submit">로그인</button>
+            <label class="remember">
+                <input type="checkbox"/>
+                Remember me
+            </label>
 
-        <div class="login-links">
-            <a href="#" id="signupLink">New around here? Sign up</a>
-        </div>
+            <button class="signin-btn" type="submit">로그인</button>
 
-    </form>
+            <div class="login-links">
+                <a th:href="@{/signup}">New around here? Sign up</a>
+            </div>
+
+        </form>
+
+    </section>
 
 </div>
+
+<script type="module" th:src="@{/js/login.js}"></script>
 
 </body>
 </html>

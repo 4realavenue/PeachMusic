@@ -144,3 +144,43 @@
     color: #111;
     text-decoration: underline;
 }
+
+/* ===================================
+   Signup Row (input + button)
+=================================== */
+
+/* input + 버튼 한 줄 배치 */
+.field-row {
+    display: flex;
+    gap: 8px;
+}
+
+.field-row input {
+    flex: 1;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.check-btn {
+    padding: 0 14px;
+    border-radius: 12px;
+    border: none;
+    background: #ccc;
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.check-btn:hover {
+    background: #bbb;
+}
+
+/* 중앙 정렬 보정 */
+.content .login-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}

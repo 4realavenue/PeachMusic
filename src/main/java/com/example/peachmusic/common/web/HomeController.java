@@ -20,4 +20,9 @@ public class HomeController {
     public String forbidden() {
         return "error/403";
     }
+
+    @GetMapping("/signup")
+    public String signup() {
+        return "auth/signup";
+    }
 }
