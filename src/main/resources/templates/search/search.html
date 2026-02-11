@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Search | PeachMusic</title>
+
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/search.css}">
+    <script th:src="@{/js/sidebar.js}" defer></script>
+</head>
+
+<body>
+
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+
+    <section class="search-page">
+
+        <!-- 검색창 -->
+        <div class="search-bar">
+            <input type="text"
+                   id="searchInput"
+                   placeholder="Search"
+                   th:value="${word}">
+            <button id="searchBtn">검색</button>
+        </div>
+
+        <!-- 인기 검색어 -->
+        <div id="popularSection" class="popular-section">
+            <div class="popular-title">최근 24시간 인기 검색어</div>
+            <div id="popularList" class="popular-table"></div>
+        </div>
+
+        <!-- 검색 결과 -->
+        <div id="searchResult" class="search-result hidden">
+            <!-- 곡 -->
+            <div class="result-section">
+                <div class="section-header">
+                    <h3 id="songTitle"></h3>
+                    <button id="songMoreBtn" class="more-btn hidden">더보기</button>
+                </div>
+                <div id="songList" class="result-list"></div>
+            </div>
+
+            <!-- 앨범 -->
+            <div class="result-section">
+                <div class="section-header">
+                    <h3 id="albumTitle"></h3>
+                    <button id="albumMoreBtn" class="more-btn hidden">더보기</button>
+                </div>
+                <div id="albumList" class="result-grid"></div>
+            </div>
+
+            <!-- 아티스트 -->
+            <div class="result-section">
+                <div class="section-header">
+                    <h3 id="artistTitle"></h3>
+                    <button id="artistMoreBtn" class="more-btn hidden">더보기</button>
+                </div>
+                <div id="artistList" class="result-grid"></div>
+            </div>
+
+
+        </div>
+
+        <!-- 결과 없음 -->
+        <div id="emptyResult" class="hidden"></div>
+
+    </section>
+
+</div>
+
+<script th:inline="javascript">
+    const initialWord = /*[[${word}]]*/ "";
+</script>
+
+<script type="module" th:src="@{/js/search.js}"></script>
+
+</body>
+</html>
