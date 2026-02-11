@@ -15,33 +15,22 @@ public class SearchPageController {
         return "search/search";
     }
 
-    @GetMapping("/search/songs")
-    public String searchSongsPage(
-            @RequestParam String word,
-            Model model
-    ) {
+    @GetMapping("/search/artists")
+    public String artistsPage(@RequestParam String word, Model model) {
         model.addAttribute("word", word);
-        model.addAttribute("type", "songs");
-        return "search/search-detail";
+        return "search/artists";
     }
 
     @GetMapping("/search/albums")
-    public String searchAlbumsPage(
-            @RequestParam String word,
-            Model model
-    ) {
+    public String albumsPage(@RequestParam String word, Model model) {
         model.addAttribute("word", word);
-        model.addAttribute("type", "albums");
-        return "search/search-detail";
+        return "search/albums";
     }
 
-    @GetMapping("/search/artists")
-    public String searchArtistsPage(
-            @RequestParam String word,
-            Model model
-    ) {
+    @GetMapping("/search/songs")
+    public String songsPage(@RequestParam String word, Model model) {
         model.addAttribute("word", word);
-        model.addAttribute("type", "artists");
-        return "search/search-detail";
+        return "search/songs";
     }
+
 }

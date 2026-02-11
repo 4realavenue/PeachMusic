@@ -81,9 +81,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         resultWrapper.classList.remove("hidden");
 
-        songTitle.textContent = `"${keyword}" 관련 곡 (${songs.length})`;
-        albumTitle.textContent = `"${keyword}" 관련 앨범 (${albums.length})`;
-        artistTitle.textContent = `"${keyword}" 관련 아티스트 (${artists.length})`;
+        songTitle.textContent = `"${keyword}" 관련 음원`;
+        albumTitle.textContent = `"${keyword}" 관련 앨범`;
+        artistTitle.textContent = `"${keyword}" 관련 아티스트`;
 
         renderSongs(songs);
         renderAlbums(albums);

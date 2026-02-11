@@ -1,0 +1,54 @@
+/* =========================
+   페이지 기본
+========================= */
+.song-page {
+    width: 1100px;
+    margin: 0 auto;
+    padding: 20px 40px;
+    box-sizing: border-box;
+}
+
+/* =========================
+   제목 스타일 (🔥 수정)
+========================= */
+.detail-title {
+    margin-top: 40px;
+    margin-bottom: 30px;   /* 🔥 아래 여백 추가 */
+}
+
+.detail-title span {
+    font-size: 24px;       /* 🔥 글씨 키움 */
+    font-weight: 700;
+    letter-spacing: -0.3px;
+}
+
+
+/* =========================
+   곡 리스트
+========================= */
+.song-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;              /* 약간 여유 */
+}
+
+.song-row {
+    display: grid;
+    grid-template-columns: 60px 2fr 1fr 80px;
+    align-items: center;
+    padding: 14px 10px;     /* 여백 증가 */
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.song-row:hover {
+    background: #f5f5f5;
+}
+
+.song-row img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 6px;     /* 약간 부드럽게 */
+}

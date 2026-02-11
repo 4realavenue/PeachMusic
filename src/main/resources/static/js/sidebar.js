@@ -35,13 +35,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* 로그아웃 */
-
     if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
+        logoutBtn.addEventListener("click", async () => {
 
-            localStorage.removeItem("accessToken");
-            location.href = "/";
+            const token = localStorage.getItem("accessToken");
+
+            try {
+
+                // 🔥 토큰이 정상 문자열일 때만 API 호출
+                if (token && token.trim() !== "") {
+
+                    await fetch("/api/auth/logout", {
+                        method: "DELETE",
+                        headers: {
+                            "Authorization": token
+                        }
+                    });
+                }
+
+            } catch (e) {
+                console.error("로그아웃 API 실패:", e);
+            } finally {
+                // 🔥 반드시 API 호출 끝난 후 삭제
+                localStorage.removeItem("accessToken");
+                location.replace("/");
+            }
         });
     }
+
 
 });
