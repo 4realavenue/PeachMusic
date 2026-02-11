@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Liked Songs | PeachMusic</title>
+
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/liked-songs.css}">
+    <script th:src="@{/js/sidebar.js}" defer></script>
+</head>
+<body>
+
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+
+    <section class="liked-page">
+
+        <h2 class="page-title">좋아요한 노래</h2>
+
+        <div class="liked-table">
+
+            <div class="liked-row header">
+                <div class="col play"></div>
+                <div class="col title">곡제목</div>
+                <div class="col like-count">좋아요수</div>
+                <div class="col heart"></div>
+            </div>
+
+            <div id="songList"></div>
+
+            <!-- 🔥 무한스크롤 감시용 -->
+            <div id="sentinel" style="height:1px;"></div>
+
+        </div>
+
+        <div id="loading" class="loading hidden">로딩 중...</div>
+        <div id="endMessage" class="end hidden">마지막 곡입니다.</div>
+
+
+    </section>
+
+</div>
+
+<script type="module" th:src="@{/js/liked-songs.js}"></script>
+</body>
+</html>
