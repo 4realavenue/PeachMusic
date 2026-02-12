@@ -1,0 +1,127 @@
+/* 전체 여백 */
+.playlist-detail {
+    padding: 50px 80px;
+}
+
+/* 상단 영역 */
+.playlist-header {
+    display: flex;
+    gap: 60px;
+    align-items: flex-start;
+    margin-bottom: 60px;
+}
+
+/* 이미지 영역 */
+.image-area {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.playlist-image {
+    width: 260px;
+    height: 260px;
+    background: #ddd;
+    background-size: cover;
+    background-position: center;
+    border-radius: 14px;
+}
+
+/* 정보 영역 */
+.info-area {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+#playlistName {
+    font-size: 30px;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* 버튼 라인 */
+.button-row {
+    display: flex;
+    gap: 15px;
+}
+
+/* 공통 회색 버튼 */
+.gray-btn {
+    background: #f3f3f3;
+    border: 1px solid #ddd;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.gray-btn:hover {
+    background: #e8e8e8;
+}
+
+/* 삭제 버튼 */
+.danger-btn {
+    background: #ff5a5a;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* 이름 수정 영역 */
+#nameEditArea {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#nameInput {
+    padding: 10px 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    width: 260px;
+    outline: none;
+    transition: 0.2s;
+}
+
+#nameInput:focus {
+    border-color: #ff7e8b;
+    box-shadow: 0 0 0 3px rgba(255,126,139,0.15);
+}
+
+/* 곡 목록 */
+.song-container {
+    margin-top: 30px;
+}
+
+.song-action-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.song-row {
+    display: grid;
+    grid-template-columns: 40px 60px 1fr 100px;
+    align-items: center;
+    padding: 16px 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.song-cover {
+    width: 50px;
+    height: 50px;
+    background: #ddd;
+    background-size: cover;
+    background-position: center;
+    border-radius: 6px;
+}
+
+.hidden {
+    display: none;
+}

@@ -15,15 +15,23 @@
 }
 
 .create-btn {
-    padding: 10px 22px;
-    border-radius: 28px;
-    border: none;
-    background: linear-gradient(135deg, #ff7a5c, #ff3d81);
-    color: #fff;
-    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 6px;            /* 둥근 느낌 제거 */
+    border: 1px solid #ccc;
+    background: #f5f5f5;           /* 회색 */
+    color: #333;
     cursor: pointer;
-    transition: 0.2s ease;
+    transition: all 0.2s ease;
 }
+
+.create-btn:hover {
+    background: #e5e5e5;
+}
+
+.create-btn:active {
+    background: #ddd;
+}
+
 
 .create-btn:hover {
     transform: translateY(-2px);
@@ -72,4 +80,68 @@
     align-items: center;
     justify-content: center;
     font-size: 13px;
+}
+/* 모달 배경 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* 숨김 */
+.hidden {
+    display: none;
+}
+
+/* 모달 본체 */
+.modal-content {
+    width: 400px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.modal-content h3 {
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+/* 폼 */
+.form-group {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group input {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+/* 버튼 */
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.modal-buttons button {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+}
+
+.modal-buttons .primary {
+    background: linear-gradient(135deg, #ff7a5c, #ff3d81);
+    color: #fff;
 }
