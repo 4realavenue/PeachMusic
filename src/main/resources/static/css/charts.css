@@ -1,0 +1,113 @@
+/* 페이지 기본 */
+.charts-page {
+    width: 1100px;
+    margin: 0 auto;
+    padding: 0 40px;
+    box-sizing: border-box;
+}
+
+/* 상단 헤더 */
+.charts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 40px 0 20px;
+}
+
+.charts-title {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+/* 컨트롤 영역 */
+.charts-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-btn {
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: none;
+    background: #aaaaaa;
+    color: #ffffff;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.nav-btn:hover {
+    opacity: 0.85;
+}
+
+.nav-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.page-label {
+    min-width: 70px;
+    text-align: center;
+    font-size: 14px;
+    color: #555;
+}
+
+/* 차트 리스트 */
+.chart-list {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.chart-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 90px;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid #eee;
+}
+
+.chart-row:last-child {
+    border-bottom: none;
+}
+
+.rank {
+    font-weight: 700;
+    color: #333;
+}
+
+.title {
+    font-size: 15px;
+    color: #111;
+    cursor: pointer;
+}
+
+.title:hover {
+    text-decoration: underline;
+}
+
+.play-btn {
+    height: 34px;
+    border-radius: 10px;
+    border: none;
+    background: #eaeaea;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.play-btn:hover {
+    background: #dcdcdc;
+}
+
+/* 에러 */
+.error {
+    margin-top: 16px;
+    color: #b91c1c;
+    font-size: 14px;
+}
+
+.hidden {
+    display: none;
+}

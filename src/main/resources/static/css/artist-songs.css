@@ -1,0 +1,81 @@
+/* ✅ 원상태(가운데 정렬 X) */
+.songs-page {
+    width: 1100px;
+    margin: 0 auto;
+    padding: 14px;
+}
+
+.page-title {
+    font-size: 26px;
+    margin: 10px 0 22px;
+}
+
+.song-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.song-row {
+    display: grid;
+    grid-template-columns: 2fr 140px 80px;
+    align-items: center;
+    padding: 12px 6px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+.song-name {
+    font-size: 18px;
+    font-weight: 700;
+}
+.song-sub {
+    font-size: 14px;
+    color: #666;
+}
+
+/* 좋아요 영역 */
+.like-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.like-number {
+    font-size: 15px;
+    color: #666;
+}
+
+/* ✅ 하트 버튼(회색) */
+.heart-btn {
+    border: none;
+    background: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #bbb;
+}
+.heart-btn.liked { color: #ff4d6d; }
+.heart-btn.disabled { color: #ddd; cursor: not-allowed; }
+
+/* 로딩 */
+.load-area { margin: 24px 0 10px; text-align: center; }
+.hidden { display: none; }
+#sentinel { height: 1px; }
+
+/* ✅ 로그인 팝업 */
+.login-popup {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #111;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.login-popup.show { opacity: 1; }

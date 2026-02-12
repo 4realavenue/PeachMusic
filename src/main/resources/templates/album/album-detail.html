@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>앨범 상세</title>
+
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/album-detail.css}">
+
+    <script th:src="@{/js/sidebar.js}" defer></script>
+</head>
+<body>
+
+<!-- ✅ 로그인 필요 팝업(좋아요 클릭 시만) -->
+<div id="loginPopup" class="login-popup hidden">로그인이 필요한 기능입니다.</div>
+
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+    <section class="album-page">
+
+        <!-- 상단 히어로 -->
+        <header class="album-hero">
+            <div class="album-art">
+                <img id="albumImage" alt="album cover"/>
+            </div>
+
+            <div class="album-meta">
+                <div class="album-eyebrow">ALBUM</div>
+
+                <h1 id="albumName" class="album-title">-</h1>
+
+                <div class="album-sub">
+                    <span id="albumArtists" class="album-artist">-</span>
+                    <span class="dot">•</span>
+                    <span id="albumReleaseDate" class="album-date">-</span>
+                </div>
+
+                <div class="album-actions">
+                    <button id="heartBtn" class="heart-btn" type="button" aria-label="앨범 좋아요">❤</button>
+                    <span id="likeCount" class="like-count">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 트랙 리스트 -->
+        <section class="tracks">
+            <div class="section-head">
+                <h2 class="section-title">수록곡</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <ul id="songList" class="track-list"></ul>
+        </section>
+
+    </section>
+</div>
+
+<script th:inline="javascript">
+    const albumId = /*[[${albumId}]]*/ 0;
+</script>
+
+<script type="module" th:src="@{/js/album-detail.js}"></script>
+</body>
+</html>

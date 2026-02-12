@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Charts | PeachMusic</title>
+
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/charts.css}">
+    <script th:src="@{/js/sidebar.js}" defer></script>
+</head>
+
+<body>
+
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+    <section class="charts-page">
+
+        <div class="charts-header">
+            <h2 class="charts-title">인기차트 Top 100</h2>
+
+            <div class="charts-controls">
+                <button id="prevBtn" class="nav-btn" type="button" disabled>이전</button>
+                <div id="pageLabel" class="page-label">1 / 1</div>
+                <button id="nextBtn" class="nav-btn" type="button">다음</button>
+            </div>
+        </div>
+
+        <div id="chartList" class="chart-list"></div>
+
+        <div id="errorBox" class="error hidden"></div>
+
+    </section>
+</div>
+
+<script type="module" th:src="@{/js/charts.js}"></script>
+</body>
+</html>
