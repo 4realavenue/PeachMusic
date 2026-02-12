@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My Playlists | PeachMusic</title>
+
+    <!-- layout 공통 CSS -->
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+
+    <!-- 페이지 전용 CSS -->
+    <link rel="stylesheet" th:href="@{/css/playlists.css}">
+
+    <script th:src="@{/js/sidebar.js}" defer></script>
+</head>
+<body>
+
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+
+    <section class="playlist-page">
+
+        <!-- 상단 -->
+        <div class="playlist-header">
+            <h2>My Playlists</h2>
+
+            <button id="createPlaylistBtn" class="create-btn">
+                + 플레이리스트 생성
+            </button>
+        </div>
+
+        <!-- 빈 메시지 -->
+        <div id="emptyMessage" class="empty-message">
+            플레이리스트가 없습니다
+        </div>
+
+        <!-- 카드 영역 -->
+        <div class="playlist-grid" id="playlistGrid"></div>
+
+    </section>
+
+</div>
+
+<script type="module" th:src="@{/js/playlists.js}"></script>
+
+</body>
+</html>
