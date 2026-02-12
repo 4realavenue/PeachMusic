@@ -1,5 +1,6 @@
 package com.example.peachmusic.domain.playlist.dto.response;
 
+import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.playlist.entity.Playlist;
 import com.example.peachmusic.domain.playlistsong.entity.PlaylistSong;
 import lombok.Getter;
@@ -28,13 +29,20 @@ public class PlaylistGetSongResponseDto {
     public static class SongResponseDto {
 
         private final Long playlistSongId;
+
+        private final String albumName;
+        private final String albumImage;
+
+        private final String artistName;
+
         private final Long songId;
         private final String name;
         private final Long duration;
         private final Long likeCount;
+        private final boolean isLiked;
 
-        public static SongResponseDto from(PlaylistSong playlistSong) {
-            return new SongResponseDto(playlistSong.getPlaylistSongId(), playlistSong.getSong().getSongId(), playlistSong.getSong().getName(), playlistSong.getSong().getDuration(), playlistSong.getSong().getLikeCount());
+        public static SongResponseDto from(PlaylistSong playlistSong, Album album, String artistName, boolean isLiked) {
+            return new SongResponseDto(playlistSong.getPlaylistSongId(), album.getAlbumName(), album.getAlbumImage(), artistName, playlistSong.getSong().getSongId(), playlistSong.getSong().getName(), playlistSong.getSong().getDuration(), playlistSong.getSong().getLikeCount(), isLiked);
         }
     }
 }
