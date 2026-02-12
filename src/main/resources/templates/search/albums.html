@@ -5,20 +5,22 @@
     <title>Albums | PeachMusic</title>
 
     <link rel="stylesheet" th:href="@{/css/layout.css}">
-    <link rel="stylesheet" th:href="@{/css/album-search.css}">
-    <link rel="stylesheet" th:href="@{/css/search.css}">
+    <link rel="stylesheet" th:href="@{/css/search-album.css}">
     <script th:src="@{/js/sidebar.js}" defer></script>
 </head>
 
 <body>
 
+<!-- 로그인 팝업 -->
+<div id="loginPopup" class="login-popup hidden">
+    로그인이 필요한 기능입니다.
+</div>
+
 <div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
 
     <section class="album-page">
 
-        <!-- 검색바 -->
         <div class="search-bar">
-
             <input type="text"
                    id="searchInput"
                    placeholder="Search"
@@ -37,20 +39,19 @@
             </select>
 
             <button id="searchBtn">검색</button>
-
         </div>
 
-        <!-- 제목 -->
         <div class="detail-title">
             <span id="pageTitle"></span>
         </div>
 
-        <!-- 결과 -->
         <div id="albumGrid" class="album-grid"></div>
 
-        <button id="loadMoreBtn" class="more-btn hidden">
-            더보기
-        </button>
+        <!-- 무한스크롤 감시 -->
+        <div id="sentinel"></div>
+
+        <div id="loading" class="hidden">로딩 중...</div>
+        <div id="endMessage" class="hidden">마지막 앨범입니다.</div>
 
     </section>
 
@@ -60,7 +61,7 @@
     const initialWord = /*[[${word}]]*/ "";
 </script>
 
-<script type="module" th:src="@{/js/album-search.js}"></script>
+<script type="module" th:src="@{/js/search-album.js}"></script>
 
 </body>
 </html>
