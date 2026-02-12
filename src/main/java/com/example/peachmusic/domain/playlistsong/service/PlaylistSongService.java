@@ -55,7 +55,7 @@ public class PlaylistSongService {
         List<PlaylistSong> findPlaylistSongList = playlistSongRepository.findAllByPlaylist(findPlaylist);
         List<Long> findSongIdList = findPlaylistSongList.stream().map(playlistSong -> playlistSong.getSong().getSongId()).toList();
 
-        Map<Long, String> artistNameListBySongId = artistSongRepository.findAllBySongIdList(findSongIdList).stream()
+        Map<Long, String> artistNameMapBySongId = artistSongRepository.findAllBySongIdList(findSongIdList).stream()
                 .collect(Collectors.groupingBy(artistSong -> artistSong.getSong().getSongId(),
                         Collectors.mapping(artistSong -> artistSong.getArtist().getArtistName(), Collectors.joining(", "))));
 
@@ -69,7 +69,7 @@ public class PlaylistSongService {
 
                     Album album = playlistSong.getSong().getAlbum();
 
-                    String artistName = artistNameListBySongId.getOrDefault(song.getSongId(), "");
+                    String artistName = artistNameMapBySongId.getOrDefault(song.getSongId(), "");
                     boolean isLiked = likedSongIdSet.contains(song.getSongId());
 
                     return PlaylistGetSongResponseDto.SongResponseDto.from(playlistSong, album, artistName, isLiked);
