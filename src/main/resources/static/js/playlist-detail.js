@@ -17,23 +17,17 @@ async function loadPlaylistDetail() {
 
     const playlistId = document.getElementById("playlistId").value;
 
-    try {
+    const res = await fetch(`/api/playlists/${playlistId}`, {
+        headers: { "Authorization": getToken() }
+    });
 
-        const res = await fetch(`/api/playlists/${playlistId}`, {
-            headers: { "Authorization": getToken() }
-        });
+    const data = await res.json();
+    if (!data.success) return;
 
-        const data = await res.json();
-        if (!data.success) return;
+    const playlist = data.data;
 
-        const playlist = data.data;
-
-        renderHeader(playlist);
-        renderSongs(playlist.songList);
-
-    } catch (err) {
-        console.error("상세 조회 에러:", err);
-    }
+    renderHeader(playlist);
+    renderSongs(playlist.songList);
 }
 
 /* ================================
@@ -41,29 +35,20 @@ async function loadPlaylistDetail() {
 ================================ */
 function renderHeader(playlist) {
 
-    const titleEl = document.getElementById("playlistName");
+    document.getElementById("playlistName").textContent =
+        playlist.playlistName;
+
     const imageEl = document.getElementById("playlistImage");
 
-    titleEl.textContent = playlist.playlistName;
-
-    /* 🔥 이미지 경로 안전 처리 */
-    let imageUrl = null;
-
     if (playlist.playlistImage) {
+        const imageUrl =
+            playlist.playlistImage.startsWith("http")
+                ? playlist.playlistImage
+                : window.location.origin + playlist.playlistImage;
 
-        // 절대경로 보정
-        imageUrl = playlist.playlistImage.startsWith("http")
-            ? playlist.playlistImage
-            : window.location.origin + playlist.playlistImage;
-
-        console.log("플레이리스트 이미지 경로:", imageUrl);
-
-        imageEl.style.backgroundImage = `url("${imageUrl}")`;
-        imageEl.style.backgroundSize = "cover";
-        imageEl.style.backgroundPosition = "center";
-
+        imageEl.style.backgroundImage =
+            `url("${imageUrl}")`;
     } else {
-        // 기본 이미지
         imageEl.style.backgroundImage =
             `url("/images/default-playlist.png")`;
     }
@@ -78,11 +63,10 @@ function renderHeader(playlist) {
 ================================ */
 function setupNameEdit() {
 
-    const editBtn = document.getElementById("nameEditBtn");
     const area = document.getElementById("nameEditArea");
     const input = document.getElementById("nameInput");
 
-    editBtn.onclick = () => {
+    document.getElementById("nameEditBtn").onclick = () => {
         area.classList.remove("hidden");
         input.value =
             document.getElementById("playlistName").textContent;
@@ -117,20 +101,21 @@ function setupNameEdit() {
 ================================ */
 function setupDeletePlaylist() {
 
-    document.getElementById("deletePlaylistBtn").onclick = async () => {
+    document.getElementById("deletePlaylistBtn").onclick =
+        async () => {
 
-        if (!confirm("플레이리스트를 삭제하시겠습니까?")) return;
+            if (!confirm("플레이리스트를 삭제하시겠습니까?")) return;
 
-        const playlistId =
-            document.getElementById("playlistId").value;
+            const playlistId =
+                document.getElementById("playlistId").value;
 
-        await fetch(`/api/playlists/${playlistId}`, {
-            method: "DELETE",
-            headers: { "Authorization": getToken() }
-        });
+            await fetch(`/api/playlists/${playlistId}`, {
+                method: "DELETE",
+                headers: { "Authorization": getToken() }
+            });
 
-        location.href = "/playlists";
-    };
+            location.href = "/playlists";
+        };
 }
 
 /* ================================
@@ -138,10 +123,10 @@ function setupDeletePlaylist() {
 ================================ */
 function setupImageEdit() {
 
-    const btn = document.getElementById("imageEditBtn");
     const input = document.getElementById("imageInput");
 
-    btn.onclick = () => input.click();
+    document.getElementById("imageEditBtn").onclick =
+        () => input.click();
 
     input.onchange = async () => {
 
@@ -196,6 +181,12 @@ function renderSongs(songList) {
 
     songList.forEach(song => {
 
+        const albumImageUrl = song.albumImage
+            ? (song.albumImage.startsWith("http")
+                ? song.albumImage
+                : window.location.origin + song.albumImage)
+            : "/images/default-album.png";
+
         const row = document.createElement("div");
         row.className = "song-row";
 
@@ -205,9 +196,21 @@ function renderSongs(songList) {
                        class="song-check"
                        value="${song.songId}">
             </div>
-            <div class="song-cover"></div>
-            <div>${song.name}</div>
-            <div>${song.likeCount}</div>
+
+            <div class="song-cover"
+                 style="background-image:url('${albumImageUrl}')">
+            </div>
+
+            <div>
+                <div class="song-title">${song.name}</div>
+                <div class="song-sub">
+                    ${song.artistName} - ${song.albumName}
+                </div>
+            </div>
+
+            <div class="song-like">
+                ❤️ ${song.likeCount}
+            </div>
         `;
 
         container.appendChild(row);

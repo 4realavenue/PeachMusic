@@ -1,9 +1,7 @@
-/* 전체 여백 */
 .playlist-detail {
     padding: 50px 80px;
 }
 
-/* 상단 영역 */
 .playlist-header {
     display: flex;
     gap: 60px;
@@ -11,7 +9,6 @@
     margin-bottom: 60px;
 }
 
-/* 이미지 영역 */
 .image-area {
     display: flex;
     flex-direction: column;
@@ -27,7 +24,6 @@
     border-radius: 14px;
 }
 
-/* 정보 영역 */
 .info-area {
     display: flex;
     flex-direction: column;
@@ -40,13 +36,11 @@
     margin: 0;
 }
 
-/* 버튼 라인 */
 .button-row {
     display: flex;
     gap: 15px;
 }
 
-/* 공통 회색 버튼 */
 .gray-btn {
     background: #f3f3f3;
     border: 1px solid #ddd;
@@ -61,7 +55,6 @@
     background: #e8e8e8;
 }
 
-/* 삭제 버튼 */
 .danger-btn {
     background: #ff5a5a;
     color: white;
@@ -72,7 +65,6 @@
     cursor: pointer;
 }
 
-/* 이름 수정 영역 */
 #nameEditArea {
     display: flex;
     gap: 10px;
@@ -86,15 +78,8 @@
     font-size: 16px;
     width: 260px;
     outline: none;
-    transition: 0.2s;
 }
 
-#nameInput:focus {
-    border-color: #ff7e8b;
-    box-shadow: 0 0 0 3px rgba(255,126,139,0.15);
-}
-
-/* 곡 목록 */
 .song-container {
     margin-top: 30px;
 }
@@ -107,7 +92,7 @@
 
 .song-row {
     display: grid;
-    grid-template-columns: 40px 60px 1fr 100px;
+    grid-template-columns: 40px 60px 1fr 120px;
     align-items: center;
     padding: 16px 10px;
     border-bottom: 1px solid #f0f0f0;
@@ -120,6 +105,20 @@
     background-size: cover;
     background-position: center;
     border-radius: 6px;
+}
+
+.song-title {
+    font-weight: 600;
+}
+
+.song-sub {
+    font-size: 13px;
+    color: #888;
+    margin-top: 4px;
+}
+
+.song-like {
+    text-align: right;
 }
 
 .hidden {
