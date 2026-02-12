@@ -63,10 +63,12 @@ public class AlbumAdminService {
             throw new CustomException(ErrorCode.ALBUM_EXIST_NAME_RELEASE_DATE);
         });
 
-        String storedPath = storeAlbumImage(albumImage, albumName);
-
-        Album album = new Album(albumName, albumReleaseDate, storedPath);
+        Album album = new Album(albumName, albumReleaseDate);
         Album savedAlbum = albumRepository.save(album);
+
+        String storedPath = storeAlbumImage(albumImage, savedAlbum.getAlbumId());
+
+        savedAlbum.updateAlbumImage(storedPath);
 
         // 참여 아티스트와 앨범의 N:M 관계를 매핑 테이블(ArtistAlbum)에 저장
         List<ArtistAlbum> artistAlbumList = artistList.stream()
@@ -156,7 +158,7 @@ public class AlbumAdminService {
         Album foundAlbum = getAlbumOrThrow(albumId);
         String oldPath = foundAlbum.getAlbumImage();
 
-        String newPath = storeAlbumImage(albumImage, foundAlbum.getAlbumName());
+        String newPath = storeAlbumImage(albumImage, foundAlbum.getAlbumId());
 
         foundAlbum.updateAlbumImage(newPath);
 
@@ -232,9 +234,8 @@ public class AlbumAdminService {
                 .toList();
     }
 
-    private String storeAlbumImage(MultipartFile albumImage, String albumName) {
-        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        String baseName = "PeachMusic_album_" + albumName + "_" + date;
+    private String storeAlbumImage(MultipartFile albumImage, Long albumId) {
+        String baseName = albumId.toString();
         return fileStorageService.storeFile(albumImage, FileType.ALBUM_IMAGE, baseName);
     }
 

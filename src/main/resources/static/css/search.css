@@ -1,0 +1,211 @@
+/* =========================
+   페이지 기본
+========================= */
+.search-page {
+    width: 1100px;
+    margin: 0 auto;
+    padding: 0 40px;
+    box-sizing: border-box;
+}
+
+/* =========================
+   검색창
+========================= */
+.search-bar {
+    display: flex;
+    gap: 12px;
+    margin: 40px auto 20px auto;
+    max-width: 600px;
+}
+
+.search-bar input {
+    flex: 1;
+    height: 44px;
+    padding: 0 16px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.search-bar button {
+    height: 44px;
+    padding: 0 18px;
+    border-radius: 12px;
+    border: none;
+    background: #aaaaaa;   /* 로그인/로그아웃 버튼과 동일 */
+    color: #ffffff;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.search-bar button:hover {
+    opacity: 0.85;
+}
+
+/* =========================
+   인기 검색어
+========================= */
+.popular-section {
+    max-width: 600px;
+    margin: 40px auto;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 20px;
+    background: #fff;
+}
+
+.popular-title {
+    font-size: 15px;
+    margin-bottom: 16px;
+    color: #333;
+}
+
+.popular-table {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.popular-row {
+    display: grid;
+    grid-template-columns: 50px 1fr;
+    align-items: center;
+    padding: 10px 14px;
+    background: #eaeaea;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: 0.2s;
+}
+
+.popular-row:hover {
+    background: #dcdcdc;
+}
+
+.popular-row .rank {
+    font-weight: 600;
+    color: #555;
+}
+
+/* =========================
+   결과 영역
+========================= */
+.result-section {
+    margin-bottom: 60px;
+}
+
+/* 🔥 제목 + 더보기 정렬 */
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.result-section h3 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+/* 🔥 더보기 버튼 */
+.more-btn {
+    background: none;
+    border: none;
+    color: #777;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.more-btn:hover {
+    color: #111;
+}
+
+/* =========================
+   곡 리스트
+========================= */
+.result-list .item {
+    display: grid;
+    grid-template-columns: 80px 2fr 2fr 120px;
+    align-items: center;
+    padding: 14px 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.result-list .item img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+/* =========================
+   앨범 / 아티스트
+========================= */
+.result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 30px;
+}
+
+.result-grid .card {
+    background: #f8fafc;
+    padding: 14px;
+    border-radius: 14px;
+    transition: 0.2s;
+}
+
+.result-grid .card:hover {
+    background: #e2e8f0;
+}
+
+.result-grid .card img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+/* =========================
+   공통
+========================= */
+.hidden {
+    display: none;
+}
+
+/* =========================
+   드롭다운 통일 스타일
+========================= */
+.search-bar select {
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    background: #fff;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+/* hover */
+.search-bar select:hover {
+    border-color: #aaa;
+}
+
+/* focus */
+.search-bar select:focus {
+    outline: none;
+    border-color: #777;
+}
+
+/* 기본 브라우저 화살표 정리 (Chrome 기준) */
+.search-bar select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%23666' height='20' viewBox='0 0 20 20' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M5.25 7.5l4.75 5 4.75-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+    padding-right: 36px;
+}

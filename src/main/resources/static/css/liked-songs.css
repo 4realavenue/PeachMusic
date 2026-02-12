@@ -1,0 +1,124 @@
+/* ================================
+   Page Wrapper
+================================ */
+.liked-page {
+    width: 1100px;              /* 🔥 기존 1100 → 1300 확장 */
+    margin: 60px auto 100px;
+}
+
+/* ================================
+   Title
+================================ */
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 40px;
+}
+
+/* ================================
+   Table Layout
+================================ */
+.liked-table {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* ================================
+   Row Layout
+================================ */
+.liked-row {
+    display: grid;
+    grid-template-columns: 70px 8fr 1fr 70px;
+    /*   ▶      제목(🔥확장)   좋아요   ❤   */
+    align-items: center;
+    padding: 20px 10px;
+    border-bottom: 1px solid #e6e6e6;
+    transition: background 0.15s ease;
+}
+
+.liked-row:hover {
+    background: #f9f9f9;
+}
+
+/* ================================
+   Header
+================================ */
+.liked-row.header {
+    font-weight: 600;
+    background: #fafafa;
+    border-bottom: 2px solid #e6e6e6;
+    color: #333;
+}
+
+/* ================================
+   Column Styles
+================================ */
+.col.title {
+    font-weight: 500;
+    font-size: 16px;
+
+    white-space: nowrap;          /* 🔥 줄바꿈 방지 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.col.like-count {
+    text-align: center;
+    color: #666;
+    font-size: 15px;
+}
+
+/* ================================
+   Play Button
+================================ */
+.play-btn {
+    border-color: #333333;
+    background: #ffffff;
+    color: #333333;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    transition: transform 0.1s ease;
+}
+
+.play-btn:hover {
+    transform: scale(1.1);
+}
+
+/* ================================
+   Heart Button
+================================ */
+.heart-btn {
+    border: none;
+    background: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #bbb;
+    transition: transform 0.1s ease, color 0.15s ease;
+}
+
+.heart-btn.liked {
+    color: #ff4d6d;
+}
+
+.heart-btn:hover {
+    transform: scale(1.2);
+}
+
+.heart-btn:active {
+    transform: scale(1.3);
+}
+
+/* ================================
+   Loading / End
+================================ */
+.loading,
+.end {
+    text-align: center;
+    padding: 30px;
+    color: #888;
+    font-size: 14px;
+}

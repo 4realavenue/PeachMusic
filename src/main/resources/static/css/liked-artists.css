@@ -1,0 +1,91 @@
+.liked-artists-page {
+    width: 1100px;
+    margin: 60px auto 100px;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 40px;
+}
+
+/* 🔥 Grid */
+.artist-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px;
+}
+
+.artist-card {
+    text-align: center;
+    transition: transform 0.15s ease;
+}
+
+.artist-card:hover {
+    transform: translateY(-4px);
+}
+
+/* 🔥 원형 프로필 */
+.artist-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #e6e6e6;      /* 🔥 기본 배경 */
+    margin: 0 auto 20px;
+    display: block;
+}
+
+/* 🔥 이미지 없을 때 기본 아이콘 느낌 */
+.artist-image.placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    font-weight: 600;
+    color: #999;
+}
+
+.artist-name {
+    font-weight: 600;
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.artist-bottom {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.like-count {
+    font-size: 14px;
+    color: #666;
+}
+
+.heart-btn {
+    border: none;
+    background: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #bbb;
+    transition: transform 0.1s ease;
+}
+
+.heart-btn.liked {
+    color: #ff4d6d;
+}
+
+.heart-btn:hover {
+    transform: scale(1.2);
+}
+
+.loading,
+.end {
+    text-align: center;
+    padding: 40px;
+    color: #888;
+}

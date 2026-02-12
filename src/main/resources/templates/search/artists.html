@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Artists | PeachMusic</title>
+
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/search-artist.css}">
+    <script th:src="@{/js/sidebar.js}" defer></script>
+</head>
+
+<body>
+
+<!-- 로그인 팝업 -->
+<div id="loginPopup" class="login-popup hidden">
+    로그인이 필요한 기능입니다.
+</div>
+
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+
+    <section class="artist-page">
+
+        <div class="search-bar">
+            <input type="text"
+                   id="searchInput"
+                   placeholder="Search"
+                   th:value="${word}">
+
+            <select id="sortSelect">
+                <option value="LIKE">좋아요순</option>
+                <option value="NAME">이름순</option>
+                <option value="PLAY">재생순</option>
+                <option value="RELEASE_DATE">발매일순</option>
+            </select>
+
+            <select id="directionSelect">
+                <option value="DESC">내림차순</option>
+                <option value="ASC">오름차순</option>
+            </select>
+
+            <button id="searchBtn">검색</button>
+        </div>
+
+        <div class="artist-title">
+            <span id="pageTitle"></span>
+        </div>
+
+        <div id="artistGrid" class="artist-grid"></div>
+
+        <!-- 무한스크롤 감시 -->
+        <div id="sentinel"></div>
+
+        <div id="loading" class="hidden">로딩 중...</div>
+        <div id="endMessage" class="hidden">마지막 아티스트입니다.</div>
+
+    </section>
+
+</div>
+
+<script th:inline="javascript">
+    const initialWord = /*[[${word}]]*/ "";
+</script>
+
+<script type="module" th:src="@{/js/search-artist.js}"></script>
+
+</body>
+</html>

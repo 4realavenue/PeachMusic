@@ -1,0 +1,186 @@
+/* ================================
+   Login Layout
+================================ */
+
+.login-content {
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background-color: #fafafa;
+}
+
+.login-field input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.signin-btn {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ================================
+   Login Card
+================================ */
+
+.login-card {
+    width: 360px;
+
+    padding: 32px 28px;
+    border-radius: 18px;
+
+    background-color: #ffffff;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+
+/* ================================
+   Title
+================================ */
+
+.login-title {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 600;
+
+    margin-bottom: 10px;
+}
+
+
+/* ================================
+   Input
+================================ */
+
+.login-field input {
+    width: 100%;
+
+    padding: 12px 14px;
+    border-radius: 12px;
+
+    border: 1px solid #ddd;
+    font-size: 14px;
+
+    transition: border-color 0.2s ease;
+}
+
+.login-field input:focus {
+    outline: none;
+    border-color: #111;
+}
+
+
+/* ================================
+   Remember
+================================ */
+
+.remember {
+    display: flex;
+    align-items: center;
+
+    gap: 6px;
+
+    font-size: 13px;
+    color: #444;
+}
+
+
+/* ================================
+   Button
+================================ */
+
+.signin-btn {
+    margin-top: 8px;
+
+    padding: 12px;
+
+    border-radius: 14px;
+    border: none;
+
+    background-color: #111;
+    color: #fff;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+}
+
+.signin-btn:hover {
+    background-color: #222;
+}
+
+
+/* ================================
+   Links
+================================ */
+
+.login-links {
+    display: flex;
+    justify-content: space-between;
+
+    font-size: 12px;
+    margin-top: 10px;
+}
+
+.login-links a {
+    color: #666;
+    text-decoration: none;
+
+    transition: color 0.2s ease;
+}
+
+.login-links a:hover {
+    color: #111;
+    text-decoration: underline;
+}
+
+/* ===================================
+   Signup Row (input + button)
+=================================== */
+
+/* input + 버튼 한 줄 배치 */
+.field-row {
+    display: flex;
+    gap: 8px;
+}
+
+.field-row input {
+    flex: 1;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.check-btn {
+    padding: 0 14px;
+    border-radius: 12px;
+    border: none;
+    background: #ccc;
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.check-btn:hover {
+    background: #bbb;
+}
+
+/* 중앙 정렬 보정 */
+.content .login-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}

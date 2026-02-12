@@ -15,7 +15,7 @@ public class WorkerController {
     /**
      * (Worker) 음원 다운로드 재시도
      */
-    @PostMapping("/admin/songs/download")
+    @PostMapping("/admin/songs/download-request")
     public void tryDownloadSong(
             @RequestBody WorkerTryRequestDto requestDto
     ) {
@@ -25,7 +25,7 @@ public class WorkerController {
     /**
      * (Worker) 음원 형변환 재시도
      */
-    @PostMapping("/admin/songs/transcode")
+    @PostMapping("/admin/songs/transcode-request")
     public void tryTranscodeSong(
             @RequestBody WorkerTryRequestDto requestDto
     ) {

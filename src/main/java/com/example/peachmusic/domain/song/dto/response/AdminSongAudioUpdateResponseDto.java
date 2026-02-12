@@ -10,6 +10,7 @@ public class AdminSongAudioUpdateResponseDto {
 
     private final Long albumId;
     private final String albumName;
+    private final String albumImage;
     private final Long position;
 
     private final Long songId;
@@ -18,6 +19,6 @@ public class AdminSongAudioUpdateResponseDto {
 
 
     public static AdminSongAudioUpdateResponseDto from(Song song) {
-        return new AdminSongAudioUpdateResponseDto(song.getAlbum().getAlbumId(), song.getAlbum().getAlbumName(), song.getPosition(), song.getSongId(), song.getName(), song.getAudio());
+        return new AdminSongAudioUpdateResponseDto(song.getAlbum().getAlbumId(), song.getAlbum().getAlbumName(), song.getAlbum().getAlbumImage(), song.getPosition(), song.getSongId(), song.getName(), song.getAudio());
     }
 }

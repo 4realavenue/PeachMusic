@@ -38,10 +38,10 @@ public class Album extends BaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
-    public Album(String albumName, LocalDate albumReleaseDate, String albumImage) {
+    public Album(String albumName, LocalDate albumReleaseDate) {
         this.albumName = albumName;
         this.albumReleaseDate = albumReleaseDate;
-        this.albumImage = albumImage;
+        this.albumImage = "https://img.peachmusics.com/storage/image/default-image.jpg";
     }
 
     public Album(Long jamendoAlbumId, String albumName, LocalDate albumReleaseDate, String albumImage) {

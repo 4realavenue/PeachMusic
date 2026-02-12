@@ -1,0 +1,191 @@
+/* =========================
+   페이지 기본
+========================= */
+.artist-page {
+    width: 1100px;
+    margin: 0 auto;
+    padding: 20px 40px;
+}
+
+/* =========================
+   🔥 검색바 (추가된 부분)
+========================= */
+.search-bar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.search-bar input,
+.search-bar select {
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    padding: 0 14px;
+    font-size: 14px;
+    background: #fff;
+}
+
+.search-bar button {
+    height: 44px;
+    border-radius: 12px;
+    border: none;
+    background: #aaaaaa;
+    color: #fff;
+    padding: 0 18px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.search-bar button:hover {
+    opacity: 0.85;
+}
+
+/* =========================
+   제목
+========================= */
+.artist-title {
+    margin: 40px 0 30px;
+}
+
+.artist-title span {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+/* =========================
+   그리드
+========================= */
+.artist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 32px;
+}
+
+/* =========================
+   카드
+========================= */
+.artist-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.artist-card:hover {
+    transform: translateY(-4px);
+}
+
+/* =========================
+   이미지
+========================= */
+.artist-img {
+    width: 180px;
+    height: 180px;
+    background: #f3f4f6;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.artist-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* =========================
+   텍스트
+========================= */
+.artist-name {
+    margin-top: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.artist-bottom {
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.like-number {
+    font-size: 14px;
+    color: #666;
+}
+
+/* =========================
+   하트 (liked 페이지 동일)
+========================= */
+.heart-btn {
+    border: none;
+    background: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #bbb;
+    transition: transform 0.1s ease, color 0.15s ease;
+}
+
+.heart-btn.liked {
+    color: #ff4d6d;
+}
+
+.heart-btn:hover {
+    transform: scale(1.2);
+}
+
+.heart-btn:active {
+    transform: scale(1.3);
+}
+
+.heart-btn.disabled {
+    color: #ddd;
+    cursor: not-allowed;
+}
+
+/* =========================
+   무한스크롤
+========================= */
+#loading,
+#endMessage {
+    text-align: center;
+    padding: 30px;
+    color: #888;
+    font-size: 14px;
+}
+
+#sentinel {
+    height: 1px;
+}
+
+/* =========================
+   로그인 팝업
+========================= */
+.login-popup {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #111;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.login-popup.show {
+    opacity: 1;
+}
+
+.hidden {
+    display: none;
+}

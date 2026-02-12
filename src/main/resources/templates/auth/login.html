@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login | PeachMusic</title>
+
+    <!-- 공통 CSS -->
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+
+    <!-- 공통 JS -->
+    <script th:src="@{/js/sidebar.js}" defer></script>
+</head>
+
+<body>
+
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+
+    <section class="login-content">
+
+        <form id="loginForm" class="login-card">
+
+            <h2 class="login-title">로그인</h2>
+
+            <div class="login-field">
+                <input type="email" name="email" placeholder="email@example.com" required />
+            </div>
+
+            <div class="login-field">
+                <input type="password" name="password" placeholder="Password" required />
+            </div>
+
+            <label class="remember">
+                <input type="checkbox"/>
+                Remember me
+            </label>
+
+            <button class="signin-btn" type="submit">로그인</button>
+
+            <div class="login-links">
+                <a th:href="@{/signup}">New around here? Sign up</a>
+            </div>
+
+        </form>
+
+    </section>
+
+</div>
+
+<script type="module" th:src="@{/js/login.js}"></script>
+
+</body>
+</html>
