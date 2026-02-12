@@ -11,6 +11,14 @@ import java.util.Set;
 
 public interface PlaylistSongRepository extends JpaRepository<PlaylistSong, Long> {
 
+    @Query("""
+            select ps
+            from PlaylistSong ps
+            join fetch ps.song s
+            join fetch s.album a
+            where ps.playlist = :playlist
+            order by ps.playlistSongId desc
+            """)
     List<PlaylistSong> findAllByPlaylist(Playlist playlist);
 
     void deleteAllByPlaylist(Playlist playlist);
