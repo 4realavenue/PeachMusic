@@ -6,7 +6,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const logoutBtn = document.getElementById("logoutBtn");
     const mypageBtn = document.getElementById("mypageBtn");
 
-    /* 로그인 상태 UI */
+    /* =========================
+       로그인 상태 UI
+    ========================= */
 
     if (token) {
         loginBtn?.classList.add("hidden");
@@ -18,7 +20,9 @@ document.addEventListener("DOMContentLoaded", () => {
         mypageBtn?.classList.add("hidden");
     }
 
-    /* 좋아요 */
+    /* =========================
+       좋아요 드롭다운
+    ========================= */
 
     const likeBtn = document.getElementById("likeBtn");
     const likeMenu = document.getElementById("likeMenu");
@@ -34,34 +38,39 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /* 로그아웃 */
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", async () => {
+    /* =========================
+       🔥 추천 버튼 로그인 체크
+    ========================= */
 
-            const token = localStorage.getItem("accessToken");
+    const recommendLink = document.querySelector('a[href="/recommend"]');
 
-            try {
+    recommendLink?.addEventListener("click", (e) => {
 
-                // 🔥 토큰이 정상 문자열일 때만 API 호출
-                if (token && token.trim() !== "") {
+        const token = localStorage.getItem("accessToken");
 
-                    await fetch("/api/auth/logout", {
-                        method: "DELETE",
-                        headers: {
-                            "Authorization": token
-                        }
-                    });
-                }
+        if (!token) {
+            e.preventDefault();
 
-            } catch (e) {
-                console.error("로그아웃 API 실패:", e);
-            } finally {
-                // 🔥 반드시 API 호출 끝난 후 삭제
-                localStorage.removeItem("accessToken");
-                location.replace("/");
+            const goLogin = confirm(
+                "추천 기능은 로그인한 사용자만 이용 가능합니다.\n로그인 페이지로 이동하시겠습니까?"
+            );
+
+            if (goLogin) {
+                location.href = "/login";
             }
+        }
+    });
+
+    /* =========================
+       로그아웃
+    ========================= */
+
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", () => {
+
+            localStorage.removeItem("accessToken");
+            location.href = "/";
         });
     }
-
 
 });

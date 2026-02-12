@@ -43,10 +43,11 @@ public class SecurityConfig {
                 .addFilterBefore(jwtFilter, SecurityContextHolderAwareRequestFilter.class)
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/signup", "/search/**", "/mypage", "/playlists/**", "/likes/**", "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                        .requestMatchers("/", "/login", "/signup", "/search/**", "/mypage", "/playlists/**", "/recommend", "/likes/**", "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                         .requestMatchers("/api/search/**").permitAll()
                         .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "BOSS")
+                        .requestMatchers("/api/songs/recommend").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/songs/**", "/api/artists/**", "/api/albums/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/prometheus").permitAll()
                         .anyRequest().authenticated()

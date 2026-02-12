@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RequiredArgsConstructor
 public class RecommendViewController {
 
-//    /**
-//     * 추천 페이지 이동
-//     */
-//    @GetMapping("/recommend")
-//    public String recommendPage() {
-//        return "recommend"; // templates/recommend.html
-//    }}
+    /**
+     * 추천 페이지 이동
+     */
+    @GetMapping("/recommend")
+    public String recommendPage() {
+        return "recommend"; // templates/recommend.html
+    }
 
 }
