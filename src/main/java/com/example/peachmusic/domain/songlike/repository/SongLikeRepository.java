@@ -7,7 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
 import java.util.List;
+import java.util.Set;
 
 public interface SongLikeRepository extends JpaRepository<SongLike, Long>, SongLikeCustomRepository {
 
@@ -15,10 +17,10 @@ public interface SongLikeRepository extends JpaRepository<SongLike, Long>, SongL
 
     @Modifying
     @Query("""
-        delete from SongLike sl
-        where sl.song.songId = :songId
-        and sl.user.userId = :userId
-        """)
+            delete from SongLike sl
+            where sl.song.songId = :songId
+            and sl.user.userId = :userId
+            """)
     int deleteBySongIdAndUserId(@Param("songId") Long songId, @Param("userId") Long userId);
 
     @Modifying
@@ -26,9 +28,18 @@ public interface SongLikeRepository extends JpaRepository<SongLike, Long>, SongL
     int insertIgnore(@Param("userId") Long userId, @Param("songId") Long songId);
 
     @Query("""
-        select songLike.song.songId
-          from SongLike songLike
-         where songLike.user.userId = :userId
-    """)
+                select songLike.song.songId
+                  from SongLike songLike
+                 where songLike.user.userId = :userId
+            """)
     List<Long> findSongsLikedByUser(Long userId);
+
+    @Query("""
+            SELECT sl FROM SongLike sl
+            JOIN fetch sl.song s
+            where sl.user.userId = :userId
+            and s.songId in (:songIdList)
+            """)
+    Set<SongLike> findAllByUserIdAndSongIdList(Long userId, List<Long> songIdList);
+
 }
