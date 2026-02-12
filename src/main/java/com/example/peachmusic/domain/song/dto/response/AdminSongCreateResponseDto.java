@@ -13,6 +13,7 @@ public class AdminSongCreateResponseDto {
 
     private final Long albumId;
     private final String albumName;
+    private final String albumImage;
     private final Long position;
 
     private final Long songId;
@@ -28,7 +29,7 @@ public class AdminSongCreateResponseDto {
     private final String vartags;
 
     public static AdminSongCreateResponseDto from(Song song, List<String> genreNameList, Album album) {
-        return new AdminSongCreateResponseDto(album.getAlbumId(), album.getAlbumName(), song.getPosition(), song.getSongId(), song.getName(), song.getAudio(), song.getDuration(), song.getLicenseCcurl(), song.getVocalinstrumental(), song.getLang(), song.getSpeed(), genreNameList, song.getInstruments(), song.getVartags());
+        return new AdminSongCreateResponseDto(album.getAlbumId(), album.getAlbumName(), album.getAlbumImage(), song.getPosition(), song.getSongId(), song.getName(), song.getAudio(), song.getDuration(), song.getLicenseCcurl(), song.getVocalinstrumental(), song.getLang(), song.getSpeed(), genreNameList, song.getInstruments(), song.getVartags());
     }
 
 }
