@@ -1,10 +1,10 @@
 package com.example.peachmusic.common.enums;
 
 public enum FileType {
-    ALBUM_IMAGE("albumImages"),
-    ARTIST_PROFILE("profileImages"),
-    AUDIO("audios"),
-    PLAYLIST_IMAGE("playlistImages");
+    ALBUM_IMAGE("image/album"),
+    ARTIST_PROFILE("image/artist"),
+    AUDIO("audio"),
+    PLAYLIST_IMAGE("image/playlist");
 
     private final String folder;
 

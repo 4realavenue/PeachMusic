@@ -71,6 +71,11 @@ dependencies {
     implementation 'org.springframework.retry:spring-retry'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
 
+    // storage
+    implementation platform('software.amazon.awssdk:bom:2.25.62')
+    implementation 'software.amazon.awssdk:s3'
+    implementation "software.amazon.awssdk:auth"
+
     // 모니터링
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.micrometer:micrometer-registry-prometheus'

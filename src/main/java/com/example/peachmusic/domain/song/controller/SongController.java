@@ -3,6 +3,7 @@ package com.example.peachmusic.domain.song.controller;
 import com.example.peachmusic.common.model.*;
 import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongGetDetailResponseDto;
+import com.example.peachmusic.domain.song.dto.response.SongPlayResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.example.peachmusic.domain.song.service.SongService;
 import jakarta.validation.Valid;
@@ -65,10 +66,11 @@ public class SongController {
      * 음원 재생
      */
     @GetMapping("/songs/{songId}/play")
-    public ResponseEntity<CommonResponse<Void>> playSong(
+    public ResponseEntity<CommonResponse<SongPlayResponseDto>> playSong(
             @PathVariable Long songId
     ) {
-        songService.play(songId);
-        return ResponseEntity.ok(CommonResponse.success("음원 재생에 성공했습니다."));
+        SongPlayResponseDto responseDto = songService.playSong(songId);
+
+        return ResponseEntity.ok(CommonResponse.success("음원 재생에 성공했습니다.", responseDto));
     }
 }

@@ -13,6 +13,7 @@ public class SongGetDetailResponseDto {
 
     private final Long albumId;
     private final String albumName;
+    private final String albumImage;
     private final Long position;
 
     private final Long songId;
@@ -31,6 +32,6 @@ public class SongGetDetailResponseDto {
     private final boolean liked;
 
     public static SongGetDetailResponseDto from(Song song, List<String> genreNameList, Album album, boolean liked) {
-        return new SongGetDetailResponseDto(album.getAlbumId(), album.getAlbumName(), song.getPosition(), song.getSongId(), song.getName(), song.getAudio(), song.getDuration(), song.getLicenseCcurl(), song.getVocalinstrumental(), song.getLang(), song.getSpeed(), genreNameList, song.getInstruments(), song.getVartags(), song.getLikeCount(), liked);
+        return new SongGetDetailResponseDto(album.getAlbumId(), album.getAlbumName(), album.getAlbumImage(), song.getPosition(), song.getSongId(), song.getName(), song.getAudio(), song.getDuration(), song.getLicenseCcurl(), song.getVocalinstrumental(), song.getLang(), song.getSpeed(), genreNameList, song.getInstruments(), song.getVartags(), song.getLikeCount(), liked);
     }
 }
