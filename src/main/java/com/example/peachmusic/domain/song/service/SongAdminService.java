@@ -70,12 +70,17 @@ public class SongAdminService {
             throw new CustomException(ErrorCode.ALBUM_EXIST_SONG_POSITION);
         }
 
-        String storedPath = storeAudio(audio, requestDto.getName());
+        String storedPath = "not ready";
 
         try {
+
             Song song = new Song(findAlbum, requestDto.getName(), requestDto.getDuration(), requestDto.getLicenseCcurl(), requestDto.getPosition(), storedPath, requestDto.getVocalinstrumental(), requestDto.getLang(), requestDto.getSpeed(), requestDto.getInstruments(), requestDto.getVartags());
 
             Song saveSong = songRepository.save(song);
+
+            storedPath = storeAudio(audio, saveSong.getSongId());
+
+            saveSong.updateAudio(storedPath);
 
             List<Genre> genreList = genreRepository.findAllById(requestDto.getGenreIdList());
 
@@ -173,7 +178,7 @@ public class SongAdminService {
         // 기존 파일 경로 백업
         String oldPath = findSong.getAudio();
 
-        String newPath = storeAudio(audio, findSong.getName());
+        String newPath = storeAudio(audio, findSong.getSongId());
 
         findSong.updateAudio(newPath);
 
@@ -226,9 +231,8 @@ public class SongAdminService {
         }
     }
 
-    private String storeAudio(MultipartFile audio, String name) {
-        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        String baseName = "PeachMusic_song_" + name + "_" + date;
+    private String storeAudio(MultipartFile audio, Long songId) {
+        String baseName = songId.toString();
         return fileStorageService.storeFile(audio, FileType.AUDIO, baseName);
     }
 

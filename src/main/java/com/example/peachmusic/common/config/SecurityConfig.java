@@ -48,6 +48,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/search/**").permitAll()
                         .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "BOSS")
                         .requestMatchers(HttpMethod.GET, "/api/songs/**", "/api/artists/**", "/api/albums/**").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/prometheus").permitAll()
                         .anyRequest().authenticated()
                 );
 
