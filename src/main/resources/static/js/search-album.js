@@ -1,94 +1,97 @@
-import { authFetch, getToken } from "./auth.js";
+import { authFetch, getToken } from "/js/auth.js";
 
 let lastId = null;
+let lastSortValue = null;
 let hasNext = true;
 let loading = false;
 
-let currentSort = "LIKE";
-let currentDirection = "DESC";
+const hasToken = !!getToken();
 
 const grid = document.getElementById("albumGrid");
-const title = document.getElementById("pageTitle");
-const searchBtn = document.getElementById("searchBtn");
-const searchInput = document.getElementById("searchInput");
-const sortSelect = document.getElementById("sortSelect");
-const directionSelect = document.getElementById("directionSelect");
-
 const sentinel = document.getElementById("sentinel");
 const loadingEl = document.getElementById("loading");
-const endMessage = document.getElementById("endMessage");
-const popup = document.getElementById("loginPopup");
+const endMessageEl = document.getElementById("endMessage");
 
-const hasToken = !!getToken();
-let observer = null;
+/* =========================
+   이미지 경로 안전 처리
+========================= */
+function resolveImageUrl(imagePath) {
 
+    if (!imagePath) return "/images/default.png";
+
+    // 외부 Open API URL
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+        return imagePath;
+    }
+
+    // 이미 / 로 시작하면 그대로
+    if (imagePath.startsWith("/")) {
+        return imagePath;
+    }
+
+    // 내부 업로드 경로
+    return `/${imagePath}`;
+}
+
+/* =========================
+   로그인 팝업
+========================= */
+function showLoginPopup() {
+    const popup = document.getElementById("loginPopup");
+    if (!popup) return;
+
+    popup.classList.remove("hidden");
+    popup.classList.add("show");
+
+    setTimeout(() => {
+        popup.classList.remove("show");
+        popup.classList.add("hidden");
+    }, 2000);
+}
+
+/* =========================
+   초기 실행
+========================= */
 document.addEventListener("DOMContentLoaded", () => {
 
     if (!initialWord || initialWord.trim() === "") return;
 
-    title.textContent = `"${initialWord}"와 관련된 앨범`;
-
     loadAlbums();
-    setupInfiniteScroll();
 
-    searchBtn.addEventListener("click", () => {
-        const word = searchInput.value.trim();
-        if (!word) return;
-        location.href = `/search/albums?word=${encodeURIComponent(word)}`;
-    });
-
-    sortSelect.addEventListener("change", () => {
-        currentSort = sortSelect.value;
-        resetAndReload();
-    });
-
-    directionSelect.addEventListener("change", () => {
-        currentDirection = directionSelect.value;
-        resetAndReload();
-    });
-});
-
-function setupInfiniteScroll() {
-    observer = new IntersectionObserver(async (entries) => {
-        if (entries[0].isIntersecting) {
-            await loadAlbums();
+    const observer = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && hasNext && !loading) {
+            loadAlbums();
         }
-    }, {
-        root: null,
-        rootMargin: "300px",
-        threshold: 0
-    });
+    }, { threshold: 0.1 });
 
     observer.observe(sentinel);
-}
+});
 
-function resetAndReload() {
-    lastId = null;
-    hasNext = true;
-    grid.innerHTML = "";
-    endMessage.classList.add("hidden");
-    loadAlbums();
-}
-
+/* =========================
+   데이터 로드
+========================= */
 async function loadAlbums() {
 
-    if (!hasNext || loading) return;
+    if (!hasNext) return;
+
     loading = true;
     loadingEl.classList.remove("hidden");
 
     const params = new URLSearchParams({
         word: initialWord,
-        sortType: currentSort,
-        direction: currentDirection
+        sortType: "LIKE",
+        direction: "DESC"
     });
 
     if (lastId !== null) {
         params.append("lastId", lastId);
+        params.append("lastLike", lastSortValue);
     }
 
     try {
         const res = await fetch(`/api/search/albums?${params}`);
         const response = await res.json();
+
         if (!response.success) return;
 
         const data = response.data;
@@ -99,28 +102,32 @@ async function loadAlbums() {
 
         if (hasNext && data.cursor) {
             lastId = data.cursor.lastId;
+            lastSortValue = data.cursor.lastSortValue;
         } else {
-            endMessage.classList.remove("hidden");
-            observer?.disconnect();
+            endMessageEl.classList.remove("hidden");
         }
 
-    } catch (e) {
-        console.error(e);
+    } catch (err) {
+        console.error(err);
     }
 
     loadingEl.classList.add("hidden");
     loading = false;
 }
 
+/* =========================
+   카드 렌더링
+========================= */
 function renderAlbums(list) {
 
     list.forEach(album => {
 
         const card = document.createElement("div");
         card.className = "album-card";
+        card.dataset.id = album.albumId;
 
         card.innerHTML = `
-            <img src="${album.albumImage || '/images/default.png'}">
+            <img src="${resolveImageUrl(album.albumImage)}" alt="album">
 
             <div class="album-name">${album.albumName}</div>
 
@@ -142,49 +149,54 @@ function renderAlbums(list) {
     });
 }
 
-function showLoginPopup() {
-    popup.classList.remove("hidden");
-    popup.classList.add("show");
-
-    setTimeout(() => {
-        popup.classList.remove("show");
-        popup.classList.add("hidden");
-    }, 2000);
-}
-
+/* =========================
+   클릭 이벤트 통합 처리
+========================= */
 grid.addEventListener("click", async (e) => {
 
+    // 1️⃣ 하트 클릭
     const heartBtn = e.target.closest(".heart-btn");
-    if (!heartBtn) return;
 
-    e.stopPropagation();
+    if (heartBtn) {
 
-    if (!hasToken) {
-        showLoginPopup();
+        e.stopPropagation();
+
+        if (!hasToken) {
+            showLoginPopup();
+            return;
+        }
+
+        const albumId = heartBtn.dataset.id;
+
+        try {
+            const res = await authFetch(`/api/albums/${albumId}/likes`, { method: "POST" });
+            const result = await res.json();
+
+            if (!result.success) return;
+
+            const { liked, likeCount } = result.data;
+
+            heartBtn.classList.toggle("liked", liked);
+
+            const likeNumber = heartBtn
+                .closest(".album-bottom")
+                .querySelector(".like-number");
+
+            likeNumber.textContent = likeCount;
+
+        } catch (err) {
+            console.error(err);
+        }
+
         return;
     }
 
-    const albumId = heartBtn.dataset.id;
+    // 2️⃣ 카드 클릭 → 앨범 단건 조회
+    const card = e.target.closest(".album-card");
+    if (!card) return;
 
-    try {
-        const res = await authFetch(`/api/albums/${albumId}/likes`, {
-            method: "POST"
-        });
+    const albumId = card.dataset.id;
+    if (!albumId) return;
 
-        const result = await res.json();
-        if (!result.success) return;
-
-        const { liked, likeCount } = result.data;
-
-        heartBtn.classList.toggle("liked", liked);
-
-        const likeNumber = heartBtn
-            .closest(".album-bottom")
-            .querySelector(".like-number");
-
-        likeNumber.textContent = likeCount;
-
-    } catch (err) {
-        console.error(err);
-    }
+    location.href = `/albums/${albumId}/page`;
 });
