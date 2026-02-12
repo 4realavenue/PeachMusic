@@ -25,4 +25,30 @@ public class HomeController {
     public String signup() {
         return "auth/signup";
     }
+
+    // ===== 관리자 화면 =====
+    @GetMapping("/admin")
+    public String adminHome() {
+        return "admin/admin"; // templates/admin/index.html
+    }
+
+    @GetMapping("/admin/artists")
+    public String adminArtists() {
+        return "admin/artists"; // templates/admin/artists.html
+    }
+
+    @GetMapping("/admin/albums")
+    public String adminAlbums() {
+        return "admin/albums"; // templates/admin/albums.html
+    }
+
+    @GetMapping("/admin/songs")
+    public String adminSongs() {
+        return "admin/songs"; // templates/admin/songs.html
+    }
+
+    @GetMapping("/admin/users")
+    public String adminUsers() {
+        return "admin/users"; // templates/admin/users.html
+    }
 }

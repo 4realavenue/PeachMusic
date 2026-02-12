@@ -1,0 +1,38 @@
+.admin-dashboard {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 200px);
+    gap: 40px;
+    justify-content: center;
+}
+
+.admin-card {
+    height: 120px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+    color: #111;
+
+    transition: all 0.2s ease;
+}
+
+.admin-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.blue { background: #dbe8ff; }
+.green { background: #dff2df; }
+.orange { background: #ffe8cc; }
+.purple { background: #e8def8; }

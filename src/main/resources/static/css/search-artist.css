@@ -86,10 +86,11 @@
     height: 180px;
     background: #f3f4f6;
     border-radius: 14px;
-    display: flex;
+    display: block;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    object-fit: cover;
 }
 
 .artist-img img {
