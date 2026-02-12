@@ -11,8 +11,10 @@ import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
+import com.example.peachmusic.domain.artistsong.repository.ArtistSongRepository;
 import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongGetDetailResponseDto;
+import com.example.peachmusic.domain.song.dto.response.SongPlayResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
@@ -22,6 +24,7 @@ import com.example.peachmusic.domain.songlike.repository.SongLikeRepository;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -30,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
 import static com.example.peachmusic.common.constants.SearchViewSize.PREVIEW_SIZE;
@@ -50,6 +54,11 @@ public class SongService {
     private final RedisTemplate<String,String> redisTemplate;
 
     public static final String MUSIC_DAILY_KEY = "music";
+    private final ArtistSongRepository artistSongRepository;
+
+    @Value("${r2.public-streaming-base}")
+    private String streamingBaseUrl;
+
 
     /**
      * 음원 단건 조회
@@ -126,10 +135,16 @@ public class SongService {
      */
     @RedisLock(key = "song")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void play(Long songId) {
+    public SongPlayResponseDto playSong(Long songId) {
 
         LocalDate currentDate = LocalDate.now();
         Song song = songRepository.findById(songId).orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
+
+        List<Artist> artistList = artistSongRepository.findArtistListBySong(song);
+
+        String artistName = artistList.stream().map(Artist::getArtistName).collect(Collectors.joining(", "));
+
+        String streamingUrl = streamingBaseUrl + "/" + song.getAudio();
 
         // 키에 날짜 반영
         String key =  MUSIC_DAILY_KEY + currentDate;
@@ -147,5 +162,7 @@ public class SongService {
         // DB에 저장
         song.addPlayCount();
         songRepository.save(song);
+
+        return SongPlayResponseDto.from(song, artistName, streamingUrl);
     }
 }

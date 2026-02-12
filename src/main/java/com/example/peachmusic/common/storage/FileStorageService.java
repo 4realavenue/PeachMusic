@@ -97,7 +97,7 @@ public class FileStorageService {
         if (fileType == FileType.AUDIO) {
             return "storage/audio/" + fileName;
         }
-        return "storage/image/" + fileType.folder() + "/" + fileName;
+        return "storage/" + fileType.folder() + "/" + fileName;
     }
 
     private void validateFile(MultipartFile file, FileType type) {

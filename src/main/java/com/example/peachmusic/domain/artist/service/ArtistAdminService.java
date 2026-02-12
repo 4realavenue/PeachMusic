@@ -51,13 +51,16 @@ public class ArtistAdminService {
         String country = normalize(requestDto.getCountry());
         String bio = normalize(requestDto.getBio());
 
-        String storedPath = null;
-        if (profileImage != null && !profileImage.isEmpty()) {
-            storedPath = storeProfileImage(profileImage, artistName);
-        }
+        String storedPath = "https://img.peachmusics.com/storage/image/default-image.jpg";
 
         Artist artist = new Artist(artistName, storedPath, country, requestDto.getArtistType(), requestDto.getDebutDate(), bio);
         Artist savedArtist = artistRepository.save(artist);
+
+        if (profileImage != null && !profileImage.isEmpty()) {
+            storedPath = storeProfileImage(profileImage, savedArtist.getArtistId());
+
+            savedArtist.updateProfileImage(storedPath);
+        }
 
         return ArtistCreateResponseDto.from(savedArtist);
     }
@@ -105,7 +108,7 @@ public class ArtistAdminService {
 
         String oldPath = foundArtist.getProfileImage();
 
-        String newPath = storeProfileImage(profileImage, foundArtist.getArtistName());
+        String newPath = storeProfileImage(profileImage, foundArtist.getArtistId());
 
         foundArtist.updateProfileImage(newPath);
 
@@ -163,9 +166,8 @@ public class ArtistAdminService {
         return (value != null && !value.isBlank()) ? value.trim() : null;
     }
 
-    private String storeProfileImage(MultipartFile profileImage, String artistName) {
-        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        String baseName = "peachmusic_artist_" + artistName + "_" + date;
+    private String storeProfileImage(MultipartFile profileImage, Long artistId) {
+        String baseName = artistId.toString();
         return fileStorageService.storeFile(profileImage, FileType.ARTIST_PROFILE, baseName);
     }
 }
