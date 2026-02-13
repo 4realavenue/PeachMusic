@@ -186,7 +186,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
      * - 음원이 삭제된 상태가 아닌 경우
      */
     private BooleanExpression isActive() {
-        return song.isDeleted.isFalse();
+        return song.isDeleted.isFalse().and(song.streamingStatus.isTrue());
     }
 
     /**
