@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import java.time.LocalDate;
 
 @Entity
 @Getter
@@ -28,6 +29,9 @@ public class Song extends BaseEntity {
 
     @Column(name = "name", nullable = false)
     private String name;
+
+    @Column(name = "release_date", nullable = false)
+    private LocalDate releaseDate;
 
     @Column(name = "duration", nullable = false)
     private Long duration;
@@ -71,21 +75,7 @@ public class Song extends BaseEntity {
     public Song(Album album, String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags) {
         this.album = album;
         this.name = name;
-        this.duration = duration;
-        this.licenseCcurl = licenseCcurl;
-        this.position = position;
-        this.audio = audio;
-        this.vocalinstrumental = vocalinstrumental;
-        this.lang = lang;
-        this.speed = speed;
-        this.instruments = instruments;
-        this.vartags = vartags;
-    }
-
-    public Song(Long jamendoSongId, Album album, String name, Long duration, String licenseCcurl, Long position, String audio, String vocalinstrumental, String lang, String speed, String instruments, String vartags) {
-        this.jamendoSongId = jamendoSongId;
-        this.album = album;
-        this.name = name;
+        this.releaseDate = album.getAlbumReleaseDate();
         this.duration = duration;
         this.licenseCcurl = licenseCcurl;
         this.position = position;
@@ -108,6 +98,7 @@ public class Song extends BaseEntity {
         this.instruments = (requestDto.getInstruments() == null || requestDto.getInstruments().isBlank()) ? this.instruments : requestDto.getInstruments();
         this.vartags = (requestDto.getVartags() == null || requestDto.getVartags().isBlank()) ? this.vartags : requestDto.getVartags();
         this.album = album;
+        this.releaseDate = album.getAlbumReleaseDate();
     }
 
     public void deleteSong() {
