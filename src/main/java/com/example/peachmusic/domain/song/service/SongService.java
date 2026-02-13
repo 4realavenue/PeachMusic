@@ -106,9 +106,11 @@ public class SongService {
         SortDirection direction = sortType.getDefaultDirection();
         final int size = DETAIL_SIZE;
 
-        List<SongArtistDetailResponseDto> content = songRepository.findSongByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, direction, cursor, size);
+        Long userId = (authUser == null) ? null : authUser.getUserId();
 
-        return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), last.getAlbumReleaseDate()));
+        List<SongArtistDetailResponseDto> content = songRepository.findSongByArtistKeyset(userId, foundArtist.getArtistId(), sortType, direction, cursor, size);
+
+        return KeysetResponse.of(content, size, last -> new NextCursor(last.getSongId(), last.getAlbumReleaseDate()));
     }
 
     /**
