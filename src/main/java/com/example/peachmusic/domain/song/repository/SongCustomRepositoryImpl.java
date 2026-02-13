@@ -128,7 +128,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
 
         return query
                 .select(Projections.constructor(SongArtistDetailResponseDto.class, song.songId, song.name, artistNames, song.likeCount, album.albumImage, songProgressingStatus.progressingStatus, isLikedExpression, album.albumId, song.releaseDate))
-                .where(artist.artistId.eq(artistId), song.isDeleted.isFalse(), song.streamingStatus.isTrue(), keysetCondition(sortType, isAsc, cursor))
+                .where(artist.artistId.eq(artistId), isActive(), keysetCondition(sortType, isAsc, cursor))
                 .groupBy(song.songId)
                 .orderBy(keysetOrder(sortType, isAsc));
     }
@@ -186,7 +186,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
      * - 음원이 삭제된 상태가 아닌 경우
      */
     private BooleanExpression isActive() {
-        return song.isDeleted.isFalse().and(song.streamingStatus.isTrue());
+        return song.isDeleted.isFalse();
     }
 
     /**

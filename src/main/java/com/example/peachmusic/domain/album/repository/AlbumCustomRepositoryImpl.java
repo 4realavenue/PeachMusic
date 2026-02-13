@@ -111,7 +111,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
 
         return query
                 .select(Projections.constructor(AlbumArtistDetailResponseDto.class, album.albumId, album.albumName, artistNames, album.albumReleaseDate, album.albumImage, album.likeCount, album.isDeleted, isLikedExpression))
-                .where(artist.artistId.eq(artistId), album.isDeleted.isFalse(), keysetCondition(sortType, isAsc, cursor))
+                .where(artist.artistId.eq(artistId), isActive(), keysetCondition(sortType, isAsc, cursor))
                 .groupBy(album.albumId)
                 .orderBy(keysetOrder(sortType, isAsc));
     }
