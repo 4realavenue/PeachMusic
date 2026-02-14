@@ -41,6 +41,17 @@ public class SearchHistoryService {
     }
 
     /**
+     * 검색어가 인기 검색어 TOP 10에 저장되어 있는지 여부
+     */
+    public boolean isPopularKeyword(String word) {
+
+        String key = SEARCH_RANK_KEY + "last24hours";
+        Long rank = redisTemplate.opsForZSet().reverseRank(key, word);
+
+        return rank != null && rank < TOP_RANK_LIMIT;
+    }
+
+    /**
      * 최근 24시간 인기 검색어 TOP 10 조회
      */
     public List<SearchPopularResponseDto> searchPopular() {
