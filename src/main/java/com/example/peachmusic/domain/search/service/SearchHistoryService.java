@@ -4,6 +4,7 @@ import com.example.peachmusic.domain.search.dto.SearchPopularResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -57,13 +58,6 @@ public class SearchHistoryService {
     public List<SearchPopularResponseDto> searchPopular() {
 
         String key = SEARCH_RANK_KEY + "last24hours";
-
-        if (!redisTemplate.hasKey(key)) { // 키가 없으면 → 최근 24시간 동안의 랭킹 생성
-            List<String> keyList = getLast24HourKeyList();
-            redisTemplate.opsForZSet().unionAndStore(keyList.get(0), keyList.subList(1, keyList.size()), key);
-            redisTemplate.expire(key, 5, TimeUnit.MINUTES);
-        }
-
         Set<TypedTuple<String>> tupleSet = redisTemplate.opsForZSet().reverseRangeWithScores(key, 0, TOP_RANK_LIMIT-1);
 
         if (tupleSet == null || tupleSet.isEmpty()) {
@@ -79,10 +73,21 @@ public class SearchHistoryService {
         return result;
     }
 
+    @Scheduled(fixedRate = 300000) // 5분마다 스케줄러 실행
+    public void updateLast24HourSearchRank() {
+
+        String key = SEARCH_RANK_KEY + "last24hours";
+
+        List<String> keyList = getLast24HourSearchRankKeyList();
+
+        redisTemplate.opsForZSet().unionAndStore(keyList.get(0), keyList.subList(1, keyList.size()), key);
+        redisTemplate.expire(key, 6, TimeUnit.MINUTES);
+    }
+
     /**
      * 지난 24시간 전까지의 key 묶기
      */
-    private List<String> getLast24HourKeyList() {
+    private List<String> getLast24HourSearchRankKeyList() {
         List<String> keyList = new ArrayList<>();
 
         LocalDateTime now = LocalDateTime.now();
