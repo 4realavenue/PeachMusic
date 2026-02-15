@@ -38,38 +38,59 @@ public class SearchService {
     public SearchPreviewResponseDto searchPreview(String word) {
 
         word = word.trim();
-
         searchHistoryService.recordSearchRank(word); // 검색어 랭킹 기록
-
         boolean isPopular = searchHistoryService.isPopularKeyword(word);
-
         String key = SEARCH_RESULT_KEY + word;
 
-        try { // 검색어가 인기검색어인지 확인 → 검색 결과를 Redis에서 조회
-            if (isPopular) {
-                String cached = redisTemplate.opsForValue().get(key);
-                if (cached != null) {
-                    return objectMapper.readValue(cached, SearchPreviewResponseDto.class); // JSON → DTO 변환
-                }
+        if (isPopular) { // 검색어가 인기검색어인 경우에 Redis에서 조회
+            SearchPreviewResponseDto cachedResult = getCachedResult(key);
+            if (cachedResult != null) {
+                return cachedResult;
             }
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Redis 조회 실패: ", e);
         }
 
-        List<ArtistSearchResponseDto> artistList = artistService.searchArtistList(word);
-        List<AlbumSearchResponseDto> albumList = albumService.searchAlbumList(word);
-        List<SongSearchResponseDto> songList = songService.searchSongList(word);
-        SearchPreviewResponseDto result = SearchPreviewResponseDto.of(word, artistList, albumList, songList);
+        SearchPreviewResponseDto result = createSearchResult(word); // DB 조회
 
-        try { // 검색 결과를 Redis에 저장
-            if (isPopular) {
-                String json = objectMapper.writeValueAsString(result); // DTO → JSON 변환 후 저장
-                redisTemplate.opsForValue().set(key, json, 5, TimeUnit.MINUTES);
-            }
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Redis 저장 실패: ", e);
+        if (isPopular) { // 검색어가 인기검색어인 경우에 Redis에 저장
+            saveCacheResult(key, result);
         }
 
         return result;
+    }
+
+    /**
+     * Redis에서 검색 결과 조회
+     */
+    private SearchPreviewResponseDto getCachedResult(String key) {
+        try {
+            String cached = redisTemplate.opsForValue().get(key);
+            return cached == null ? null :objectMapper.readValue(cached, SearchPreviewResponseDto.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Redis 조회 실패: ", e);
+        }
+    }
+
+
+    /**
+     * DB에서 검색 결과 조회
+     */
+    private SearchPreviewResponseDto createSearchResult(String word) {
+        List<ArtistSearchResponseDto> artistList = artistService.searchArtistList(word);
+        List<AlbumSearchResponseDto> albumList = albumService.searchAlbumList(word);
+        List<SongSearchResponseDto> songList = songService.searchSongList(word);
+
+        return SearchPreviewResponseDto.of(word, artistList, albumList, songList);
+    }
+
+    /**
+     * Redis에 검색 결과 저장
+     */
+    private void saveCacheResult(String key, SearchPreviewResponseDto result) {
+        try {
+            String json = objectMapper.writeValueAsString(result);
+            redisTemplate.opsForValue().set(key, json, 5, TimeUnit.MINUTES);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Redis 저장 실패: ", e);
+        }
     }
 }
