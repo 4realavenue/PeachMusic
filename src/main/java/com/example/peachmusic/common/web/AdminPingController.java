@@ -6,10 +6,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping("/api")
 public class AdminPingController {
 
-    @GetMapping("/ping")
+    @GetMapping("/admin/ping")
     public ResponseEntity<Void> ping() {
         return ResponseEntity.ok().build();
     }

@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>음원 등록 | PeachMusic Admin</title>
+
+    <link rel="stylesheet" href="/css/layout.css"/>
+    <link rel="stylesheet" href="/css/admin-song-create.css"/>
+
+    <script th:src="@{/js/sidebar.js}" defer></script>
+    <script type="module" src="/js/admin-song-create.js" defer></script>
+</head>
+
+<body>
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+    <section class="admin-create-page">
+
+        <div class="page-head">
+            <div class="page-head-left">
+                <h1 class="page-title">음원 등록</h1>
+                <p class="page-sub">
+                    필수: 앨범ID / 수록번호 / 제목 / 음원파일 · 옵션: 장르ID목록, 언어, 속도, 보컬/연주 등
+                </p>
+            </div>
+
+            <a class="ghost-top-btn" href="/admin/songs">목록으로</a>
+        </div>
+
+        <div class="create-card">
+
+            <!-- 좌: 오디오 파일 -->
+            <div class="file-pane">
+                <div class="preview">
+                    <span class="preview-badge">AUDIO</span>
+
+                    <div class="preview-empty" id="previewEmpty">음원 파일 미리보기</div>
+
+                    <div class="file-info hidden" id="fileInfo">
+                        <div class="file-name" id="fileName">-</div>
+                        <div class="file-meta" id="fileMeta">-</div>
+                    </div>
+                </div>
+
+                <input id="audio" name="audio" type="file" accept="audio/*" class="hidden"/>
+
+                <div class="file-actions">
+                    <button type="button" class="btn" id="pickAudioBtn">파일 선택</button>
+                    <button type="button" class="btn" id="clearAudioBtn">초기화</button>
+                </div>
+
+                <div class="hint">mp3 / wav, 용량 제한 있음</div>
+            </div>
+
+            <!-- 우: 폼 -->
+            <form id="songCreateForm" class="form-pane">
+
+                <div class="grid2">
+                    <div class="field">
+                        <label class="label">앨범 ID <span class="req">*</span></label>
+                        <input class="input" type="number" name="albumId" placeholder="예) 4457" required/>
+                        <div class="mini-hint">404: 앨범이 존재하지 않으면 실패</div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">수록 번호(position) <span class="req">*</span></label>
+                        <input class="input" type="number" name="position" placeholder="예) 1" required/>
+                        <div class="mini-hint">409: 동일 수록번호 중복 불가</div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">음원 제목 <span class="req">*</span></label>
+                    <input class="input" type="text" name="name" placeholder="예) Intro" required/>
+                    <div class="mini-hint">409: 동일 제목 중복 불가</div>
+                </div>
+
+                <div class="grid2">
+                    <div class="field">
+                        <label class="label">재생시간(duration)</label>
+                        <input class="input" type="number" name="duration" placeholder="예) 210 (초)"/>
+                    </div>
+                    <div class="field">
+                        <label class="label">licenseCcurl</label>
+                        <input class="input" type="text" name="licenseCcurl" placeholder="예) https://..."/>
+                    </div>
+                </div>
+
+                <div class="grid2">
+                    <div class="field">
+                        <label class="label">vocalinstrumental</label>
+                        <input class="input" type="text" name="vocalinstrumental" placeholder="예) vocal / instrumental"/>
+                    </div>
+                    <div class="field">
+                        <label class="label">lang</label>
+                        <input class="input" type="text" name="lang" placeholder="예) ko / en"/>
+                    </div>
+                </div>
+
+                <div class="grid2">
+                    <div class="field">
+                        <label class="label">speed</label>
+                        <input class="input" type="text" name="speed" placeholder="예) normal"/>
+                    </div>
+                    <div class="field">
+                        <label class="label">instruments</label>
+                        <input class="input" type="text" name="instruments" placeholder="예) guitar, drum"/>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">genreIdList</label>
+                    <input class="input" type="text" name="genreIdList" placeholder="예) 1,2,5 (콤마로 구분)"/>
+                    <div class="mini-hint">요청에는 List&lt;Long&gt;로 들어가야 해서 JS에서 파싱해서 보냄</div>
+                </div>
+
+                <div class="field">
+                    <label class="label">vartags</label>
+                    <input class="input" type="text" name="vartags" placeholder="예) mood:bright, season:spring"/>
+                </div>
+
+                <div class="actions">
+                    <a class="btn" href="/admin/songs">취소</a>
+                    <button class="primary-btn" type="submit" id="submitBtn">등록</button>
+                </div>
+
+                <div class="form-note">
+                    * 파일 미첨부(400), 용량초과(400), 형식오류(400), 업로드 실패(500)는 서버 메시지를 그대로 보여줍니다.
+                </div>
+            </form>
+
+        </div>
+    </section>
+</div>
+</body>
+</html>

@@ -7,18 +7,17 @@
 
     <link rel="stylesheet" th:href="@{/css/layout.css}">
     <link rel="stylesheet" th:href="@{/css/album-detail.css}">
-
     <script th:src="@{/js/sidebar.js}" defer></script>
 </head>
 <body>
 
-<!-- ✅ 로그인 필요 팝업(좋아요 클릭 시만) -->
+<!-- 로그인 팝업 -->
 <div id="loginPopup" class="login-popup hidden">로그인이 필요한 기능입니다.</div>
 
 <div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
     <section class="album-page">
 
-        <!-- 상단 히어로 -->
+        <!-- 상단 -->
         <header class="album-hero">
             <div class="album-art">
                 <img id="albumImage" alt="album cover"/>
@@ -26,26 +25,25 @@
 
             <div class="album-meta">
                 <div class="album-eyebrow">ALBUM</div>
-
                 <h1 id="albumName" class="album-title">-</h1>
 
                 <div class="album-sub">
-                    <span id="albumArtists" class="album-artist">-</span>
+                    <span id="albumArtists"></span>
                     <span class="dot">•</span>
-                    <span id="albumReleaseDate" class="album-date">-</span>
+                    <span id="albumReleaseDate"></span>
                 </div>
 
                 <div class="album-actions">
-                    <button id="heartBtn" class="heart-btn" type="button" aria-label="앨범 좋아요">❤</button>
-                    <span id="likeCount" class="like-count">0</span>
+                    <button id="heartBtn" class="heart-btn">❤</button>
+                    <span id="likeCount">0</span>
                 </div>
             </div>
         </header>
 
-        <!-- 트랙 리스트 -->
+        <!-- 수록곡 -->
         <section class="tracks">
             <div class="section-head">
-                <h2 class="section-title">수록곡</h2>
+                <h2>수록곡</h2>
                 <div class="section-line"></div>
             </div>
 
@@ -53,6 +51,24 @@
         </section>
 
     </section>
+</div>
+
+<!-- ✅🔥 모달은 layout 바깥, body 직계에 둔다 -->
+<div id="playlistModal" class="pl-modal hidden" aria-hidden="true">
+    <div class="pl-backdrop" data-close="true"></div>
+
+    <div class="pl-sheet">
+        <div class="pl-head">
+            <div class="pl-title">플레이리스트에 추가</div>
+            <button id="playlistModalClose" class="pl-close">✕</button>
+        </div>
+
+        <div id="playlistList" class="pl-list"></div>
+
+        <div class="pl-foot">
+            <button id="playlistModalCancel" class="pl-cancel">취소</button>
+        </div>
+    </div>
 </div>
 
 <script th:inline="javascript">

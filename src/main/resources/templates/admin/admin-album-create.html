@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>앨범 등록 | PeachMusic Admin</title>
+
+    <link rel="stylesheet" href="/css/layout.css"/>
+    <link rel="stylesheet" href="/css/admin-album-create.css"/>
+
+    <script th:src="@{/js/sidebar.js}" defer></script>
+    <script type="module" src="/js/admin-album-create.js" defer></script>
+</head>
+
+<body>
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+    <section class="admin-album-create-page">
+
+        <!-- 헤더 -->
+        <div class="page-head">
+            <div class="page-head-left">
+                <h1 class="page-title">앨범 등록</h1>
+                <p class="page-sub">앨범 정보를 입력하고 참여 아티스트를 선택하세요.</p>
+            </div>
+
+            <a class="ghost-top-btn" href="/admin/albums">목록으로</a>
+        </div>
+
+        <div class="form-card">
+
+            <!-- 좌측: 이미지 프리뷰 -->
+            <div class="left-panel">
+                <div class="preview-box">
+                    <span class="preview-badge">PROFILE</span>
+                    <img id="previewImg" class="preview-img hidden" alt="이미지 미리보기"/>
+                    <div id="previewEmpty" class="preview-empty">
+                        이미지 미리보기
+                    </div>
+                </div>
+
+                <div class="left-actions">
+                    <label class="btn file-btn" for="albumImage">이미지 선택</label>
+                    <button id="resetBtn" class="btn" type="button">초기화</button>
+                </div>
+
+                <p class="helper-text">jpg / jpeg / png, 최대 5MB</p>
+            </div>
+
+            <!-- 우측: 입력 폼 -->
+            <div class="right-panel">
+
+                <div class="field">
+                    <label class="label">앨범명 <span class="req">*</span></label>
+                    <input id="albumName" class="input" type="text" placeholder="예) Andromeda" />
+                    <p class="hint">필수 입력</p>
+                </div>
+
+                <div class="field">
+                    <label class="label">발매일 <span class="req">*</span></label>
+                    <input id="albumReleaseDate" class="input" type="date" />
+                    <p class="hint">필수 입력 (yyyy-MM-dd)</p>
+                </div>
+
+                <!-- 실제 파일 input (숨김) -->
+                <input id="albumImage" type="file" accept="image/png,image/jpeg" class="hidden" />
+
+                <!-- 참여 아티스트 -->
+                <div class="artist-pick-card">
+                    <div class="artist-pick-head">
+                        <div>
+                            <h3 class="sub-title">참여 아티스트 <span class="req">*</span></h3>
+                            <p class="sub-desc">최소 1명 이상 선택해야 합니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="artist-search">
+                        <input id="artistWord" class="input" type="text" placeholder="아티스트 검색" />
+                        <button id="artistSearchBtn" class="ghost-btn" type="button">검색</button>
+                    </div>
+
+                    <!-- 검색 결과 -->
+                    <div class="result-area">
+                        <div class="area-title">검색 결과</div>
+                        <div id="artistResult" class="chip-area">
+                            <div class="empty-mini">검색어를 입력하고 검색하세요.</div>
+                        </div>
+                    </div>
+
+                    <!-- 선택된 아티스트 -->
+                    <div class="result-area">
+                        <div class="area-title">선택된 아티스트</div>
+                        <div id="selectedArtist" class="chip-area">
+                            <div id="selectedEmpty" class="empty-mini">선택된 아티스트가 없습니다.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 하단 버튼 -->
+                <div class="footer-actions">
+                    <button id="cancelBtn" class="btn" type="button">취소</button>
+                    <button id="submitBtn" class="primary-btn" type="button">등록</button>
+                </div>
+
+                <p class="footnote">
+                    * 등록 후 이미지가 가끔 바로 안 바뀌면 캐시 때문일 수 있어요.
+                </p>
+            </div>
+        </div>
+
+    </section>
+</div>
+</body>
+</html>

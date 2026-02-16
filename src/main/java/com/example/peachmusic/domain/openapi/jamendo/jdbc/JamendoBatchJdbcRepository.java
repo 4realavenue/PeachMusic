@@ -25,10 +25,10 @@ public class JamendoBatchJdbcRepository {
                     INSERT INTO songs (
                         jamendo_song_id, album_id, name, duration, license_ccurl,
                         position, audio, vocalinstrumental, lang, speed,
-                        instruments, vartags, like_count
+                        instruments, vartags, like_count, release_date
                     )
                     SELECT
-                        ?, a.album_id, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0
+                        ?, a.album_id, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, a.album_release_date
                     FROM albums a
                     WHERE a.jamendo_album_id = ?
                     ON DUPLICATE KEY UPDATE
@@ -42,6 +42,7 @@ public class JamendoBatchJdbcRepository {
                         speed = VALUES(speed),
                         instruments = VALUES(instruments),
                         vartags = VALUES(vartags),
+                        release_date = VALUES(release_date),
                         modified_at = CURRENT_TIMESTAMP
                 """;
 

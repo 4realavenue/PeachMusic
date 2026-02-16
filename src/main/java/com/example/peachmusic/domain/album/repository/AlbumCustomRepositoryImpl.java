@@ -11,6 +11,7 @@ import com.example.peachmusic.domain.album.dto.response.AlbumArtistDetailRespons
 import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
 import com.example.peachmusic.domain.artist.entity.QArtist;
 import com.example.peachmusic.domain.artistalbum.entity.QArtistAlbum;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -94,22 +95,26 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
      */
     private JPAQuery<AlbumArtistDetailResponseDto> baseQueryByArtist(Long userId, Long artistId, SortType sortType, SortDirection direction, CursorParam cursor) {
 
-        keysetPolicy.validateCursor(sortType, cursor); // 커서 검증
+        keysetPolicy.validateCursor(sortType, cursor);
         boolean isAsc = direction == SortDirection.ASC;
 
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
+        Expression<Boolean> isLikedExpression = userId == null ? Expressions.constant(false) : albumLike.albumLikeId.max().isNotNull();
 
-        return queryFactory
-                .select(Projections.constructor(AlbumArtistDetailResponseDto.class, album.albumId, album.albumName, artistNames, album.albumReleaseDate, album.albumImage, album.likeCount, album.isDeleted, albumLike.albumLikeId.isNotNull()))
-                .from(album)
+        JPAQuery<?> query = queryFactory.from(album)
                 .join(artistAlbum).on(artistAlbum.album.eq(album))
-                .join(artist).on(artistAlbum.artist.eq(artist))
-                .leftJoin(albumLike).on(albumLike.album.eq(album).and(albumLike.user.userId.eq(userId)))
-                .where(artist.artistId.eq(artistId), album.isDeleted.isFalse(), keysetCondition(sortType, isAsc, cursor))
+                .join(artist).on(artistAlbum.artist.eq(artist));
+
+        if (userId != null) {
+            query.leftJoin(albumLike).on(albumLike.album.eq(album).and(albumLike.user.userId.eq(userId)));
+        }
+
+        return query
+                .select(Projections.constructor(AlbumArtistDetailResponseDto.class, album.albumId, album.albumName, artistNames, album.albumReleaseDate, album.albumImage, album.likeCount, album.isDeleted, isLikedExpression))
+                .where(artist.artistId.eq(artistId), isActive(), keysetCondition(sortType, isAsc, cursor))
                 .groupBy(album.albumId)
                 .orderBy(keysetOrder(sortType, isAsc));
     }
-
 
     /**
      * 검색 조건
@@ -154,9 +159,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
                 .join(subArtistAlbum.artist, subArtist)
                 .where(
                         subArtistAlbum.album.eq(album), // 메인 쿼리의 album과 연결
-                        // 검색어가 아티스트 이름에 포함된 경우
-                        Expressions.stringTemplate("concat(' ', {0}, ' ')", subArtist.artistName)
-                                .like(Expressions.stringTemplate("concat('% ', {0}, ' %')", word))
+                        SearchWordCondition.wordMatch(subArtist.artistName, word) // 검색어가 아티스트 이름에 포함된 경우
                 )
                 .exists();
     }

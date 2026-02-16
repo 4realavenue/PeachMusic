@@ -1,0 +1,302 @@
+/* 페이지 */
+.admin-album-create-page{
+    max-width: 1050px;
+    margin: 30px auto 80px;
+    padding: 0 28px;
+}
+
+/* 헤더 */
+.page-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    margin-bottom: 22px;
+}
+.page-head-left{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+}
+.page-title{
+    font-size:28px;
+    font-weight:900;
+    margin:0;
+}
+.page-sub{
+    font-size:13px;
+    color:#666;
+    margin:0;
+}
+
+/* 상단 "목록으로" 버튼 */
+.ghost-top-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    height:44px;
+    padding:0 18px;
+    border-radius:18px;
+    border:1px solid #e8e8e8;
+    background:#fff;
+    font-weight:900;
+    text-decoration:none;
+    color:#111;
+}
+.ghost-top-btn:hover{ background:#f7f7f7; }
+
+/* 전체 카드 */
+.form-card{
+    background:#fff;
+    border-radius:22px;
+    box-shadow:0 14px 36px rgba(0,0,0,0.06);
+    overflow:hidden;
+    display:grid;
+    grid-template-columns: 420px 1fr;
+    gap:0;
+}
+
+/* 좌측 */
+.left-panel{
+    padding:22px;
+    background:#fafafa;
+    border-right:1px solid #eee;
+}
+
+.preview-box{
+    border-radius:18px;
+    border:1px solid #e8e8e8;
+    background:#f2f2f2;
+    height:320px;
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.preview-badge{
+    position:absolute;
+    top:14px;
+    left:14px;
+    padding:8px 12px;
+    border-radius:999px;
+    background:#fff;
+    border:1px solid #e8e8e8;
+    font-weight:900;
+    font-size:12px;
+}
+
+.preview-img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.preview-empty{
+    color:#777;
+    font-weight:800;
+    font-size:14px;
+}
+
+.left-actions{
+    margin-top:14px;
+    display:flex;
+    gap:10px;
+}
+
+.helper-text{
+    margin:10px 0 0;
+    color:#777;
+    font-size:12px;
+}
+
+/* 우측 */
+.right-panel{
+    padding:22px;
+}
+
+.field{
+    margin-bottom:18px;
+}
+.label{
+    display:block;
+    font-weight:900;
+    margin-bottom:8px;
+}
+.req{ color:#ff2d55; }
+
+.input{
+    width:100%;
+    height:48px;
+    padding:0 18px;
+    border-radius:18px;
+    border:1px solid #e8e8e8;
+    outline:none;
+    font-size:15px;
+    transition:border-color .2s ease, box-shadow .2s ease;
+}
+.input:focus{
+    border-color:#ff2d55;
+    box-shadow:0 0 0 3px rgba(255,45,85,0.15);
+}
+
+.hint{
+    margin:8px 0 0;
+    color:#777;
+    font-size:12px;
+}
+
+/* 참여 아티스트 카드 */
+.artist-pick-card{
+    margin-top:8px;
+    border:1px solid #eee;
+    border-radius:18px;
+    padding:16px;
+    background:#fff;
+}
+
+.artist-pick-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:12px;
+}
+
+.sub-title{
+    margin:0;
+    font-size:16px;
+    font-weight:900;
+}
+.sub-desc{
+    margin:6px 0 0;
+    font-size:12px;
+    color:#777;
+}
+
+.artist-search{
+    display:flex;
+    gap:12px;
+    margin-bottom:14px;
+}
+
+.ghost-btn{
+    height:48px;
+    min-width:96px;
+    border-radius:18px;
+    border:1px solid #e8e8e8;
+    background:#fff;
+    font-weight:900;
+    cursor:pointer;
+}
+.ghost-btn:hover{ background:#f7f7f7; }
+
+.result-area{
+    margin-top:12px;
+}
+
+.area-title{
+    font-size:12px;
+    font-weight:900;
+    color:#666;
+    margin-bottom:8px;
+}
+
+.chip-area{
+    border:1px solid #eee;
+    border-radius:16px;
+    padding:12px;
+    min-height:54px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    background:#fafafa;
+}
+
+.empty-mini{
+    color:#888;
+    font-size:13px;
+    font-weight:800;
+}
+
+/* 칩 */
+.chip{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 12px;
+    border-radius:999px;
+    border:1px solid #e6e6e6;
+    background:#fff;
+    font-weight:900;
+    font-size:13px;
+    cursor:pointer;
+}
+.chip:hover{ background:#f7f7f7; }
+
+.chip .x{
+    width:22px;
+    height:22px;
+    border-radius:999px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid #e6e6e6;
+    font-weight:900;
+}
+.chip .x:hover{ background:#f2f2f2; }
+
+/* 버튼 공통 */
+.btn{
+    height:44px;
+    padding:0 18px;
+    border-radius:18px;
+    border:1px solid #e6e6e6;
+    background:#fff;
+    font-weight:900;
+    cursor:pointer;
+}
+.btn:hover{ background:#f7f7f7; }
+
+.file-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.primary-btn{
+    height:44px;
+    padding:0 22px;
+    border-radius:18px;
+    background:#ff2d55;
+    color:#fff;
+    font-weight:900;
+    border:none;
+    cursor:pointer;
+    box-shadow:0 10px 26px rgba(255,45,85,0.22);
+    transition:transform .12s ease, box-shadow .2s ease;
+}
+.primary-btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 14px 32px rgba(255,45,85,0.28);
+}
+
+.footer-actions{
+    margin-top:18px;
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+}
+
+.footnote{
+    margin:14px 0 0;
+    color:#777;
+    font-size:12px;
+}
+
+/* 유틸 */
+.hidden{ display:none; }
+
+@media (max-width: 980px){
+    .form-card{ grid-template-columns: 1fr; }
+    .left-panel{ border-right:none; border-bottom:1px solid #eee; }
+}

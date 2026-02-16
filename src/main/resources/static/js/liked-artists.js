@@ -73,6 +73,8 @@ function render(list) {
 
         const card = document.createElement("div");
         card.className = "artist-card";
+        card.style.cursor = "pointer";
+        card.dataset.id = artist.artistId;
 
         const imageElement = createImageOrPlaceholder(
             artist.profileImage,
@@ -102,6 +104,12 @@ function render(list) {
 
         card.appendChild(name);
         card.appendChild(bottom);
+
+        // ✅ 카드 클릭 → 아티스트 단건조회(page) 이동 (하트 클릭은 제외)
+        card.addEventListener("click", (e) => {
+            if (e.target.closest(".heart-btn")) return;
+            location.href = `/artists/${artist.artistId}`;
+        });
 
         artistGrid.appendChild(card);
     });

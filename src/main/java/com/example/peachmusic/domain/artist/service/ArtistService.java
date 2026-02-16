@@ -61,8 +61,11 @@ public class ArtistService {
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
 
         int size = PREVIEW_SIZE;
-        List<AlbumArtistDetailResponseDto> albumList = albumRepository.findAlbumList(authUser.getUserId(), foundArtist.getArtistId(), size);
-        List<SongArtistDetailResponseDto> songList = songRepository.findSongList(authUser.getUserId(), foundArtist.getArtistId(), size);
+
+        Long userId = (authUser == null) ? null : authUser.getUserId();
+
+        List<AlbumArtistDetailResponseDto> albumList = albumRepository.findAlbumList(userId, foundArtist.getArtistId(), size);
+        List<SongArtistDetailResponseDto> songList = songRepository.findSongList(userId, foundArtist.getArtistId(), size);
 
         return ArtistPreviewResponseDto.of(albumList, songList);
     }

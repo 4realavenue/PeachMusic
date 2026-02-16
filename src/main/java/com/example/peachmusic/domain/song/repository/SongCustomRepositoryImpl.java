@@ -10,6 +10,7 @@ import com.example.peachmusic.domain.artist.entity.QArtist;
 import com.example.peachmusic.domain.artistsong.entity.QArtistSong;
 import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -91,7 +92,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
 
         return queryFactory
-                .select(Projections.constructor(SongSearchResponseDto.class, song.songId, song.name, artistNames, album.albumReleaseDate, song.album.albumImage, song.likeCount, song.playCount, song.isDeleted, songProgressingStatus.progressingStatus))
+                .select(Projections.constructor(SongSearchResponseDto.class, song.songId, song.name, artistNames, song.releaseDate, album.albumImage, song.likeCount, song.playCount, song.isDeleted, songProgressingStatus.progressingStatus))
                 .from(song)
                 .join(artistSong).on(artistSong.song.eq(song))
                 .join(artist).on(artistSong.artist.eq(artist))
@@ -107,20 +108,27 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
      */
     private JPAQuery<SongArtistDetailResponseDto> baseQueryByArtist(Long userId, Long artistId, SortType sortType, SortDirection direction, CursorParam cursor) {
 
-        keysetPolicy.validateCursor(sortType, cursor); // 커서 검증
+        keysetPolicy.validateCursor(sortType, cursor);
         boolean isAsc = direction == SortDirection.ASC;
 
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
 
-        return queryFactory
-                .select(Projections.constructor(SongArtistDetailResponseDto.class, song.songId, song.name, artistNames, song.likeCount, song.album.albumImage, songProgressingStatus.progressingStatus, songLike.songLikeId.isNotNull(), album.albumId, album.albumReleaseDate))
+        JPAQuery<?> query = queryFactory
                 .from(song)
                 .join(artistSong).on(artistSong.song.eq(song))
                 .join(artist).on(artistSong.artist.eq(artist))
                 .join(song.album, album)
-                .join(songProgressingStatus).on(songProgressingStatus.song.eq(song))
-                .leftJoin(songLike).on(songLike.song.eq(song).and(songLike.user.userId.eq(userId)))
-                .where(artist.artistId.eq(artistId), song.isDeleted.isFalse(), song.streamingStatus.isTrue(), keysetCondition(sortType, isAsc, cursor))
+                .join(songProgressingStatus).on(songProgressingStatus.song.eq(song));
+
+        Expression<Boolean> isLikedExpression = userId == null ? Expressions.constant(false) : songLike.songLikeId.max().isNotNull();
+
+        if (userId != null) {
+            query.leftJoin(songLike).on(songLike.song.eq(song).and(songLike.user.userId.eq(userId)));
+        }
+
+        return query
+                .select(Projections.constructor(SongArtistDetailResponseDto.class, song.songId, song.name, artistNames, song.likeCount, album.albumImage, songProgressingStatus.progressingStatus, isLikedExpression, album.albumId, song.releaseDate))
+                .where(artist.artistId.eq(artistId), isActive(), keysetCondition(sortType, isAsc, cursor))
                 .groupBy(song.songId)
                 .orderBy(keysetOrder(sortType, isAsc));
     }
@@ -168,9 +176,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
                 .join(subArtistSong.artist, subArtist)
                 .where(
                         subArtistSong.song.eq(song), // 메인 쿼리의 song과 연결
-                        // 검색어가 아티스트 이름에 포함된 경우
-                        Expressions.stringTemplate("concat(' ', {0}, ' ')", subArtist.artistName)
-                                .like(Expressions.stringTemplate("concat('% ', {0}, ' %')", word))
+                        SearchWordCondition.wordMatch(subArtist.artistName, word) // 검색어가 아티스트 이름에 포함된 경우
                 )
                 .exists();
     }
@@ -233,8 +239,8 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
      * 날짜가 Keyset이 되는 경우
      */
     private BooleanExpression dateKeyset(boolean asc, CursorParam cursor) {
-        BooleanExpression dateCondition = asc ? album.albumReleaseDate.gt(cursor.getLastDate()) : album.albumReleaseDate.lt(cursor.getLastDate());
-        return dateCondition.or(album.albumReleaseDate.eq(cursor.getLastDate()).and(idKeyset(asc, cursor.getLastId())));
+        BooleanExpression dateCondition = asc ? song.releaseDate.gt(cursor.getLastDate()) : album.albumReleaseDate.lt(cursor.getLastDate());
+        return dateCondition.or(song.releaseDate.eq(cursor.getLastDate()).and(idKeyset(asc, cursor.getLastId())));
     }
 
     /**
@@ -269,7 +275,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
         return switch (sortType) {
             case LIKE -> asc ? song.likeCount.asc() : song.likeCount.desc();
             case NAME -> asc ? song.name.asc() : song.name.desc();
-            case RELEASE_DATE -> asc ? album.albumReleaseDate.asc() : album.albumReleaseDate.desc();
+            case RELEASE_DATE -> asc ? song.releaseDate.asc() : album.albumReleaseDate.desc();
             case PLAY -> asc ? song.playCount.asc() : song.playCount.desc();
         };
     }

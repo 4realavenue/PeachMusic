@@ -44,13 +44,6 @@ public class Album extends BaseEntity {
         this.albumImage = "https://img.peachmusics.com/storage/image/default-image.jpg";
     }
 
-    public Album(Long jamendoAlbumId, String albumName, LocalDate albumReleaseDate, String albumImage) {
-        this.jamendoAlbumId = jamendoAlbumId;
-        this.albumName = albumName;
-        this.albumReleaseDate = albumReleaseDate;
-        this.albumImage = albumImage;
-    }
-
     public void updateAlbumInfo(AlbumUpdateRequestDto requestDto) {
         this.albumName = (requestDto.getAlbumName() == null || requestDto.getAlbumName().isBlank())
                 ? this.albumName

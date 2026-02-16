@@ -5,28 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title th:text="${artistName} + ' - 아티스트'">아티스트</title>
 
-    <!-- 공통 레이아웃 -->
     <link rel="stylesheet" th:href="@{/css/layout.css}" />
-    <!-- 페이지 전용 -->
     <link rel="stylesheet" th:href="@{/css/artist-detail.css}" />
 
-    <!-- 공통 사이드바 -->
     <script th:src="@{/js/sidebar.js}" defer></script>
 </head>
 
 <body>
 
-<!-- ✅ 로그인 필요 팝업(좋아요 클릭 시만) -->
 <div id="loginPopup" class="login-popup hidden">로그인이 필요한 기능입니다.</div>
 
 <div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
     <section class="artist-detail-page">
 
-        <!-- =========================
-             상단 아티스트 단건 정보
-        ========================= -->
         <div class="artist-hero">
-
             <div class="artist-hero-left">
                 <div class="artist-hero-avatar"
                      th:style="${artistImageUrl != null} ?
@@ -36,12 +28,9 @@
             </div>
 
             <div class="artist-hero-right">
-
                 <h1 class="artist-hero-name" th:text="${artistName}">Artist</h1>
 
-                <!-- ✅ 기본정보(국가/유형/데뷔/소개글) -->
                 <div class="artist-basic">
-
                     <div class="artist-basic-row">
                         <span class="label">국가</span>
                         <span class="value" th:text="${country} ?: '-'">-</span>
@@ -61,10 +50,8 @@
                        th:if="${bio != null and !#strings.isEmpty(bio)}"
                        th:text="${bio}">
                     </p>
-
                 </div>
 
-                <!-- ✅ 좋아요 수 + 회색하트 버튼 -->
                 <div class="artist-hero-meta">
                     <span id="artistLikeCount" th:text="${likeCount}">0</span>
 
@@ -77,7 +64,6 @@
                     </button>
                 </div>
 
-                <!-- ✅ JS가 artistId/artistName 읽는 메타 -->
                 <div id="artistMeta"
                      th:data-artist-id="${artistId}"
                      th:data-artist-name="${artistName}">
@@ -86,11 +72,7 @@
             </div>
         </div>
 
-        <!-- =========================
-             앨범/음원 미리보기(Preview)
-        ========================= -->
         <div id="previewPanel" class="preview-panel">
-
             <div class="preview-head">
                 <div class="preview-title">
                     <span id="previewArtistName">아티스트</span> 앨범/음원 미리보기
@@ -99,7 +81,6 @@
 
             <div class="preview-body">
 
-                <!-- 앨범 미리보기 -->
                 <div class="preview-block">
                     <div class="preview-block-head">
                         <h2>앨범</h2>
@@ -113,7 +94,6 @@
                     <div id="albumsPreview" class="preview-grid"></div>
                 </div>
 
-                <!-- 음원 미리보기 -->
                 <div class="preview-block">
                     <div class="preview-block-head">
                         <h2>음원</h2>
@@ -133,8 +113,6 @@
     </section>
 </div>
 
-<!-- ✅ 페이지 전용 JS -->
 <script type="module" th:src="@{/js/artist-detail.js}"></script>
-
 </body>
 </html>

@@ -84,27 +84,64 @@
     margin-top: 30px;
 }
 
+/* 상단 액션 바 */
 .song-action-bar {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     margin-bottom: 15px;
 }
 
+/* ✅ 곡 row: 밋밋함 제거 + 정돈 */
 .song-row {
     display: grid;
     grid-template-columns: 40px 60px 1fr 120px;
     align-items: center;
-    padding: 16px 10px;
+
+    padding: 14px 10px;
     border-bottom: 1px solid #f0f0f0;
+
+    cursor: pointer;
+    transition: background 0.15s ease;
 }
 
+.song-row:hover {
+    background: #f8f8f8;
+}
+
+/* 앨범 커버 */
 .song-cover {
     width: 50px;
     height: 50px;
     background: #ddd;
     background-size: cover;
     background-position: center;
-    border-radius: 6px;
+    border-radius: 8px;
+}
+
+/* 제목 영역 */
+.song-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.song-title {
+    font-weight: 700;
+    font-size: 15px;
+    color: #111;
+}
+
+/* 오른쪽 좋아요 */
+.song-like {
+    justify-self: end;
+    color: #666;
+    font-size: 14px;
+}
+
+/* 체크박스는 클릭 느낌 유지 */
+.song-check {
+    cursor: pointer;
 }
 
 .song-title {

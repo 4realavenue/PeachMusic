@@ -72,20 +72,36 @@
 /* ================================
    Play Button
 ================================ */
-.play-btn {
-    border-color: #333333;
-    background: #ffffff;
-    color: #333333;
-    width: 25px;
-    height: 25px;
+.play-btn{
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
+
+    border: 1px solid #ddd;   /* 🔥 연한 테두리 */
+    background: #fff;
+    color: #222;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
     cursor: pointer;
-    font-size: 14px;
-    transition: transform 0.1s ease;
+    font-size: 16px;
+
+    transition: transform 0.1s ease, background 0.15s ease, border 0.15s ease;
 }
 
-.play-btn:hover {
-    transform: scale(1.1);
+.play-btn:hover{
+    transform: scale(1.05);
+    background: #f8f8f8;
+    border-color: #bbb;       /* 🔥 살짝만 진해짐 */
+}
+
+/* 재생 중 */
+.play-btn.playing{
+    background: #111;
+    color: #fff;
+    border-color: #111;
 }
 
 /* ================================
@@ -121,4 +137,16 @@
     padding: 30px;
     color: #888;
     font-size: 14px;
+}
+
+.liked-row{
+    cursor: pointer;
+}
+
+.col.title{
+    cursor: pointer;
+}
+
+.liked-row:hover{
+    background: #f9f9f9;
 }
