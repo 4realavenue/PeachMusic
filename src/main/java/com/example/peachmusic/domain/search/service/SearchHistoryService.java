@@ -73,7 +73,7 @@ public class SearchHistoryService {
         return result;
     }
 
-    @Scheduled(fixedRate = 300000) // 5분마다 스케줄러 실행
+    @Scheduled(fixedRate = 30, timeUnit = TimeUnit.MINUTES) // 30분마다 스케줄러 실행
     public void updateLast24HourSearchRank() {
 
         String key = SEARCH_RANK_KEY + "last24hours";
@@ -81,7 +81,7 @@ public class SearchHistoryService {
         List<String> keyList = getLast24HourSearchRankKeyList();
 
         redisTemplate.opsForZSet().unionAndStore(keyList.get(0), keyList.subList(1, keyList.size()), key);
-        redisTemplate.expire(key, 6, TimeUnit.MINUTES);
+        redisTemplate.expire(key, 35, TimeUnit.MINUTES);
     }
 
     /**
