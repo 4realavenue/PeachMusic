@@ -119,6 +119,8 @@ function renderSongs(list) {
 
     list.forEach(song => {
 
+        const songId = song.songId ?? song.id;
+
         const row = document.createElement("div");
         row.className = "song-row";
 
@@ -133,13 +135,18 @@ function renderSongs(list) {
                 <button class="heart-btn 
                         ${song.liked ? 'liked' : ''} 
                         ${!hasToken ? 'disabled' : ''}"
-                        data-id="${song.songId}">
+                        data-id="${songId}">
                     ❤
                 </button>
             </div>
         `;
 
         listContainer.appendChild(row);
+
+        row.addEventListener("click", (e) => {
+            if (e.target.closest(".heart-btn")) return;
+            location.href = `/songs/${songId}/page`;
+        });
     });
 }
 

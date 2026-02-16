@@ -2,6 +2,7 @@
    Page
 ========================= */
 .album-page{
+    width: 100%;
     max-width: 980px;
     margin: 0 auto;
     padding: 24px 18px 60px;
@@ -19,6 +20,13 @@
     border-radius: 22px;
     background: #fff;
     box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+
+    /* ✅ 가로폭 고정 */
+    width: 100%;
+    max-width: 980px;
+
+    /* ✅ 혹시 다른 CSS가 inline-grid로 덮는 경우 방지 */
+    display: grid !important;
 }
 
 .album-art{
@@ -39,6 +47,7 @@
 
 .album-meta{
     min-width: 0;
+    padding-top: 24px;
 }
 
 .album-eyebrow{
@@ -55,6 +64,15 @@
     margin: 0 0 10px;
     letter-spacing: -0.02em;
     word-break: keep-all;
+
+    /* ✅ 긴 제목 때문에 히어로 높이가 커지는 걸 방지 (2줄까지만 + …) */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+
+    /* ✅ 짧은 제목도 높이 균형 맞추기(2줄 공간 확보) */
+    min-height: calc(1.05em * 2);
 }
 
 .album-sub{
@@ -65,6 +83,11 @@
     color: #666;
     font-size: 16px;
     margin-bottom: 16px;
+
+    /* ✅ 아티스트/날짜 줄바꿈으로 높이 커지는 거 방지 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .dot{ color:#aaa; }
@@ -139,11 +162,12 @@
 
 .track{
     display: grid;
-    grid-template-columns: 46px 1fr 90px 86px;
+    grid-template-columns: 46px 46px 1fr 90px 110px; /* ✅ 번호, 재생, 이름, 시간, 좋아요 */
     gap: 10px;
     align-items: center;
     padding: 14px 16px;
     border-bottom: 1px solid #f0f0f0;
+    cursor: pointer; /* ✅ 클릭 가능 */
 }
 
 .track:last-child{ border-bottom: none; }
@@ -175,17 +199,51 @@
     font-variant-numeric: tabular-nums;
 }
 
-.track-like{
-    color: #777;
+/* ✅ 재생 버튼 */
+.track-play{
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    border: 1px solid #e6e6e6;
+    background: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     font-size: 14px;
-    text-align: right;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+.track-play:hover{ transform: scale(1.05); }
+.track-play.playing{
+    background:#111;
+    color:#fff;
+    border-color:#111;
+}
+
+/* ✅ 트랙 좋아요 영역 (미니 하트 + 카운트) */
+.track-like{
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #777;
     font-variant-numeric: tabular-nums;
 }
 
-.track-like .mini-heart{
+.mini-heart-btn{
+    border: none;
+    background: none;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
     color: #bdbdbd;
-    margin-right: 6px;
+    transition: transform 0.1s ease, color 0.15s ease;
 }
+.mini-heart-btn:hover{ transform: scale(1.12); }
+.mini-heart-btn.liked{ color: #ff4d6d; }
+/* ✅ disabled 스타일 제거: 비로그인도 클릭 가능(팝업 방식) */
 
 /* =========================
    Login popup
@@ -212,6 +270,8 @@
 ========================= */
 @media (max-width: 880px){
     .album-hero{
+        height: auto;
+        overflow: visible;
         grid-template-columns: 1fr;
     }
     .album-art{
@@ -219,9 +279,146 @@
         height: auto;
         aspect-ratio: 1 / 1;
     }
-    .album-title{ font-size: 34px; }
+    .album-title{
+        font-size: 34px;
+    }
+
     .track{
-        grid-template-columns: 40px 1fr 72px;
+        grid-template-columns: 40px 46px 1fr 72px; /* ✅ 모바일: 좋아요 숨김 */
     }
     .track-like{ display: none; }
+}
+
+/* =========================
+   Playlist Modal (Safe Version)
+========================= */
+
+.pl-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+}
+
+.pl-modal.hidden {
+    display: none;
+}
+
+.pl-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+}
+
+.pl-sheet {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 520px;
+    max-width: calc(100vw - 30px);
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    overflow: hidden;
+}
+
+.pl-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid #eee;
+}
+
+.pl-title {
+    font-weight: 900;
+}
+
+.pl-close {
+    background: #f2f2f2;
+    border: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.pl-list {
+    padding: 14px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+@media (max-width: 500px){
+    .pl-list { grid-template-columns: 1fr; }
+}
+
+.pl-item {
+    border: 1px solid #eee;
+    background: #fff;
+    border-radius: 14px;
+    padding: 12px;
+    display: flex;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.pl-item:hover {
+    background: #f7f7f7;
+}
+
+.pl-thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f0f0f0;
+}
+
+.pl-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pl-name {
+    font-weight: 800;
+    font-size: 14px;
+}
+
+.pl-sub {
+    font-size: 12px;
+    color: #777;
+    margin-top: 3px;
+}
+
+.pl-foot {
+    padding: 12px 16px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.pl-cancel {
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 12px;
+    padding: 8px 14px;
+    cursor: pointer;
+}
+
+/* + 버튼 */
+.add-pl-btn {
+    border: 1px solid #e2e2e2;
+    background: #fff;
+    border-radius: 10px;
+    padding: 4px 10px;
+    cursor: pointer;
+}
+.add-pl-btn:hover {
+    background: #f7f7f7;
 }

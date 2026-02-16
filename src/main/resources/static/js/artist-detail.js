@@ -36,7 +36,7 @@ async function fetchPreview(artistId) {
     return fetch(url, { method: "GET" });
 }
 
-/* 아티스트 좋아요(회색하트) */
+/* 아티스트 좋아요 */
 function bindArtistLike(artistId) {
     const likeBtn = document.getElementById("artistLikeBtn");
     const likeCountEl = document.getElementById("artistLikeCount");
@@ -65,6 +65,41 @@ function bindArtistLike(artistId) {
     });
 }
 
+/* ✅ 페이지 내 프리뷰 재생(한 곡만) */
+const previewAudio = new Audio();
+previewAudio.preload = "metadata";
+
+let currentPlayingSongId = null;
+let currentPlayBtn = null;
+
+function setPlayBtnState(btn, isPlaying) {
+    if (!btn) return;
+    btn.classList.toggle("playing", isPlaying);
+    btn.textContent = isPlaying ? "❚❚" : "▶";
+}
+
+previewAudio.addEventListener("ended", () => {
+    if (currentPlayBtn) setPlayBtnState(currentPlayBtn, false);
+    currentPlayingSongId = null;
+    currentPlayBtn = null;
+});
+
+previewAudio.addEventListener("pause", () => {
+    if (currentPlayBtn) setPlayBtnState(currentPlayBtn, false);
+});
+
+previewAudio.addEventListener("play", () => {
+    if (currentPlayBtn) setPlayBtnState(currentPlayBtn, true);
+});
+
+async function getSongAudioUrl(songId) {
+    const res = await authFetch(`/api/songs/${songId}/play`, { method: "GET" });
+    if (!res) return null;
+    const payload = await res.json();
+    if (!res.ok || payload?.success === false) return null;
+    return payload.data?.streamingUrl ?? null;
+}
+
 /* 미리보기 렌더링 */
 function renderPreview(dto, albumsWrap, songsWrap) {
     const albums = (dto?.albumList ?? []).slice(0, 5);
@@ -82,17 +117,25 @@ function renderPreview(dto, albumsWrap, songsWrap) {
     </div>
   `).join("");
 
+    // ✅ song-item: 클릭=상세 이동 / 버튼=재생/좋아요
     songsWrap.innerHTML = songs.map(s => `
     <div class="song-item" data-song-id="${s.songId}">
       <div class="song-left">
         <div class="song-title">${escapeHtml(s.name)}</div>
         <div class="song-meta">
-          ❤️ ${s.likeCount ?? 0}
           · ${formatDate(s.albumReleaseDate)}
           ${s.jobStatus ? ` · ${escapeHtml(String(s.jobStatus))}` : ""}
         </div>
       </div>
-      <button class="song-play" type="button">▶</button>
+
+      <div class="song-right">
+        <button class="mini-heart-btn ${s.liked ? "liked" : ""} ${!getToken() ? "disabled" : ""}"
+                type="button"
+                aria-label="음원 좋아요">❤</button>
+        <span class="mini-like-count">${s.likeCount ?? 0}</span>
+
+        <button class="track-play" type="button" aria-label="재생">▶</button>
+      </div>
     </div>
   `).join("");
 }
@@ -102,6 +145,70 @@ function bindAlbumClick(albumsWrap) {
         el.addEventListener("click", () => {
             const albumId = el.dataset.albumId;
             if (albumId) window.location.href = `/albums/${albumId}/page`;
+        });
+    });
+}
+
+/* ✅ 음원 미리보기: 상세 이동 + 재생 + 리스트 하트 */
+function bindSongInteractions(songsWrap) {
+    songsWrap.querySelectorAll(".song-item").forEach((row) => {
+        const songId = row.dataset.songId;
+        const playBtn = row.querySelector(".track-play");
+        const heartBtn = row.querySelector(".mini-heart-btn");
+        const likeCountEl = row.querySelector(".mini-like-count");
+
+        // row 클릭 = 상세 이동 (버튼 클릭은 제외)
+        row.addEventListener("click", (e) => {
+            if (e.target.closest(".track-play")) return;
+            if (e.target.closest(".mini-heart-btn")) return;
+            if (songId) window.location.href = `/songs/${songId}/page`;
+        });
+
+        // 재생 버튼
+        playBtn?.addEventListener("click", async (e) => {
+            e.stopPropagation();
+
+            const audioUrl = await getSongAudioUrl(songId);
+            if (!audioUrl) {
+                alert("재생 가능한 음원 주소가 없습니다.");
+                return;
+            }
+
+            // 같은 곡이면 토글
+            if (currentPlayingSongId === songId) {
+                if (previewAudio.paused) await previewAudio.play();
+                else previewAudio.pause();
+                return;
+            }
+
+            // 다른 곡 재생: 이전 버튼 원복
+            if (currentPlayBtn) setPlayBtnState(currentPlayBtn, false);
+
+            currentPlayingSongId = songId;
+            currentPlayBtn = playBtn;
+
+            previewAudio.src = audioUrl;
+            await previewAudio.play();
+        });
+
+        // 리스트 하트
+        heartBtn?.addEventListener("click", async (e) => {
+            e.stopPropagation();
+
+            if (!getToken()) {
+                showLoginPopup();
+                return;
+            }
+
+            const res = await authFetch(`/api/songs/${songId}/likes`, { method: "POST" });
+            if (!res) return;
+
+            const payload = await res.json();
+            if (!payload?.success) return;
+
+            const { liked, likeCount } = payload.data;
+            heartBtn.classList.toggle("liked", liked === true);
+            likeCountEl.textContent = String(likeCount ?? 0);
         });
     });
 }
@@ -119,14 +226,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const moreSongsLink = document.getElementById("moreSongsLink");
 
     if (previewArtistName) previewArtistName.textContent = artistName;
-
     if (!artistId) return;
 
-    // 더보기 링크(페이지 이동)
     if (moreAlbumsLink) moreAlbumsLink.href = `/artists/${artistId}/albums/page`;
     if (moreSongsLink) moreSongsLink.href = `/artists/${artistId}/songs/page`;
 
-    // 아티스트 좋아요(회색하트)
     bindArtistLike(artistId);
 
     try {
@@ -138,6 +242,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         renderPreview(dto, albumsWrap, songsWrap);
         bindAlbumClick(albumsWrap);
+        bindSongInteractions(songsWrap); // ✅ 추가
 
     } catch (e) {
         console.error(e);

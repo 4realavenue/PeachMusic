@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>아티스트 등록 | PeachMusic Admin</title>
+
+    <link rel="stylesheet" href="/css/layout.css"/>
+    <link rel="stylesheet" href="/css/admin-artist-create.css"/>
+
+    <script th:src="@{/js/sidebar.js}" defer></script>
+    <script type="module" src="/js/admin-artist-create.js" defer></script>
+</head>
+
+<body>
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+    <section class="admin-create-page">
+
+        <!-- ✅ 헤더 구조 통일 -->
+        <div class="page-head">
+            <div class="page-head-left">
+                <h1 class="page-title">아티스트 등록</h1>
+                <p class="page-sub">필수: 아티스트명 / 옵션: 국가, 타입, 데뷔일, 소개, 프로필 이미지</p>
+            </div>
+
+            <a class="ghost-top-btn" href="/admin/artists">목록으로</a>
+        </div>
+
+        <div class="create-card">
+
+            <!-- 좌: 이미지 -->
+            <div class="image-pane">
+                <div class="preview" id="imagePreview">
+                    <span class="preview-badge">PROFILE</span>
+
+                    <!-- ✅ 가운데 정렬될 텍스트 -->
+                    <div class="preview-empty" id="previewEmpty">이미지 미리보기</div>
+
+                    <!-- ✅ 실제 이미지 -->
+                    <img id="previewImg" class="preview-img hidden" alt="프로필 이미지 미리보기"/>
+                </div>
+
+                <input id="profileImage" name="profileImage" type="file" accept="image/*" class="hidden"/>
+
+                <div class="image-actions">
+                    <button type="button" class="btn" id="pickImageBtn">이미지 선택</button>
+                    <button type="button" class="btn" id="clearImageBtn">초기화</button>
+                </div>
+
+                <div class="hint">jpg / jpeg / png, 최대 5MB</div>
+            </div>
+
+            <!-- 우: 폼 -->
+            <form id="artistCreateForm" class="form-pane">
+                <div class="field">
+                    <label class="label">아티스트명 <span class="req">*</span></label>
+                    <input class="input" type="text" name="artistName" placeholder="예) 홍길동" required/>
+                </div>
+
+                <div class="grid2">
+                    <div class="field">
+                        <label class="label">국가</label>
+                        <input class="input" type="text" name="country" placeholder="예) KR"/>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">타입</label>
+                        <select class="input" name="artistType">
+                            <option value="">선택(옵션)</option>
+                            <option value="solo">SOLO</option>
+                            <option value="group">GROUP</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">데뷔일</label>
+                    <input class="input" type="date" name="debutDate"/>
+                    <div class="mini-hint">형식: yyyy-MM-dd</div>
+                </div>
+
+                <div class="field">
+                    <label class="label">소개</label>
+                    <textarea class="input textarea" name="bio" maxlength="500" placeholder="최대 500자"></textarea>
+                    <div class="mini-hint"><span id="bioCount">0</span>/500</div>
+                </div>
+
+                <div class="actions">
+                    <a class="btn" href="/admin/artists">취소</a>
+                    <button class="primary-btn" type="submit" id="submitBtn">등록</button>
+                </div>
+
+                <div class="form-note">
+                    * 등록 후 이미지가 가끔 바로 안 바뀌면 캐시 때문일 수 있어요.
+                </div>
+            </form>
+        </div>
+
+    </section>
+</div>
+</body>
+</html>

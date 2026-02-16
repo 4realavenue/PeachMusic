@@ -246,3 +246,7 @@ body {
 .hidden {
     display: none !important;
 }
+
+button, input, select, textarea {
+    font: inherit;
+}

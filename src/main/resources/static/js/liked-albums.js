@@ -63,6 +63,7 @@ function render(list) {
 
         const card = document.createElement("div");
         card.className = "album-card";
+        card.style.cursor = "pointer";
 
         card.innerHTML = `
             <img class="album-image" src="${album.albumImage}" alt="앨범이미지">
@@ -82,6 +83,12 @@ function render(list) {
                 </div>
             </div>
         `;
+
+        // ✅ 카드 클릭 → 앨범 단건조회(/page) 이동 (하트 클릭은 제외)
+        card.addEventListener("click", (e) => {
+            if (e.target.closest(".heart-btn")) return;
+            location.href = `/albums/${album.albumId}/page`;
+        });
 
         albumGrid.appendChild(card);
     });

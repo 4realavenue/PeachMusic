@@ -1,0 +1,205 @@
+import { authFetch } from "/js/auth.js";
+
+const $ = (id) => document.getElementById(id);
+
+const form = $("artistCreateForm");
+const profileInput = $("profileImage");
+const pickBtn = $("pickImageBtn");
+const clearBtn = $("clearImageBtn");
+const preview = $("imagePreview");
+const bioCount = $("bioCount");
+const submitBtn = $("submitBtn");
+
+// 정책(백엔드 FileStorageService와 동일하게)
+const IMAGE_ALLOWED_EXT = ["jpg", "jpeg", "png"];
+const IMAGE_MAX_SIZE = 5 * 1024 * 1024; // 5MB
+const IMAGE_ALLOWED_MIME_PREFIX = "image/"; // image/* 만 허용
+
+let selectedFile = null;
+
+/* ============================
+   Helpers
+============================ */
+
+function resetImage() {
+    selectedFile = null;
+    profileInput.value = "";
+    preview.style.backgroundImage = "";
+}
+
+function getExt(filename) {
+    if (!filename) return "";
+    const parts = filename.split(".");
+    if (parts.length < 2) return "";
+    return parts.pop().toLowerCase();
+}
+
+async function safeReadJson(res) {
+    // content-type이 json이면 json으로, 아니면 text로 읽어서 최소 메시지라도 뽑기
+    const ct = res.headers.get("content-type") || "";
+    try {
+        if (ct.includes("application/json")) return await res.json();
+        const text = await res.text();
+        // json 문자열로 내려오는 경우도 있어서 한번 더 시도
+        try {
+            return JSON.parse(text);
+        } catch {
+            return { message: text };
+        }
+    } catch {
+        return null;
+    }
+}
+
+function showApiError(res, payload) {
+    // CommonResponse 기준 message 우선
+    const msg =
+        payload?.message ||
+        (res.status === 401 ? "로그인이 필요합니다." :
+            res.status === 403 ? "권한이 없습니다." :
+                res.status === 400 ? "요청이 올바르지 않습니다." :
+                    res.status >= 500 ? "서버 오류가 발생했습니다." :
+                        "요청 실패");
+
+    alert(msg);
+}
+
+/* ============================
+   Image UI
+============================ */
+
+pickBtn?.addEventListener("click", () => profileInput.click());
+
+clearBtn?.addEventListener("click", () => resetImage());
+
+profileInput?.addEventListener("change", () => {
+    const file = profileInput.files?.[0];
+    if (!file) return;
+
+    const ext = getExt(file.name);
+
+    // 1) 확장자 체크 (webp 차단)
+    if (!IMAGE_ALLOWED_EXT.includes(ext)) {
+        alert("유효하지 않은 이미지 파일 형식입니다. (jpg / jpeg / png만 가능)");
+        resetImage();
+        return;
+    }
+
+    // 2) 용량 체크
+    if (file.size > IMAGE_MAX_SIZE) {
+        alert("이미지 파일 용량이 너무 큽니다. (최대 5MB)");
+        resetImage();
+        return;
+    }
+
+    // 3) mime 체크(브라우저가 알려주는 content-type)
+    const ct = file.type || "";
+    if (!ct.startsWith(IMAGE_ALLOWED_MIME_PREFIX)) {
+        alert("유효하지 않은 이미지 파일입니다.");
+        resetImage();
+        return;
+    }
+
+    selectedFile = file;
+
+    // 미리보기
+    const url = URL.createObjectURL(file);
+    preview.style.backgroundImage = `url("${url}")`;
+});
+
+// 소개 글자수
+if (form?.bio && bioCount) {
+    bioCount.textContent = String(form.bio.value.length);
+    form.bio.addEventListener("input", () => {
+        bioCount.textContent = String(form.bio.value.length);
+    });
+}
+
+/* ============================
+   Submit (Create Artist)
+============================ */
+
+form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const artistName = form.artistName.value.trim();
+    if (!artistName) {
+        alert("아티스트명 입력은 필수입니다.");
+        form.artistName.focus();
+        return;
+    }
+
+    // ✅ enum 값은 백엔드 ArtistType과 맞춰서 "SOLO" / "GROUP"
+    // select value가 이미 SOLO/GROUP면 그대로, 소문자면 대문자 변환
+    const rawType = (form.artistType?.value || "").trim();
+    const artistType = rawType ? rawType.toUpperCase() : null;
+
+    const request = {
+        artistName,
+        country: form.country.value.trim() || null,
+        artistType: artistType,
+        debutDate: form.debutDate.value || null, // yyyy-MM-dd or null
+        bio: form.bio.value.trim() || null,
+    };
+
+    // 마지막 방어: 이미지가 선택돼 있으면 다시 한번 검증
+    if (selectedFile) {
+        const ext = getExt(selectedFile.name);
+        if (!IMAGE_ALLOWED_EXT.includes(ext)) {
+            alert("유효하지 않은 이미지 파일 형식입니다. (jpg / jpeg / png만 가능)");
+            resetImage();
+            return;
+        }
+        if (selectedFile.size > IMAGE_MAX_SIZE) {
+            alert("이미지 파일 용량이 너무 큽니다. (최대 5MB)");
+            resetImage();
+            return;
+        }
+        const ct = selectedFile.type || "";
+        if (!ct.startsWith(IMAGE_ALLOWED_MIME_PREFIX)) {
+            alert("유효하지 않은 이미지 파일입니다.");
+            resetImage();
+            return;
+        }
+    }
+
+    const fd = new FormData();
+    // ✅ @RequestPart("request")
+    fd.append("request", new Blob([JSON.stringify(request)], { type: "application/json" }));
+    // ✅ @RequestPart("profileImage") optional
+    if (selectedFile) fd.append("profileImage", selectedFile);
+
+    submitBtn.disabled = true;
+    const prevText = submitBtn.textContent;
+    submitBtn.textContent = "등록 중...";
+
+    try {
+        const res = await authFetch("/api/admin/artists", {
+            method: "POST",
+            body: fd,
+            // ❌ Content-Type 직접 설정 금지
+        });
+
+        if (!res) return; // authFetch가 401 처리했을 가능성
+
+        const payload = await safeReadJson(res);
+
+        if (!res.ok || payload?.success === false) {
+            showApiError(res, payload);
+            return;
+        }
+
+        alert(payload?.message || "아티스트가 생성되었습니다.");
+
+        // 생성 후 이동 (너희 페이지 라우팅에 맞춰 조절)
+        // 목록 페이지가 /admin/artists 라면:
+        location.href = "/admin/artists";
+
+    } catch (err) {
+        console.error("아티스트 생성 오류:", err);
+        alert("네트워크/서버 오류가 발생했습니다.");
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = prevText || "등록";
+    }
+});

@@ -15,23 +15,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const albumList = document.getElementById("albumList");
     const artistList = document.getElementById("artistList");
 
-    // 🔥 더보기 버튼
     const songMoreBtn = document.getElementById("songMoreBtn");
     const albumMoreBtn = document.getElementById("albumMoreBtn");
     const artistMoreBtn = document.getElementById("artistMoreBtn");
 
-    /* ===============================
-       검색 버튼
-    =============================== */
     button.addEventListener("click", () => {
         const word = input.value.trim();
         if (!word) return;
         location.href = `/search?word=${encodeURIComponent(word)}`;
     });
 
-    /* ===============================
-       초기 인기검색어 로드
-    =============================== */
     loadPopular();
 
     if (initialWord && initialWord.trim() !== "") {
@@ -39,9 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
         search(initialWord);
     }
 
-    /* ===============================
-       검색 API 호출
-    =============================== */
     async function search(word) {
 
         resultWrapper.classList.add("hidden");
@@ -63,9 +53,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    /* ===============================
-       결과 렌더링
-    =============================== */
     function renderResult(data) {
 
         const keyword = data.keyword;
@@ -89,15 +76,11 @@ document.addEventListener("DOMContentLoaded", () => {
         renderAlbums(albums);
         renderArtists(artists);
 
-        // 🔥 더보기 버튼 처리
         handleMore(songMoreBtn, songs.length, "songs", keyword);
         handleMore(albumMoreBtn, albums.length, "albums", keyword);
         handleMore(artistMoreBtn, artists.length, "artists", keyword);
     }
 
-    /* ===============================
-       더보기 버튼 로직
-    =============================== */
     function handleMore(button, totalCount, type, keyword) {
 
         if (totalCount === 0) {
@@ -108,13 +91,13 @@ document.addEventListener("DOMContentLoaded", () => {
         button.classList.remove("hidden");
 
         button.onclick = () => {
-            location.href =
-                `/search/${type}?word=${encodeURIComponent(keyword)}`;
+            location.href = `/search/${type}?word=${encodeURIComponent(keyword)}`;
         };
     }
 
     /* ===============================
-       곡 렌더링 (5개 미리보기)
+       ✅ 곡 렌더링 + 클릭 이동
+       - 클릭 → /songs/{songId}/page
     =============================== */
     function renderSongs(list) {
 
@@ -124,20 +107,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const div = document.createElement("div");
             div.className = "item";
+            div.dataset.songId = song.songId;
 
             div.innerHTML = `
                 <img src="${song.albumImage || '/images/default.png'}">
-                <div>${song.name}</div>
+                <div>${song.name ?? "-"}</div>
                 <div>${song.artistName || ""}</div>
                 <div>${song.likeCount ?? 0}</div>
             `;
+
+            // ✅ 곡 클릭 → 단건조회 페이지
+            div.addEventListener("click", () => {
+                if (!song.songId) return;
+                location.href = `/songs/${song.songId}/page`;
+            });
 
             songList.appendChild(div);
         });
     }
 
     /* ===============================
-       앨범 렌더링 (5개)
+       ✅ 앨범 렌더링 + 클릭 이동
+       - 클릭 → /albums/{albumId}/page
     =============================== */
     function renderAlbums(list) {
 
@@ -147,19 +138,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const card = document.createElement("div");
             card.className = "card";
+            card.dataset.albumId = album.albumId;
 
             card.innerHTML = `
                 <img src="${album.albumImage || '/images/default.png'}">
-                <div>${album.albumName}</div>
-                <div style="font-size:12px;color:#666">${album.artistName}</div>
+                <div>${album.albumName ?? "-"}</div>
+                <div style="font-size:12px;color:#666">${album.artistName ?? ""}</div>
             `;
+
+            // ✅ 앨범 클릭 → 앨범 상세
+            card.addEventListener("click", () => {
+                if (!album.albumId) return;
+                location.href = `/albums/${album.albumId}/page`;
+            });
 
             albumList.appendChild(card);
         });
     }
 
     /* ===============================
-       아티스트 렌더링 (5개)
+       ✅ 아티스트 렌더링 + 클릭 이동
+       - 클릭 → /artists/{artistId}
     =============================== */
     function renderArtists(list) {
 
@@ -169,29 +168,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const card = document.createElement("div");
             card.className = "card";
+            card.dataset.artistId = artist.artistId;
 
             card.innerHTML = `
-                <div style="font-weight:600">${artist.artistName}</div>
+                <div style="font-weight:600">${artist.artistName ?? "-"}</div>
                 <div style="font-size:12px;color:#666">
                     좋아요 ${artist.likeCount ?? 0}
                 </div>
             `;
 
+            // ✅ 아티스트 클릭 → 아티스트 상세
+            card.addEventListener("click", () => {
+                if (!artist.artistId) return;
+                location.href = `/artists/${artist.artistId}`;
+            });
+
             artistList.appendChild(card);
         });
     }
 
-    /* ===============================
-       결과 없음
-    =============================== */
     function showEmpty(message) {
         emptyBox.classList.remove("hidden");
         emptyBox.textContent = message;
     }
 
-    /* ===============================
-       인기 검색어 (Top 10 고정)
-    =============================== */
     async function loadPopular() {
 
         try {
@@ -240,5 +240,4 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log("인기검색어 로드 실패", e);
         }
     }
-
 });

@@ -26,10 +26,10 @@
 }
 
 /* =========================
-   기본 정보(국가/유형/데뷔/소개글)
+   기본 정보
 ========================= */
 .artist-basic {
-    margin: 6px 0 12px; /* 이름 아래 여백 */
+    margin: 6px 0 12px;
     display: grid;
     gap: 8px;
     max-width: 520px;
@@ -173,20 +173,24 @@
     font-weight: 800;
 }
 
-/* 음원 5개 */
+/* =========================
+   음원 5개 (✅ 여기부터 통일)
+========================= */
 .preview-list {
     display: grid;
     gap: 10px;
 }
 
 .song-item {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr 120px; /* left / right(하트+재생) */
+    gap: 12px;
     align-items: center;
     background: #fafafa;
     border: 1px solid #eee;
     border-radius: 14px;
     padding: 10px 12px;
+    cursor: pointer;
 }
 
 .song-left { min-width: 0; }
@@ -204,13 +208,54 @@
     color: #666;
 }
 
-.song-play {
+.song-right{
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 미니 하트(리스트 좋아요) */
+.mini-heart-btn{
     border: none;
-    background: #111;
-    color: #fff;
-    border-radius: 12px;
-    padding: 8px 10px;
+    background: none;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0;
     cursor: pointer;
+    color: #bdbdbd;
+    transition: transform 0.1s ease, color 0.15s ease;
+}
+.mini-heart-btn:hover{ transform: scale(1.12); }
+.mini-heart-btn.liked{ color: #ff4d6d; }
+.mini-heart-btn.disabled{ color: #ddd; cursor: not-allowed; }
+
+.mini-like-count{
+    font-size: 13px;
+    color: #777;
+    min-width: 18px;
+    text-align: left;
+}
+
+/* 앨범 상세와 같은 원형 재생 버튼 */
+.track-play{
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    border: 1px solid #e6e6e6;
+    background: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+.track-play:hover{ transform: scale(1.05); }
+.track-play.playing{
+    background:#111;
+    color:#fff;
+    border-color:#111;
 }
 
 /* =========================
@@ -240,4 +285,111 @@
 @media (max-width: 640px) {
     .artist-hero { grid-template-columns: 1fr; }
     .preview-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+}
+
+/* =========================
+   Playlist Add Button (+)
+========================= */
+.add-pl-btn{
+    border: 1px solid #e6e6e6;
+    background: #fff;
+    border-radius: 10px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.add-pl-btn:hover{
+    transform: scale(1.05);
+    background: #f7f7f7;
+    border-color: #d6d6d6;
+}
+.add-pl-btn.disabled{
+    opacity: .4;
+    pointer-events: none;
+}
+
+/* =========================
+   Playlist Modal
+========================= */
+.pl-modal.hidden{ display:none; }
+.pl-modal{ position:fixed; inset:0; z-index:9999; }
+
+.pl-backdrop{ position:absolute; inset:0; background: rgba(0,0,0,0.35); }
+
+.pl-sheet{
+    position:absolute;
+    left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    width: 420px; max-width: calc(100vw - 32px);
+    background:#fff;
+    border-radius: 18px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+    overflow:hidden;
+}
+
+.pl-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:14px 16px;
+    border-bottom:1px solid #eee;
+}
+.pl-title{ font-weight:800; }
+.pl-close{ border:none; background:none; cursor:pointer; font-size:16px; }
+
+.pl-list{
+    padding: 10px;
+    max-height: 360px;
+    overflow:auto;
+}
+
+.pl-item{
+    width:100%;
+    display:flex;
+    gap:12px;
+    padding:10px;
+    border:none;
+    background:#fff;
+    cursor:pointer;
+    border-radius: 12px;
+    text-align:left;
+}
+.pl-item:hover{ background:#f7f7f7; }
+
+.pl-thumb{
+    width:44px;
+    height:44px;
+    border-radius: 10px;
+    overflow:hidden;
+    background:#f0f0f0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+.pl-thumb img{ width:100%; height:100%; object-fit:cover; }
+.pl-thumb-ph{ color:#666; }
+
+.pl-name{ font-weight:800; }
+.pl-sub{ font-size:12px; color:#777; margin-top:2px; }
+
+.pl-foot{
+    padding: 12px 16px;
+    border-top:1px solid #eee;
+    display:flex;
+    justify-content:flex-end;
+}
+.pl-cancel{
+    border:1px solid #e6e6e6;
+    background:#fff;
+    border-radius: 10px;
+    padding:8px 12px;
+    cursor:pointer;
+}
+
+.pl-empty {
+    padding: 18px 10px;
+    color: #666;
+    text-align: center;
 }

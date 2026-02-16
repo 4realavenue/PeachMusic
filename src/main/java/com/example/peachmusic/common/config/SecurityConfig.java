@@ -4,6 +4,7 @@ import com.example.peachmusic.common.filter.JwtAccessDeniedHandler;
 import com.example.peachmusic.common.filter.JwtAuthenticationEntryPoint;
 import com.example.peachmusic.common.filter.JwtFilter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
 
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
@@ -43,8 +45,11 @@ public class SecurityConfig {
                 .addFilterBefore(jwtFilter, SecurityContextHolderAwareRequestFilter.class)
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/signup", "/search/**", "/mypage", "/playlists/**", "/likes/**", "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                        .requestMatchers("/", "/login", "/signup", "/search/**", "/charts", "/mypage", "/playlists/**", "/likes/**", "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
+                        .requestMatchers("/admin/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/artists/**", "/albums/**", "/songs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/songs/ranking/**").permitAll()
                         .requestMatchers("/api/search/**").permitAll()
                         .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "BOSS")
                         .requestMatchers(HttpMethod.GET, "/api/songs/**", "/api/artists/**", "/api/albums/**").permitAll()
