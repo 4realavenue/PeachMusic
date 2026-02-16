@@ -72,7 +72,9 @@ public class AlbumService {
         SortDirection direction = sortType.getDefaultDirection();
         final int size = DETAIL_SIZE;
 
-        List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, direction, cursor, size);
+        Long userId = (authUser == null) ? null : authUser.getUserId();
+
+        List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(userId, foundArtist.getArtistId(), sortType, direction, cursor, size);
 
         return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), last.getAlbumReleaseDate()));
     }

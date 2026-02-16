@@ -60,11 +60,6 @@ public class Artist extends BaseEntity {
         this.bio = bio;
     }
 
-    public Artist(String artistName, Long jamendoArtistId) {
-        this.artistName = artistName;
-        this.jamendoArtistId = jamendoArtistId;
-    }
-
     public void updateArtistInfo(ArtistUpdateRequestDto requestDto) {
         this.artistName = (requestDto.getArtistName() == null || requestDto.getArtistName().isBlank()) ? this.artistName : requestDto.getArtistName().trim();
         this.country = (requestDto.getCountry() == null || requestDto.getCountry().isBlank()) ? this.country : requestDto.getCountry().trim();

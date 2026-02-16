@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
-
 import java.util.Objects;
 
 @RestControllerAdvice
@@ -43,13 +42,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<CommonResponse<Void>> handleMissingParam(MissingServletRequestParameterException ex) {
 
-        String param = switch (ex.getParameterName()) {
-            case "word" -> "검색어";
-            default -> ex.getParameterName();
-        };
-        String message = param + "를 입력해주세요.";
-
         log.error("MissingServletRequestParameterException 발생 : {} ", ex.getMessage());
+
+        String message = ex.getParameterName() + "를 입력해주세요.";
 
         return ResponseEntity.status(ex.getStatusCode()).body(CommonResponse.fail(message));
     }
@@ -60,15 +55,7 @@ public class GlobalExceptionHandler {
 
         log.error("MethodArgumentTypeMismatchException 발생 : {} ", ex.getMessage());
 
-        String param = switch (ex.getName()) {
-            case "artistId" -> "아티스트";
-            case "albumId" -> "앨범";
-            case "songId" -> "음원";
-            case "playlistId" -> "플레이리스트";
-            default -> ex.getName();
-        };
-
-        String message = param + " 요청 값이 올바르지 않습니다.";
+        String message = ex.getName() + " 요청 값이 올바르지 않습니다.";
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(CommonResponse.fail(message));
     }
@@ -90,15 +77,7 @@ public class GlobalExceptionHandler {
 
         log.error("HttpRequestMethodNotSupportedException 발생 : {}", ex.getMessage());
 
-        String method = switch (ex.getMethod()) {
-            case "POST" -> "입력";
-            case "GET" -> "읽기";
-            case "PUT", "PATCH" -> "수정";
-            case "DELETE" -> "삭제";
-            default -> "해당";
-        };
-
-        String message = method + " 요청은 지원하지 않는 요청입니다.";
+        String message = ex.getMethod() + " 요청은 지원하지 않는 요청입니다.";
 
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(CommonResponse.fail(message));
     }
