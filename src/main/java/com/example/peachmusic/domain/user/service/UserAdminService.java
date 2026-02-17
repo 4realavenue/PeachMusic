@@ -41,7 +41,7 @@ public class UserAdminService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         if (user.isDeleted()) {
-            throw new CustomException(ErrorCode.USER_EXIST_DELETED);
+            throw new CustomException(ErrorCode.ALREADY_IN_REQUESTED_STATE);
         }
         user.delete();
     }
@@ -56,7 +56,7 @@ public class UserAdminService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         if (!user.isDeleted()) {
-            throw new CustomException(ErrorCode.USER_EXIST_ACTIVATION_USER);
+            throw new CustomException(ErrorCode.ALREADY_IN_REQUESTED_STATE);
         }
         user.restore();
     }

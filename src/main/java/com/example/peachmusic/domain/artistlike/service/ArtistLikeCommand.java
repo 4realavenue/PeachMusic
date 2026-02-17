@@ -30,7 +30,7 @@ public class ArtistLikeCommand {
 
         Long userId = authUser.getUserId();
 
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
+        Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
 
         boolean liked;

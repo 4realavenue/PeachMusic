@@ -33,8 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+
 import java.util.List;
 import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
 import static com.example.peachmusic.common.constants.UserViewScope.ADMIN_VIEW;
@@ -44,6 +43,7 @@ import static com.example.peachmusic.common.constants.UserViewScope.ADMIN_VIEW;
 @RequiredArgsConstructor
 public class SongAdminService {
 
+    private final SongService songService;
     private final SongRepository songRepository;
     private final AlbumRepository albumRepository;
     private final GenreRepository genreRepository;
@@ -134,8 +134,7 @@ public class SongAdminService {
     @Transactional
     public AdminSongUpdateResponseDto updateSong(AdminSongUpdateRequestDto requestDto, Long songId) {
 
-        Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
-                .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
+        Song findSong = songService.findActiveSongOrThrow(songId);
 
         Album findAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(requestDto.getAlbumId())
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
@@ -172,8 +171,7 @@ public class SongAdminService {
     @Transactional
     public AdminSongAudioUpdateResponseDto updateAudio(Long songId, MultipartFile audio) {
 
-        Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
-                .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
+        Song findSong = songService.findActiveSongOrThrow(songId);
 
         // 기존 파일 경로 백업
         String oldPath = findSong.getAudio();
@@ -195,8 +193,12 @@ public class SongAdminService {
     @Transactional
     public void deleteSong(Long songId) {
 
-        Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
+        Song findSong = songRepository.findById(songId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
+
+        if (findSong.isDeleted()) {
+            throw new CustomException(ErrorCode.ALREADY_IN_REQUESTED_STATE);
+        }
 
         findSong.deleteSong();
 
@@ -212,7 +214,7 @@ public class SongAdminService {
                 .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
         if (!findSong.isDeleted()) {
-            throw new CustomException(ErrorCode.SONG_EXIST_ACTIVATION_SONG);
+            throw new CustomException(ErrorCode.ALREADY_IN_REQUESTED_STATE);
         }
 
         findSong.restoreSong();
