@@ -74,3 +74,36 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 });
+
+/* =========================
+   관리자 메뉴 표시 (JWT decode)
+========================= */
+
+const adminBtn = document.getElementById("adminBtn");
+
+function parseJwt(token) {
+    try {
+        const payload = token.split('.')[1];
+        return JSON.parse(atob(payload));
+    } catch (e) {
+        return null;
+    }
+}
+
+function applyAdminMenuFromToken() {
+
+    const token = localStorage.getItem("accessToken");
+    if (!token || !adminBtn) return;
+
+    const decoded = parseJwt(token);
+    if (!decoded) return;
+
+    // role 필드명은 프로젝트에 따라 다를 수 있음
+    const role = decoded.role || decoded.userRole || decoded.auth;
+
+    if (role === "ADMIN" || role === "ROLE_ADMIN") {
+        adminBtn.classList.remove("hidden");
+    }
+}
+
+applyAdminMenuFromToken();

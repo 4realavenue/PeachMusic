@@ -9,7 +9,7 @@
 
     <script th:src="@{/js/sidebar.js}" defer></script>
 
-    <script type="module" th:src="@{/js/admin/admin-guard.js}"></script>
+    <script type="module" th:src="@{/js/admin-guard.js}"></script>
 </head>
 
 <body>
@@ -22,6 +22,7 @@
             <a href="/admin/albums" class="admin-card green">앨범 관리</a>
             <a href="/admin/songs" class="admin-card orange">음원 관리</a>
             <a href="/admin/users" class="admin-card purple">유저 관리</a>
+            <a href="/admin/openapi/jamendo" class="admin-card">외부 음원 관리</a>
         </div>
 
     </section>

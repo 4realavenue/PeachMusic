@@ -1,0 +1,135 @@
+/* =========================
+   Page Layout
+========================= */
+.admin-jamendo-page{
+    max-width:1050px;
+    margin:30px auto 80px;
+    padding:0 28px;
+}
+
+/* =========================
+   Header
+========================= */
+.page-title{
+    font-size:28px;
+    font-weight:900;
+    margin:0;
+}
+
+.page-sub{
+    font-size:13px;
+    color:#666;
+    margin-top:6px;
+}
+
+/* =========================
+   카드
+========================= */
+.jamendo-card{
+    margin-top:28px;
+    background:#fff;
+    border-radius:22px;
+    padding:48px 40px;   /* 👈 위아래 여백 증가 */
+    box-shadow:0 14px 36px rgba(0,0,0,0.06);
+}
+
+.card-title{
+    font-size:18px;
+    font-weight:900;
+    margin-bottom:32px;
+}
+
+/* =========================
+   입력 + 버튼 한 줄 정렬
+========================= */
+.jamendo-control{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:30px;
+}
+
+/* 왼쪽 인풋 영역 */
+.date-range{
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+
+.date-range input{
+    width:200px;
+    height:48px;
+    padding:0 18px;
+    border-radius:18px;
+    border:1px solid #e8e8e8;
+    font-size:15px;
+}
+
+.date-range input:focus{
+    border-color:#ff2d55;
+    box-shadow:0 0 0 3px rgba(255,45,85,0.15);
+}
+
+.dash{
+    font-weight:900;
+    color:#777;
+}
+
+/* =========================
+   버튼 (아티스트와 동일)
+========================= */
+.primary-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    height:44px;
+    padding:0 22px;
+    border-radius:18px;
+    background:#ff2d55;
+    color:#fff;
+    font-weight:900;
+    border:none;
+    cursor:pointer;
+    box-shadow:0 10px 26px rgba(255,45,85,0.22);
+    transition:transform .12s ease, box-shadow .2s ease;
+}
+
+.primary-btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 14px 32px rgba(255,45,85,0.28);
+}
+
+/* =========================
+   최근 결과
+========================= */
+.result-row{
+    display:flex;
+    justify-content:space-between;
+    padding:16px 0;
+    border-bottom:1px solid #f3f3f3;
+}
+
+.result-row:last-child{
+    border-bottom:none;
+}
+
+.label{
+    font-weight:900;
+    color:#444;
+}
+
+/* =========================
+   메시지
+========================= */
+.result-message{
+    margin-top:24px;
+    padding:14px 18px;
+    border-radius:14px;
+    background:rgba(75,107,255,0.08);
+    color:#4b6bff;
+    font-weight:800;
+}
+
+.hidden{
+    display:none;
+}

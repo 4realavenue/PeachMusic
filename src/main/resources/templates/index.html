@@ -2,19 +2,37 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <title>PeachMusic</title>
 
     <link rel="stylesheet" th:href="@{/css/layout.css}">
-    <link rel="stylesheet" th:href="@{/css/login.css}">
+    <link rel="stylesheet" th:href="@{/css/index.css}">
 
     <script th:src="@{/js/sidebar.js}" defer></script>
 </head>
+
 <body>
 
 <div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
-    <section>
-        <h1>메인 페이지</h1>
+
+    <section class="main-page">
+
+        <!-- 🎧 오늘의 추천 -->
+        <div class="section">
+            <div class="section-title">오늘의 추천</div>
+            <div id="recommendGrid" class="card-grid"></div>
+        </div>
+
+        <!-- 🔥 인기 차트 -->
+        <div class="section">
+            <div class="section-title">인기 차트</div>
+            <div id="rankingList" class="rank-list"></div>
+        </div>
+
     </section>
+
 </div>
+
+<script type="module" th:src="@{/js/index.js}"></script>
 
 </body>
 </html>
