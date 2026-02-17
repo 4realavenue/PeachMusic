@@ -36,7 +36,7 @@
     align-items: center;
     justify-content: center;
 
-    font-size: var(--font-body);
+    font-size: var(--font-md);
     font-weight: 900;
 
     text-decoration: none;

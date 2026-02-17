@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>음원 관리 | PeachMusic</title>
 
+    <link rel="stylesheet" th:href="@{/css/design-system.css}" />
     <link rel="stylesheet" th:href="@{/css/layout.css}" />
     <link rel="stylesheet" th:href="@{/css/admin-songs.css}" />
 
@@ -22,8 +23,22 @@
                 <p class="page-sub">검색 / 등록 / 비활성화(삭제) / 복구 / 파일수정</p>
             </div>
 
-            <div class="page-head-right">
-                <a class="primary-btn" th:href="@{/admin/songs/create}">음원 등록</a>
+            <div class="page-head-right head-actions">
+
+                <!-- ✅ 추가 버튼 2개 -->
+                <button id="retryTranscodeBtn" class="primary-btn" type="button" disabled>
+                    형변환 재시도
+                </button>
+
+                <button id="retryDownloadBtn" class="primary-btn" type="button" disabled>
+                    다운로드 재시도
+                </button>
+
+                <!-- 기존 버튼 -->
+                <a class="primary-btn" th:href="@{/admin/songs/create}">
+                    음원 등록
+                </a>
+
             </div>
         </div>
 
@@ -36,6 +51,9 @@
 
         <div class="table-card">
             <div class="table-head">
+                <div class="col check">
+                    <input type="checkbox" id="selectAll">
+                </div>
                 <div class="col id">ID</div>
                 <div class="col name">곡명</div>
                 <div class="col album">앨범</div>
