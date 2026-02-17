@@ -1,69 +1,82 @@
-/* 페이지 중앙 정렬은 기존 유지 */
+/* =========================
+   ADMIN DASHBOARD
+========================= */
+
 .admin-dashboard {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100%;
     padding: 28px 18px;
+    background: #f7f7f9; /* 카드 대비 확보 */
 }
 
-/* 그리드: 반응형 + 간격 깔끔 */
+
+/* =========================
+   GRID
+========================= */
+
 .admin-grid {
     width: min(720px, 100%);
     display: grid;
-
-    /* 🔥 2개씩 고정 */
     grid-template-columns: repeat(2, 1fr);
-
-    gap: 22px;
-    justify-content: center;
+    gap: 24px;
 }
 
-/* 카드: 애플식 미니멀, 살짝 글래스, 부드러운 그림자 */
+
+/* =========================
+   CARD
+========================= */
+
 .admin-card {
     height: 120px;
-    border-radius: 20px;
+    border-radius: var(--radius-lg);
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: -0.2px;
+    font-size: var(--font-body);
+    font-weight: 900;
 
     text-decoration: none;
-    color: #0b0b0f;
+    color: var(--text-main);
 
-    /* 핵심 스타일 */
-    background: rgba(255, 255, 255, 0.76);
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: #ffffff;
+
+    /* 🔥 윤곽 강조 */
+    border: 1.5px solid var(--border);
+
+    /* 🔥 정돈된 2단 그림자 */
     box-shadow:
-            0 18px 40px rgba(0, 0, 0, 0.08),
-            0 1px 0 rgba(255, 255, 255, 0.9) inset;
+            0 6px 14px rgba(0,0,0,0.06),
+            0 12px 28px rgba(0,0,0,0.05);
 
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-
-    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
-    position: relative;
-    overflow: hidden;
+    transition: transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
 }
 
-/* 위에 살짝 빛 번짐 */
-.admin-card::before {
-    content: "";
-    position: absolute;
-    inset: -40% -40% auto -40%;
-    height: 120%;
-    background: radial-gradient(
-            circle at 30% 30%,
-            rgba(255, 255, 255, 0.75),
-            rgba(255, 255, 255, 0) 60%
-    );
-    opacity: 0.9;
-    pointer-events: none;
+
+/* =========================
+   HOVER EFFECT
+========================= */
+
+.admin-card:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+            0 10px 20px rgba(0,0,0,0.08),
+            0 20px 40px rgba(0,0,0,0.08);
 }
 
-/* 색상은 "배경 덩어리"가 아니라 "아주 은은한 톤"만 */
-.admin-card::after
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 600px) {
+    .admin-grid {
+        grid-template-columns: 1fr;
+    }
+}

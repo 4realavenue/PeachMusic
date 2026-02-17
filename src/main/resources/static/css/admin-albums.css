@@ -35,7 +35,9 @@
     margin:0;
 }
 
-/* 등록 버튼 */
+/* =========================
+   Primary Button
+========================= */
 .primary-btn{
     display:inline-flex;
     align-items:center;
@@ -58,7 +60,7 @@
 }
 
 /* =========================
-   Toolbar (검색 영역)
+   Toolbar
 ========================= */
 .toolbar{
     display:flex;
@@ -67,8 +69,8 @@
 }
 
 .search-box{
-    width: 780px;
-    max-width: 100%;
+    width:780px;
+    max-width:100%;
     display:flex;
     gap:12px;
 }
@@ -81,7 +83,6 @@
     border:1px solid #e8e8e8;
     font-size:15px;
     outline:none;
-    transition:border-color .2s ease, box-shadow .2s ease;
 }
 
 .search-box input:focus{
@@ -97,7 +98,6 @@
     background:#fff;
     font-weight:900;
     cursor:pointer;
-    transition:background .15s ease, border-color .15s ease;
 }
 .ghost-btn:hover{
     background:#f7f7f7;
@@ -114,20 +114,26 @@
     overflow:hidden;
 }
 
-/* 앨범 컬럼 구조
+/* =========================
+   Grid Layout
    ID | 앨범명 | 발매일 | 좋아요 | 관리
-*/
+========================= */
 .table-head,
 .row{
     display:grid;
-    grid-template-columns: 110px minmax(260px, 460px) 140px 120px 170px;
+    grid-template-columns:
+        110px
+        minmax(260px, 460px)
+        140px
+        120px
+        170px;
     align-items:center;
-
-    /* ✅ 핵심: 컬럼 사이 간격을 줘서 뱃지/발매일이 안 붙게 */
-    column-gap: 18px;
+    column-gap:18px;
 }
 
-/* 헤더 */
+/* =========================
+   Header
+========================= */
 .table-head{
     padding:18px 26px;
     background:#fafafa;
@@ -137,13 +143,14 @@
     color:#666;
 }
 
-/* 헤더 관리 가운데 */
 .table-head .col.manage{
     text-align:center;
     justify-self:center;
 }
 
-/* 바디 */
+/* =========================
+   Body
+========================= */
 .table-body .row{
     padding:20px 26px;
     border-bottom:1px solid #f3f3f3;
@@ -160,28 +167,26 @@
     font-weight:800;
 }
 
+/* 🔥 핵심: 양쪽 끝 정렬 복구 */
 .col.name{
     font-weight:900;
     display:flex;
     align-items:center;
+    justify-content:space-between; /* 앨범명 ↔ 활성 분리 */
     gap:12px;
     min-width:0;
-    justify-content:space-between; /* 뱃지/링크 분리 */
 }
 
 .col.date{
     font-weight:800;
     color:#333;
-
-    /* ✅ 안전장치: 발매일 칸도 살짝 띄워서 더 여유 있게 */
-    padding-left: 6px;
 }
 
 .col.like{
     font-weight:800;
 }
 
-/* 관리 버튼 중앙 정렬 */
+/* 관리 버튼 중앙 */
 .row .col.manage{
     display:flex;
     justify-content:center;
@@ -202,8 +207,8 @@
     color:#444;
     white-space:nowrap;
     flex:0 0 auto;
-    min-width: 64px;
-    text-align: center;
+    min-width:64px;
+    text-align:center;
 }
 
 .badge.deleted{
@@ -224,14 +229,9 @@
     font-weight:900;
     cursor:pointer;
     font-size:13px;
-    transition:background .15s ease, border-color .15s ease, transform .1s ease;
 }
 .btn:hover{
     background:#f7f7f7;
-    border-color:#ddd;
-}
-.btn:active{
-    transform:scale(0.96);
 }
 
 .btn.danger{
@@ -289,33 +289,18 @@
 @media (max-width:900px){
     .table-head,
     .row{
-        grid-template-columns: 90px minmax(200px, 1fr) 120px 90px 160px;
-        column-gap: 14px;
-    }
-}
-
-@media (max-width:720px){
-    .admin-albums-page{
-        padding:0 18px;
-    }
-
-    .page-head{
-        flex-direction:column;
-        align-items:flex-start;
-        gap:12px;
-    }
-
-    .toolbar{
-        justify-content:flex-start;
-    }
-
-    .search-box{
-        width:100%;
+        grid-template-columns:
+            90px
+            minmax(200px, 1fr)
+            120px
+            90px
+            160px;
+        column-gap:14px;
     }
 }
 
 /* =========================
-   Album Link (파란색/밑줄 제거)
+   Album Link
 ========================= */
 .album-link,
 .album-link:visited,
@@ -328,7 +313,7 @@
 .album-link{
     font-weight:800;
     display:inline-block;
-    max-width: calc(100% - 90px); /* 뱃지 공간 확보 */
+    max-width: calc(100% - 90px); /* 🔥 배지 공간 확보 */
     overflow:hidden;
     text-overflow:ellipsis;
     white-space:nowrap;
@@ -341,5 +326,4 @@
 .album-link.disabled{
     opacity:0.5;
     cursor:not-allowed;
-    text-decoration:none;
 }
