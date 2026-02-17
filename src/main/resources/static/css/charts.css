@@ -1,30 +1,39 @@
+/* =========================
+   Page
+========================= */
 .chart-page{
-    max-width: 980px;
+    display:block;
+    width:100%;
+    max-width: var(--page-max-width);
     margin: 0 auto;
-    padding: 24px 18px 60px;
 }
 
+/* =========================
+   Header
+========================= */
 .chart-header{
     display:flex;
     justify-content:space-between;
     align-items:flex-end;
-    gap: 16px;
-    margin: 20px 0 14px;
+    gap:16px;
+    margin: 24px 0 16px;
 }
 
 .chart-title{
-    font-size: 26px;
-    font-weight: 900;
-    margin: 0;
-    letter-spacing: -0.02em;
+    font-size: var(--font-title);
+    font-weight:900;
+    margin:0;
 }
 
 .chart-sub{
-    margin: 6px 0 0;
-    font-size: 13px;
-    color: #777;
+    margin:6px 0 0;
+    font-size: var(--font-sm);
+    color: var(--text-sub);
 }
 
+/* =========================
+   Pagination
+========================= */
 .chart-pagination{
     display:flex;
     align-items:center;
@@ -32,62 +41,83 @@
 }
 
 .nav-btn{
-    height: 36px;
-    padding: 0 14px;
-    border-radius: 12px;
-    border: 1px solid #e6e6e6;
-    background: #fff;
-    cursor: pointer;
-    transition: transform .12s ease, background .12s ease;
+    height:36px;
+    padding:0 16px;
+    border-radius: var(--radius-md);
+    border:1px solid var(--border);
+    background:#fff;
+
+    font-size: var(--font-sm);
+    font-weight:700;
+
+    cursor:pointer;
+    transition:transform .12s ease, background .12s ease;
 }
-.nav-btn:hover{ background:#f6f6f6; transform: translateY(-1px); }
-.nav-btn:disabled{ opacity:.45; cursor: default; transform:none; }
+.nav-btn:hover{
+    background:#f7f7f7;
+    transform:translateY(-1px);
+}
+.nav-btn:disabled{
+    opacity:.45;
+    cursor:default;
+    transform:none;
+}
 
 .page-info{
-    min-width: 70px;
+    min-width:70px;
     text-align:center;
-    font-size: 14px;
-    color:#666;
-    font-variant-numeric: tabular-nums;
+    font-size: var(--font-sm);
+    color: var(--text-sub);
+    font-variant-numeric:tabular-nums;
 }
 
-/* 카드형 리스트 */
+/* =========================
+   Chart List Card
+========================= */
 .chart-list{
     list-style:none;
     padding:0;
     margin:0;
-    border-radius:18px;
+
+    border-radius: var(--radius-lg);
     overflow:hidden;
-    background:#fff;
-    box-shadow:0 10px 30px rgba(0,0,0,0.06);
-    border:1px solid #f0f0f0;
+    background: var(--bg-card);
+    box-shadow: var(--shadow-card);
 }
 
 .chart-item{
     display:grid;
-    grid-template-columns: 70px 64px 1fr 64px;
+    grid-template-columns:70px 64px 1fr 64px;
     gap:14px;
     align-items:center;
-    padding:14px 16px;
+
+    padding:16px 18px;
     border-bottom:1px solid #f2f2f2;
     cursor:pointer;
 }
-
 .chart-item:last-child{ border-bottom:none; }
 .chart-item:hover{ background:#fafafa; }
 
+/* =========================
+   Rank Pill
+========================= */
 .rank-pill{
-    width: 54px;
-    height: 34px;
-    border-radius: 999px;
-    background: #f4f4f4;
+    width:54px;
+    height:34px;
+    border-radius:999px;
+
+    background:#f4f4f4;
     display:flex;
     align-items:center;
     justify-content:center;
+
     font-weight:900;
-    font-variant-numeric: tabular-nums;
+    font-variant-numeric:tabular-nums;
 }
 
+/* =========================
+   Thumbnail
+========================= */
 .thumb{
     width:54px;
     height:54px;
@@ -100,48 +130,63 @@
     width:100%;
     height:100%;
     object-fit:cover;
-    display:block;
 }
 
+/* =========================
+   Song Info
+========================= */
 .info{ min-width:0; }
+
 .song-title{
-    font-size:16px;
+    font-size: var(--font-md);
     font-weight:800;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
 }
 
-/* ✅ 동그란 재생 버튼 (앨범 수록곡 톤) */
+/* =========================
+   Play Button
+========================= */
 .track-play{
-    width: 40px;
-    height: 40px;
-    border-radius: 999px;
-    border: 1px solid #e6e6e6;
-    background: #fff;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    cursor: pointer;
-    transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+    width:40px;
+    height:40px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:#fff;
+
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:14px;
+    cursor:pointer;
+    transition:transform .12s ease, background .12s ease, color .12s ease, border-color .12s ease;
 }
-.track-play:hover{ transform: scale(1.05); }
+.track-play:hover{ transform:scale(1.05); }
+
 .track-play.playing{
-    background:#111;
+    background: var(--primary);
     color:#fff;
-    border-color:#111;
+    border-color: var(--primary);
 }
 
+/* =========================
+   Error
+========================= */
 .chart-error{
-    margin-top: 12px;
-    color:#b91c1c;
-    font-size:14px;
+    margin-top:12px;
+    color: var(--danger);
+    font-size: var(--font-sm);
 }
+
 .hidden{ display:none !important; }
 
-@media (max-width: 880px){
+/* =========================
+   Responsive
+========================= */
+@media (max-width:880px){
     .chart-item{
-        grid-template-columns: 60px 54px 1fr 56px;
+        grid-template-columns:60px 54px 1fr 56px;
     }
 }

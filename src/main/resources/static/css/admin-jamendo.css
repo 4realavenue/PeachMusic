@@ -2,45 +2,47 @@
    Page Layout
 ========================= */
 .admin-jamendo-page{
-    max-width:1050px;
-    margin:30px auto 80px;
-    padding:0 28px;
+    max-width: var(--page-max-width);
+    margin: 30px auto 80px;
+    padding: 0 28px;
 }
 
 /* =========================
    Header
 ========================= */
 .page-title{
-    font-size:28px;
+    font-size: var(--font-title);
     font-weight:900;
     margin:0;
+    color: var(--text-main);
 }
 
 .page-sub{
-    font-size:13px;
-    color:#666;
+    font-size: var(--font-sm);
+    color: var(--text-sub);
     margin-top:6px;
 }
 
 /* =========================
-   카드
+   Card
 ========================= */
 .jamendo-card{
     margin-top:28px;
-    background:#fff;
-    border-radius:22px;
-    padding:48px 40px;   /* 👈 위아래 여백 증가 */
-    box-shadow:0 14px 36px rgba(0,0,0,0.06);
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding:48px 40px;
+    box-shadow: var(--shadow-card);
 }
 
 .card-title{
-    font-size:18px;
+    font-size: var(--font-lg);
     font-weight:900;
     margin-bottom:32px;
+    color: var(--text-main);
 }
 
 /* =========================
-   입력 + 버튼 한 줄 정렬
+   Control Layout
 ========================= */
 .jamendo-control{
     display:flex;
@@ -49,7 +51,9 @@
     gap:30px;
 }
 
-/* 왼쪽 인풋 영역 */
+/* =========================
+   Date Range
+========================= */
 .date-range{
     display:flex;
     align-items:center;
@@ -58,49 +62,56 @@
 
 .date-range input{
     width:200px;
-    height:48px;
+    height: var(--input-height);
     padding:0 18px;
-    border-radius:18px;
-    border:1px solid #e8e8e8;
-    font-size:15px;
+    border-radius: var(--radius-md);
+    border:1px solid var(--border);
+    font-size: var(--font-md);
+    outline:none;
+    transition:border-color .2s ease, box-shadow .2s ease;
 }
 
 .date-range input:focus{
-    border-color:#ff2d55;
-    box-shadow:0 0 0 3px rgba(255,45,85,0.15);
+    border-color: var(--primary);
+    box-shadow:0 0 0 3px rgba(248,140,174,0.15);
 }
 
 .dash{
-    font-weight:900;
-    color:#777;
+    font-weight:800;
+    color: var(--text-sub);
 }
 
 /* =========================
-   버튼 (아티스트와 동일)
+   Primary Button
 ========================= */
 .primary-btn{
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    height:44px;
+
+    height: var(--btn-height);
     padding:0 22px;
-    border-radius:18px;
-    background:#ff2d55;
+    border-radius: var(--radius-md);
+
+    background: var(--primary);
     color:#fff;
-    font-weight:900;
+
+    font-size: var(--font-md);
+    font-weight:800;
+
     border:none;
     cursor:pointer;
-    box-shadow:0 10px 26px rgba(255,45,85,0.22);
+
+    box-shadow: var(--shadow-primary);
     transition:transform .12s ease, box-shadow .2s ease;
 }
 
 .primary-btn:hover{
     transform:translateY(-1px);
-    box-shadow:0 14px 32px rgba(255,45,85,0.28);
 }
 
 /* =========================
-   최근 결과
+   Recent Results
 ========================= */
 .result-row{
     display:flex;
@@ -115,19 +126,23 @@
 
 .label{
     font-weight:900;
-    color:#444;
+    color: var(--text-main);
 }
 
 /* =========================
-   메시지
+   Result Message
 ========================= */
 .result-message{
     margin-top:24px;
     padding:14px 18px;
-    border-radius:14px;
-    background:rgba(75,107,255,0.08);
-    color:#4b6bff;
-    font-weight:800;
+    border-radius: var(--radius-md);
+
+    font-size: var(--font-sm);
+    font-weight:700;
+
+    background: rgba(248,140,174,0.08);
+    color: var(--primary);
+    border:1px solid rgba(248,140,174,0.25);
 }
 
 .hidden{

@@ -1,25 +1,29 @@
+/* =========================
+   Page Layout
+========================= */
 .admin-users-page{
-    max-width:1100px;
-    margin:40px auto 100px;
-    padding:0 28px;
+    max-width: var(--page-max-width);
+    margin: 30px auto 80px;
+    padding: 0 28px;
 }
 
 /* =========================
-   제목 영역
+   Header
 ========================= */
 .page-title{
-    font-size:28px;
+    font-size: var(--font-title);
     font-weight:900;
     margin-bottom:4px;
+    color: var(--text-main);
 }
 
 .page-sub{
-    font-size:13px;
-    color:#777;
+    font-size: var(--font-sm);
+    color: var(--text-sub);
 }
 
 /* =========================
-   검색 영역
+   Toolbar
 ========================= */
 .toolbar{
     display:flex;
@@ -29,63 +33,75 @@
 
 .toolbar input{
     flex:1;
-    height:48px;
+    height: var(--input-height);
     padding:0 18px;
-    border-radius:24px;
-    border:1px solid #e5e5e5;
-    font-size:14px;
+    border-radius: var(--radius-md);
+    border:1px solid var(--border);
+    font-size: var(--font-md);
 }
 
 .ghost-btn{
-    height:48px;
+    height: var(--input-height);
     padding:0 22px;
-    border-radius:24px;
-    border:1px solid #e5e5e5;
+    border-radius: var(--radius-md);
+    border:1px solid var(--border);
     background:#fff;
-    font-weight:800;
+
+    font-size: var(--font-md);
+    font-weight:700;
     cursor:pointer;
+}
+.ghost-btn:hover{
+    background:#f7f7f7;
 }
 
 /* =========================
-   카드
+   Table Card
 ========================= */
 .table-card{
-    padding:10px;
-    border-radius:28px;
-    background:linear-gradient(to bottom,#ffffff,#fafafa);
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    box-shadow: var(--shadow-card);
+    overflow:hidden;
 }
 
-/* 헤더 */
+/* =========================
+   Header Grid
+========================= */
 .table-head{
     display:grid;
     grid-template-columns: 80px 1.6fr 1fr 140px 110px 220px;
-    padding:14px 28px;
+
+    padding:18px 26px;
     font-weight:900;
-    font-size:12px;
-    color:#888;
+    font-size: var(--font-sm);
+    color: var(--text-sub);
+
+    background:#fafafa;
+    border-bottom:1px solid #eee;
 }
 
 /* =========================
-   행
+   Rows
 ========================= */
 .table-body .row{
     display:grid;
     grid-template-columns: 80px 1.6fr 1fr 140px 110px 220px;
-    padding:18px 28px;
-    margin:12px 0;
-    background:#fff;
-    border-radius:20px;
-    box-shadow:0 4px 18px rgba(0,0,0,0.05);
-    transition:0.25s;
-}
 
+    padding:20px 26px;
+    border-bottom:1px solid #f3f3f3;
+
+    transition:background .15s ease;
+}
+.table-body .row:last-child{
+    border-bottom:none;
+}
 .table-body .row:hover{
-    transform:translateY(-3px);
-    box-shadow:0 8px 26px rgba(0,0,0,0.08);
+    background:#fafafa;
 }
 
 /* =========================
-   기본 중앙 정렬
+   Column Alignment
 ========================= */
 .table-head .col,
 .table-body .col{
@@ -94,63 +110,71 @@
     justify-content:center;
 }
 
-/* =========================
-   🔥 이메일 / 닉네임만 좌측 정렬
-========================= */
 .col.email,
 .col.nickname{
     justify-content:flex-start;
-    padding-right: 5px;
+    min-width:0;
 }
 
 /* =========================
-   상태 배지
+   Badge
 ========================= */
 .badge{
-    font-size:12px;
-    padding:6px 16px;
+    font-size: var(--font-xs);
+    font-weight:800;
+    padding:6px 14px;
     border-radius:999px;
-    font-weight:900;
+    border:1px solid var(--border);
+    background:#fff;
 }
 
 .badge.active{
-    background:#eef2ff;
-    color:#1d4ed8;
+    color: var(--primary);
+    border-color: rgba(248,140,174,0.4);
+    background: rgba(248,140,174,0.08);
 }
 
 .badge.inactive{
-    background:#fff0f2;
-    color:#e11d48;
+    color: var(--danger);
+    border-color: rgba(255,77,79,0.4);
+    background: rgba(255,77,79,0.08);
 }
 
 /* =========================
-   버튼
+   Action Buttons
 ========================= */
 .action-group{
     display:flex;
-    gap:12px;
+    gap:10px;
     justify-content:center;
 }
 
 .btn{
-    height:34px;
-    padding:0 18px;
-    border-radius:999px;
-    border:1px solid #e5e5e5;
-    font-weight:800;
+    height:36px;
+    padding:0 16px;
+    border-radius:16px;
+    border:1px solid var(--border);
+    background:#fff;
+
+    font-size: var(--font-sm);
+    font-weight:700;
+
     cursor:pointer;
+}
+.btn:hover{
+    background:#f7f7f7;
 }
 
 .btn.active-btn{
-    background:#eef2ff;
-    border-color:#c7d2fe;
-    color:#1d4ed8;
+    border-color: rgba(248,140,174,0.4);
+    color: var(--primary);
+    background: rgba(248,140,174,0.08);
 }
 
 .btn.inactive-btn{
-    background:#fff;
-    border-color:#fecdd3;
-    color:#e11d48;
+    border-color: rgba(255,77,79,0.4);
+    color: var(--danger);
+    background: rgba(255,77,79,0.08);
 }
 
 .btn:disabled{
@@ -158,22 +182,28 @@
     cursor:not-allowed;
 }
 
-/* 권한 select */
+/* =========================
+   Role Select
+========================= */
 .role-select{
-    height:34px;
-    border-radius:8px;
-    border:1px solid #ddd;
-    padding:0 8px;
+    height:36px;
+    border-radius: var(--radius-md);
+    border:1px solid var(--border);
+    padding:0 10px;
+    font-size: var(--font-sm);
     font-weight:600;
+    background:#fff;
 }
 
-/* 하단 */
+/* =========================
+   Footer Messages
+========================= */
 .loading,
 .end-message{
     text-align:center;
     padding:24px;
-    font-size:13px;
-    color:#888;
+    font-size: var(--font-sm);
+    color: var(--text-sub);
 }
 
 .hidden{

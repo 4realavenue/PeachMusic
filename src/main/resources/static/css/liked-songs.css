@@ -1,152 +1,147 @@
 /* ================================
    Page Wrapper
 ================================ */
-.liked-page {
-    width: 1100px;              /* 🔥 기존 1100 → 1300 확장 */
-    margin: 60px auto 100px;
+.liked-page{
+    width:100%;
+    max-width: var(--page-max-width);
+    margin: 30px auto 80px;
+    padding: 0 28px;
 }
 
 /* ================================
    Title
 ================================ */
-.page-title {
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 40px;
+.page-title{
+    font-size: var(--font-title);
+    font-weight:900;
+    margin-bottom:32px;
+    color: var(--text-main);
 }
 
 /* ================================
    Table Layout
 ================================ */
-.liked-table {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
+.liked-table{
+    display:flex;
+    flex-direction:column;
+    width:100%;
 }
 
 /* ================================
    Row Layout
 ================================ */
-.liked-row {
-    display: grid;
+.liked-row{
+    display:grid;
     grid-template-columns: 70px 8fr 1fr 70px;
-    /*   ▶      제목(🔥확장)   좋아요   ❤   */
-    align-items: center;
-    padding: 20px 10px;
-    border-bottom: 1px solid #e6e6e6;
-    transition: background 0.15s ease;
+    align-items:center;
+
+    padding:18px 10px;
+    border-bottom:1px solid var(--border);
+    transition:background .15s ease;
+
+    cursor:pointer;
 }
 
-.liked-row:hover {
-    background: #f9f9f9;
+.liked-row:last-child{
+    border-bottom:none;
+}
+
+.liked-row:hover{
+    background:#fafafa;
 }
 
 /* ================================
    Header
 ================================ */
-.liked-row.header {
-    font-weight: 600;
-    background: #fafafa;
-    border-bottom: 2px solid #e6e6e6;
-    color: #333;
+.liked-row.header{
+    font-weight:800;
+    background:#fafafa;
+    border-bottom:2px solid var(--border);
+    color: var(--text-sub);
 }
 
 /* ================================
-   Column Styles
+   Columns
 ================================ */
-.col.title {
-    font-weight: 500;
-    font-size: 16px;
+.col.title{
+    font-weight:600;
+    font-size: var(--font-md);
 
-    white-space: nowrap;          /* 🔥 줄바꿈 방지 */
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
 
-.col.like-count {
-    text-align: center;
-    color: #666;
-    font-size: 15px;
+.col.like-count{
+    text-align:center;
+    color: var(--text-sub);
+    font-size: var(--font-sm);
 }
 
 /* ================================
    Play Button
 ================================ */
 .play-btn{
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
+    width:44px;
+    height:44px;
+    border-radius:50%;
 
-    border: 1px solid #ddd;   /* 🔥 연한 테두리 */
-    background: #fff;
-    color: #222;
+    border:1px solid var(--border);
+    background:#fff;
+    color: var(--text-main);
 
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
 
-    cursor: pointer;
-    font-size: 16px;
+    cursor:pointer;
+    font-size:16px;
 
-    transition: transform 0.1s ease, background 0.15s ease, border 0.15s ease;
+    transition:transform .1s ease, background .15s ease, border-color .15s ease;
 }
 
 .play-btn:hover{
-    transform: scale(1.05);
-    background: #f8f8f8;
-    border-color: #bbb;       /* 🔥 살짝만 진해짐 */
+    transform:scale(1.05);
+    background:#f7f7f7;
 }
 
-/* 재생 중 */
 .play-btn.playing{
-    background: #111;
-    color: #fff;
-    border-color: #111;
+    background: var(--primary);
+    color:#fff;
+    border-color: var(--primary);
 }
 
 /* ================================
    Heart Button
 ================================ */
-.heart-btn {
-    border: none;
-    background: none;
-    font-size: 22px;
-    cursor: pointer;
-    color: #bbb;
-    transition: transform 0.1s ease, color 0.15s ease;
+.heart-btn{
+    border:none;
+    background:none;
+    font-size:22px;
+    cursor:pointer;
+    color:#bbb;
+    transition:transform .1s ease, color .15s ease;
 }
 
-.heart-btn.liked {
+.heart-btn:hover{
+    transform:scale(1.2);
+}
+
+.heart-btn:active{
+    transform:scale(1.3);
+}
+
+.heart-btn.liked{
     color: #ff4d6d;
-}
-
-.heart-btn:hover {
-    transform: scale(1.2);
-}
-
-.heart-btn:active {
-    transform: scale(1.3);
 }
 
 /* ================================
    Loading / End
 ================================ */
 .loading,
-.end {
-    text-align: center;
-    padding: 30px;
-    color: #888;
-    font-size: 14px;
-}
-
-.liked-row{
-    cursor: pointer;
-}
-
-.col.title{
-    cursor: pointer;
-}
-
-.liked-row:hover{
-    background: #f9f9f9;
+.end{
+    text-align:center;
+    padding:30px;
+    color: var(--text-sub);
+    font-size: var(--font-sm);
 }

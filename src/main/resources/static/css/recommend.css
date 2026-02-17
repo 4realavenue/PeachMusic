@@ -1,136 +1,140 @@
 /* =========================
-   페이지 레이아웃
+   Page
 ========================= */
-
-.recommend-page {
-    width: 1100px;
-    margin: 0 auto;
+.recommend-page{
+    width:100%;
+    max-width: var(--page-max-width);
+    margin: 30px auto 80px;
+    padding: 0 28px;
 }
 
 /* =========================
-   헤더 영역
+   Header
 ========================= */
-
-.recommend-header {
-    margin-bottom: 50px;
+.recommend-header{
+    margin-bottom:50px;
 }
 
-.recommend-title {
-    font-size: 36px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    margin-top: 15px;
-    margin-bottom: 8px;
+.recommend-title{
+    font-size: var(--font-title);
+    font-weight:900;
+    letter-spacing:-0.02em;
+    margin:15px 0 8px;
 }
 
-.recommend-subtitle {
-    font-size: 14px;
-    color: #888;
+.recommend-subtitle{
+    font-size: var(--font-sm);
+    color: var(--text-sub);
 }
 
 /* =========================
-   카드 그리드
+   Grid
 ========================= */
-
-.recommend-grid {
-    display: grid;
+.recommend-grid{
+    display:grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 36px;
+    gap:28px;
 }
 
 /* =========================
-   카드 스타일
+   Card
 ========================= */
+.recommend-card{
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding:18px;
 
-.recommend-card {
-    background: #ffffff;
-    border-radius: 18px;
-    padding: 18px;
-    transition: all 0.25s ease;
-    cursor: pointer;
+    cursor:pointer;
+    transition: transform .15s ease, box-shadow .15s ease;
 }
 
-.recommend-card:hover {
+.recommend-card:hover{
     transform: translateY(-4px);
-    box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+    box-shadow: var(--shadow-hover);
 }
 
-.recommend-card img {
-    width: 100%;
-    height: 190px;
-    object-fit: cover;
-    border-radius: 14px;
-    margin-bottom: 14px;
-}
-
-.song-name {
-    font-weight: 600;
-    font-size: 15px;
-    margin-bottom: 4px;
-}
-
-.artist-name {
-    font-size: 13px;
-    color: #666;
-    margin-bottom: 12px;
+.recommend-card img{
+    width:100%;
+    height:190px;
+    object-fit:cover;
+    border-radius: var(--radius-md);
+    margin-bottom:14px;
 }
 
 /* =========================
-   카드 하단
+   Text
 ========================= */
+.song-name{
+    font-weight:800;
+    font-size: var(--font-md);
+    margin-bottom:4px;
 
-.bottom-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
 
-.like-text {
-    font-size: 13px;
-    color: #444;
-}
+.artist-name{
+    font-size: var(--font-sm);
+    color: var(--text-sub);
+    margin-bottom:12px;
 
-.heart-btn {
-    border: none;
-    background: none;
-    font-size: 18px;
-    cursor: pointer;
-    transition: transform 0.15s ease;
-}
-
-.heart-btn:hover {
-    transform: scale(1.15);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
 
 /* =========================
-   상태 메시지
+   Bottom Row
 ========================= */
+.bottom-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
 
-.loading,
-.empty {
-    margin-top: 60px;
-    text-align: center;
-    color: #777;
-    font-size: 14px;
+.like-text{
+    font-size: var(--font-sm);
+    color: var(--text-sub);
 }
 
 /* =========================
-   하트 버튼 (아티스트와 동일)
+   Heart
 ========================= */
+.heart-btn{
+    border:none;
+    background:none;
+    font-size:20px;
+    cursor:pointer;
 
-.heart-btn {
-    border: none;
-    background: none;
-    font-size: 22px;
-    cursor: pointer;
-    color: #bbb;
-    transition: transform 0.1s ease;
+    color:#bbb;
+    transition: transform .12s ease, color .15s ease;
 }
 
-.heart-btn.liked {
+.heart-btn:hover{
+    transform:scale(1.2);
+}
+
+.heart-btn.liked{
     color: #ff4d6d;
 }
 
-.heart-btn:hover {
-    transform: scale(1.2);
+/* =========================
+   Status
+========================= */
+.loading,
+.empty{
+    margin-top:60px;
+    text-align:center;
+    color: var(--text-sub);
+    font-size: var(--font-sm);
+}
+
+/* =========================
+   Responsive
+========================= */
+@media (max-width:720px){
+    .recommend-grid{
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
 }
