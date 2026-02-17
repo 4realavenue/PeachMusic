@@ -27,33 +27,38 @@
             <a class="ghost-top-btn" href="/admin/songs">목록으로</a>
         </div>
 
-        <div class="create-card">
+        <form id="songCreateForm" class="create-card">
 
-            <!-- 좌: 오디오 파일 -->
+            <!-- 좌: 음원 파일 -->
             <div class="file-pane">
-                <div class="preview">
-                    <span class="preview-badge">AUDIO</span>
 
-                    <div class="preview-empty" id="previewEmpty">음원 파일 미리보기</div>
+                <div class="file-top-info">
+                    <div class="file-title">음원 파일</div>
+                    <div class="file-desc">mp3 / wav (최대 30MB)</div>
+                </div>
 
-                    <div class="file-info hidden" id="fileInfo">
-                        <div class="file-name" id="fileName">-</div>
-                        <div class="file-meta" id="fileMeta">-</div>
+                <div class="card-body">
+                    <input id="audio" name="audio" type="file" accept="audio/*,.mp3,.wav" class="hidden"/>
+
+                    <div class="file-actions">
+                        <button type="button" class="btn" id="pickAudioBtn">파일 선택</button>
+                        <button type="button" class="btn" id="clearAudioBtn">초기화</button>
                     </div>
+
+                    <div class="file-hint" id="fileHint">선택된 파일 없음</div>
+                    <div class="help" id="audioHelp"></div>
                 </div>
 
-                <input id="audio" name="audio" type="file" accept="audio/*" class="hidden"/>
-
-                <div class="file-actions">
-                    <button type="button" class="btn" id="pickAudioBtn">파일 선택</button>
-                    <button type="button" class="btn" id="clearAudioBtn">초기화</button>
-                </div>
-
-                <div class="hint">mp3 / wav, 용량 제한 있음</div>
             </div>
 
-            <!-- 우: 폼 -->
-            <form id="songCreateForm" class="form-pane">
+            <!-- 우: 기본 정보 -->
+            <div class="form-pane">
+
+                <div class="field">
+                    <label class="label">제목 <span class="req">*</span></label>
+                    <input class="input" type="text" name="name" placeholder="예) 안녕" required/>
+                    <div class="mini-hint">409: 동일 제목 중복 불가</div>
+                </div>
 
                 <div class="grid2">
                     <div class="field">
@@ -63,73 +68,70 @@
                     </div>
 
                     <div class="field">
-                        <label class="label">수록 번호(position) <span class="req">*</span></label>
+                        <label class="label">수록 번호 <span class="req">*</span></label>
                         <input class="input" type="number" name="position" placeholder="예) 1" required/>
                         <div class="mini-hint">409: 동일 수록번호 중복 불가</div>
                     </div>
                 </div>
 
-                <div class="field">
-                    <label class="label">음원 제목 <span class="req">*</span></label>
-                    <input class="input" type="text" name="name" placeholder="예) Intro" required/>
-                    <div class="mini-hint">409: 동일 제목 중복 불가</div>
-                </div>
-
                 <div class="grid2">
                     <div class="field">
-                        <label class="label">재생시간(duration)</label>
-                        <input class="input" type="number" name="duration" placeholder="예) 210 (초)"/>
+                        <label class="label">길이(초)</label>
+                        <input class="input" type="number" name="duration" placeholder="예) 210"/>
                     </div>
-                    <div class="field">
-                        <label class="label">licenseCcurl</label>
-                        <input class="input" type="text" name="licenseCcurl" placeholder="예) https://..."/>
-                    </div>
-                </div>
 
-                <div class="grid2">
                     <div class="field">
-                        <label class="label">vocalinstrumental</label>
-                        <input class="input" type="text" name="vocalinstrumental" placeholder="예) vocal / instrumental"/>
-                    </div>
-                    <div class="field">
-                        <label class="label">lang</label>
+                        <label class="label">언어</label>
                         <input class="input" type="text" name="lang" placeholder="예) ko / en"/>
                     </div>
                 </div>
 
                 <div class="grid2">
                     <div class="field">
-                        <label class="label">speed</label>
-                        <input class="input" type="text" name="speed" placeholder="예) normal"/>
+                        <label class="label">보컬/연주</label>
+                        <input class="input" type="text" name="vocalinstrumental" placeholder="예) vocal"/>
                     </div>
+
                     <div class="field">
-                        <label class="label">instruments</label>
-                        <input class="input" type="text" name="instruments" placeholder="예) guitar, drum"/>
+                        <label class="label">속도</label>
+                        <input class="input" type="text" name="speed" placeholder="예) medium"/>
                     </div>
                 </div>
 
                 <div class="field">
-                    <label class="label">genreIdList</label>
-                    <input class="input" type="text" name="genreIdList" placeholder="예) 1,2,5 (콤마로 구분)"/>
-                    <div class="mini-hint">요청에는 List&lt;Long&gt;로 들어가야 해서 JS에서 파싱해서 보냄</div>
+                    <label class="label">라이선스 URL</label>
+                    <input class="input" type="text" name="licenseCcurl" placeholder="https://..."/>
                 </div>
 
                 <div class="field">
-                    <label class="label">vartags</label>
-                    <input class="input" type="text" name="vartags" placeholder="예) mood:bright, season:spring"/>
+                    <label class="label">악기(instruments)</label>
+                    <input class="input" type="text" name="instruments" placeholder="예) guitar,piano"/>
                 </div>
 
-                <div class="actions">
-                    <a class="btn" href="/admin/songs">취소</a>
-                    <button class="primary-btn" type="submit" id="submitBtn">등록</button>
+                <div class="field">
+                    <label class="label">태그(vartags)</label>
+                    <input class="input" type="text" name="vartags" placeholder="예) chill,night"/>
+                </div>
+
+                <div class="field">
+                    <label class="label">장르 ID 목록</label>
+                    <input class="input" type="text" name="genreIdList" placeholder="예) 1,3"/>
+                    <div class="mini-hint">쉼표로 구분해서 입력 (예: 1,3)</div>
                 </div>
 
                 <div class="form-note">
                     * 파일 미첨부(400), 용량초과(400), 형식오류(400), 업로드 실패(500)는 서버 메시지를 그대로 보여줍니다.
                 </div>
-            </form>
 
-        </div>
+                <!-- ✅ 여기! 버튼을 카드 안으로 넣음 -->
+                <div class="actions-bottom">
+                    <a class="btn" href="/admin/songs">취소</a>
+                    <button class="primary-btn" type="submit" id="submitBtn">등록</button>
+                </div>
+
+            </div>
+
+        </form>
     </section>
 </div>
 </body>
