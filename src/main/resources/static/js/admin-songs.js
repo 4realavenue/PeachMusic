@@ -63,7 +63,7 @@ function setEmptyMessage(word) {
 
 function formatDate(v) {
     if (!v) return "-";
-    return String(v); // LocalDate: yyyy-MM-dd 예상
+    return String(v);
 }
 
 function safeNumber(v, fallback = 0) {
@@ -71,10 +71,18 @@ function safeNumber(v, fallback = 0) {
     return Number.isFinite(n) ? n : fallback;
 }
 
+/** ✅ DELETE/PATCH가 바디 없을 수도 있어서 안전 파싱 */
+async function safeJson(res) {
+    try {
+        return await res.json();
+    } catch {
+        return null;
+    }
+}
+
 /**
  * ✅ SongSearchResponseDto 기준
- * songId, name, artistName, releaseDate, albumImage,
- * likeCount, playCount, isDeleted, progressingStatus
+ * (Postman에서 deleted로 내려온다고 했으니 그게 정답)
  */
 function normalizeSong(s) {
     return {
@@ -85,70 +93,78 @@ function normalizeSong(s) {
         albumImage: s.albumImage ?? null,
         likeCount: safeNumber(s.likeCount, 0),
         playCount: safeNumber(s.playCount, 0),
-        isDeleted: s.isDeleted === true,
+
+        // ✅ 핵심: deleted 키 대응
+        isDeleted: (s.deleted ?? s.isDeleted) === true,
+
         progressingStatus: s.progressingStatus ?? null,
     };
 }
 
+/* =========================
+   Render
+========================= */
 function renderRows(items, append = true) {
     if (!append) els.listBody.innerHTML = "";
 
-    const html = items.map((raw) => {
-        const s = normalizeSong(raw);
+    const html = items
+        .map((raw) => {
+            const s = normalizeSong(raw);
 
-        const badge = s.isDeleted
-            ? `<span class="badge deleted">비활성</span>`
-            : `<span class="badge">활성</span>`;
+            const badge = s.isDeleted
+                ? `<span class="badge deleted">비활성</span>`
+                : `<span class="badge">활성</span>`;
 
-        const statusBadge = s.progressingStatus
-            ? `<span class="status-badge">${escapeHtml(s.progressingStatus)}</span>`
-            : "";
+            const statusBadge = s.progressingStatus
+                ? `<span class="status-badge">${escapeHtml(s.progressingStatus)}</span>`
+                : "";
 
-        // ✅ 곡명 클릭: 활성은 상세 이동 / 비활성은 토스트 안내
-        const nameHtml = s.isDeleted
-            ? `<span class="song-link disabled" data-disabled="true">${escapeHtml(s.name)}</span>`
-            : `<a class="song-link" href="/songs/${s.songId}/page">${escapeHtml(s.name)}</a>`;
+            // ✅ 곡명 클릭: 활성은 상세 이동 / 비활성은 토스트 안내
+            const nameHtml = s.isDeleted
+                ? `<span class="song-link disabled" data-disabled="true">${escapeHtml(s.name)}</span>`
+                : `<a class="song-link" href="/songs/${s.songId}/page">${escapeHtml(s.name)}</a>`;
 
-        const albumImageHtml = s.albumImage
-            ? `<img class="album-cover" src="${escapeHtml(s.albumImage)}" alt="album"/>`
-            : `<div class="album-cover-fallback">🎵</div>`;
+            const albumImageHtml = s.albumImage
+                ? `<img class="album-cover" src="${escapeHtml(s.albumImage)}" alt="album"/>`
+                : `<div class="album-cover-fallback">🎵</div>`;
 
-        const metaLine1 = `${escapeHtml(s.artistName)} · ${escapeHtml(formatDate(s.releaseDate))}`;
-        const metaLine2 = `♥ ${escapeHtml(s.likeCount)} · ▶ ${escapeHtml(s.playCount)} ${statusBadge}`;
+            const metaLine1 = `${escapeHtml(s.artistName)} · ${escapeHtml(formatDate(s.releaseDate))}`;
+            const metaLine2 = `♥ ${escapeHtml(s.likeCount)} · ▶ ${escapeHtml(s.playCount)} ${statusBadge}`;
 
-        const statusButton = s.isDeleted
-            ? `<button class="btn primary" data-action="restore" data-id="${s.songId}">복구</button>`
-            : `<button class="btn danger" data-action="delete" data-id="${s.songId}">삭제</button>`;
+            const statusButton = s.isDeleted
+                ? `<button class="btn primary" data-action="restore" data-id="${s.songId}">복구</button>`
+                : `<button class="btn danger" data-action="delete" data-id="${s.songId}">삭제</button>`;
 
-        return `
-            <div class="row">
-                <div class="col id">${escapeHtml(s.songId)}</div>
+            return `
+        <div class="row">
+          <div class="col id">${escapeHtml(s.songId)}</div>
 
-                <div class="col name">
-                    ${nameHtml}
-                </div>
+          <div class="col name">
+            ${nameHtml}
+          </div>
 
-                <div class="col album">
-                    <div class="album-stack">
-                        <div class="album-cover-wrap">
-                            ${albumImageHtml}
-                        </div>
-                        ${badge}
-                    </div>
-                </div>
-
-                <div class="col meta">
-                    <div class="meta-line">${metaLine1}</div>
-                    <div class="meta-line">${metaLine2}</div>
-                </div>
-
-                <div class="col manage">
-                    <button class="btn" data-action="edit" data-id="${s.songId}">수정</button>
-                    ${statusButton}
-                </div>
+          <div class="col album">
+            <div class="album-stack">
+              <div class="album-cover-wrap">
+                ${albumImageHtml}
+              </div>
+              ${badge}
             </div>
-        `;
-    }).join("");
+          </div>
+
+          <div class="col meta">
+            <div class="meta-line">${metaLine1}</div>
+            <div class="meta-line">${metaLine2}</div>
+          </div>
+
+          <div class="col manage">
+            <button class="btn" data-action="edit" data-id="${s.songId}">수정</button>
+            ${statusButton}
+          </div>
+        </div>
+      `;
+        })
+        .join("");
 
     els.listBody.insertAdjacentHTML("beforeend", html);
 }
@@ -204,10 +220,7 @@ async function fetchList({ reset = false } = {}) {
         const lastItem = content[content.length - 1];
         const lastNorm = lastItem ? normalizeSong(lastItem) : null;
 
-        state.lastId =
-            nextCursor?.lastId ??
-            lastNorm?.songId ??
-            state.lastId;
+        state.lastId = nextCursor?.lastId ?? lastNorm?.songId ?? state.lastId;
 
         setMoreVisible(state.hasNext);
     } catch (e) {
@@ -255,7 +268,6 @@ function bindEvents() {
 
         const action = btn.dataset.action;
         const id = btn.dataset.id;
-
         if (!id) return;
 
         if (action === "edit") {
@@ -269,14 +281,16 @@ function bindEvents() {
             const res = await authFetch(`/api/admin/songs/${id}`, { method: "DELETE" });
             if (!res) return;
 
-            const json = await res.json();
+            const json = await safeJson(res);
 
             if (!res.ok || json?.success === false) {
                 alert(json?.message || "비활성화 실패");
                 return;
             }
 
-            alert(json.message || "음원이 비활성화 되었습니다.");
+            alert(json?.message || "음원이 비활성화 되었습니다.");
+
+            // ✅ 서버 기준으로 다시 렌더 (deleted 키 이제 읽히니까 정상적으로 복구 버튼 뜸)
             fetchList({ reset: true });
             return;
         }
@@ -287,14 +301,15 @@ function bindEvents() {
             const res = await authFetch(`/api/admin/songs/${id}/restore`, { method: "PATCH" });
             if (!res) return;
 
-            const json = await res.json();
+            const json = await safeJson(res);
 
             if (!res.ok || json?.success === false) {
                 alert(json?.message || "복구 실패");
                 return;
             }
 
-            alert(json.message || "음원이 활성화 되었습니다.");
+            alert(json?.message || "음원이 활성화 되었습니다.");
+
             fetchList({ reset: true });
         }
     });
