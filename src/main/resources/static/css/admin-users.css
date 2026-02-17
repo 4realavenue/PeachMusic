@@ -1,0 +1,181 @@
+.admin-users-page{
+    max-width:1100px;
+    margin:40px auto 100px;
+    padding:0 28px;
+}
+
+/* =========================
+   제목 영역
+========================= */
+.page-title{
+    font-size:28px;
+    font-weight:900;
+    margin-bottom:4px;
+}
+
+.page-sub{
+    font-size:13px;
+    color:#777;
+}
+
+/* =========================
+   검색 영역
+========================= */
+.toolbar{
+    display:flex;
+    gap:12px;
+    margin:28px 0 34px;
+}
+
+.toolbar input{
+    flex:1;
+    height:48px;
+    padding:0 18px;
+    border-radius:24px;
+    border:1px solid #e5e5e5;
+    font-size:14px;
+}
+
+.ghost-btn{
+    height:48px;
+    padding:0 22px;
+    border-radius:24px;
+    border:1px solid #e5e5e5;
+    background:#fff;
+    font-weight:800;
+    cursor:pointer;
+}
+
+/* =========================
+   카드
+========================= */
+.table-card{
+    padding:10px;
+    border-radius:28px;
+    background:linear-gradient(to bottom,#ffffff,#fafafa);
+}
+
+/* 헤더 */
+.table-head{
+    display:grid;
+    grid-template-columns: 80px 1.6fr 1fr 140px 110px 220px;
+    padding:14px 28px;
+    font-weight:900;
+    font-size:12px;
+    color:#888;
+}
+
+/* =========================
+   행
+========================= */
+.table-body .row{
+    display:grid;
+    grid-template-columns: 80px 1.6fr 1fr 140px 110px 220px;
+    padding:18px 28px;
+    margin:12px 0;
+    background:#fff;
+    border-radius:20px;
+    box-shadow:0 4px 18px rgba(0,0,0,0.05);
+    transition:0.25s;
+}
+
+.table-body .row:hover{
+    transform:translateY(-3px);
+    box-shadow:0 8px 26px rgba(0,0,0,0.08);
+}
+
+/* =========================
+   기본 중앙 정렬
+========================= */
+.table-head .col,
+.table-body .col{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+/* =========================
+   🔥 이메일 / 닉네임만 좌측 정렬
+========================= */
+.col.email,
+.col.nickname{
+    justify-content:flex-start;
+    padding-right: 5px;
+}
+
+/* =========================
+   상태 배지
+========================= */
+.badge{
+    font-size:12px;
+    padding:6px 16px;
+    border-radius:999px;
+    font-weight:900;
+}
+
+.badge.active{
+    background:#eef2ff;
+    color:#1d4ed8;
+}
+
+.badge.inactive{
+    background:#fff0f2;
+    color:#e11d48;
+}
+
+/* =========================
+   버튼
+========================= */
+.action-group{
+    display:flex;
+    gap:12px;
+    justify-content:center;
+}
+
+.btn{
+    height:34px;
+    padding:0 18px;
+    border-radius:999px;
+    border:1px solid #e5e5e5;
+    font-weight:800;
+    cursor:pointer;
+}
+
+.btn.active-btn{
+    background:#eef2ff;
+    border-color:#c7d2fe;
+    color:#1d4ed8;
+}
+
+.btn.inactive-btn{
+    background:#fff;
+    border-color:#fecdd3;
+    color:#e11d48;
+}
+
+.btn:disabled{
+    opacity:0.4;
+    cursor:not-allowed;
+}
+
+/* 권한 select */
+.role-select{
+    height:34px;
+    border-radius:8px;
+    border:1px solid #ddd;
+    padding:0 8px;
+    font-weight:600;
+}
+
+/* 하단 */
+.loading,
+.end-message{
+    text-align:center;
+    padding:24px;
+    font-size:13px;
+    color:#888;
+}
+
+.hidden{
+    display:none;
+}

@@ -31,9 +31,4 @@ public class HomeController {
     public String adminHome() {
         return "admin/admin"; // templates/admin/index.html
     }
-
-    @GetMapping("/admin/users")
-    public String adminUsers() {
-        return "admin/users"; // templates/admin/users.html
-    }
 }
