@@ -70,7 +70,7 @@ function renderRows(items, append = true) {
                 </span>
               `
             : `
-                <a class="album-link" href="/albums/${a.albumId}">
+                <a class="album-link" href="/albums/${a.albumId}/page">
                     ${escapeHtml(a.albumName)}
                 </a>
               `;
