@@ -1,5 +1,6 @@
 package com.example.peachmusic.domain.user.dto.response;
 
+import com.example.peachmusic.common.enums.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -8,4 +9,5 @@ import lombok.Getter;
 public class LoginResponseDto {
 
     private String token;
+    private UserRole role;
 }

@@ -1,6 +1,7 @@
 package com.example.peachmusic.domain.user.service;
 
 import com.example.peachmusic.common.enums.ErrorCode;
+import com.example.peachmusic.common.enums.UserRole;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.filter.JwtUtil;
 import com.example.peachmusic.common.model.AuthUser;
@@ -66,11 +67,12 @@ public class AuthService {
 
         String token = jwtUtil.createToken(user.getUserId(), user.getEmail(), user.getRole(), user.getTokenVersion());
         AuthUser authUser = new AuthUser( user.getUserId(), user.getEmail(), user.getRole(), user.getTokenVersion());
+        UserRole role = user.getRole();
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(authUser, null, authUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        return new LoginResponseDto(token);
+        return new LoginResponseDto(token, role);
     }
 
     /**
