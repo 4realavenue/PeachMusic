@@ -66,8 +66,7 @@ public class SongService {
     @Transactional(readOnly = true)
     public SongGetDetailResponseDto getSong(Long songId, AuthUser authUser) {
 
-        Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
-                .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
+        Song findSong = findActiveSongOrThrow(songId);
 
         boolean liked = false;
 
@@ -99,8 +98,8 @@ public class SongService {
     @Transactional(readOnly = true)
     public KeysetResponse<SongArtistDetailResponseDto> getArtistSongs(AuthUser authUser, Long artistId, CursorParam cursor) {
 
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
+        Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
 
         SortType sortType = SortType.RELEASE_DATE;
         SortDirection direction = sortType.getDefaultDirection();
@@ -166,5 +165,10 @@ public class SongService {
         songRepository.save(song);
 
         return SongPlayResponseDto.from(song, artistName, streamingUrl);
+    }
+
+    public Song findActiveSongOrThrow(Long songId) {
+        return songRepository.findBySongIdAndIsDeletedFalse(songId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
     }
 }

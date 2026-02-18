@@ -1,8 +1,8 @@
 package com.example.peachmusic.domain.artist.service;
 
+import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.FileType;
 import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.model.CursorParam;
 import com.example.peachmusic.common.model.NextCursor;
 import com.example.peachmusic.common.model.KeysetResponse;
@@ -22,8 +22,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
 import static com.example.peachmusic.common.constants.UserViewScope.ADMIN_VIEW;
@@ -32,6 +30,7 @@ import static com.example.peachmusic.common.constants.UserViewScope.ADMIN_VIEW;
 @RequiredArgsConstructor
 public class ArtistAdminService {
 
+    private final ArtistService artistService;
     private final ArtistRepository artistRepository;
     private final SongRepository songRepository;
     private final ArtistAlbumRepository artistAlbumRepository;
@@ -88,7 +87,7 @@ public class ArtistAdminService {
     @Transactional
     public ArtistUpdateResponseDto updateArtist(Long artistId, ArtistUpdateRequestDto requestDto) {
 
-        Artist foundArtist = getArtistOrThrow(artistId, false, ErrorCode.ARTIST_NOT_FOUND);
+        Artist foundArtist = artistService.findActiveArtistOrThrow(artistId);
 
         foundArtist.updateArtistInfo(requestDto);
 
@@ -104,7 +103,7 @@ public class ArtistAdminService {
     @Transactional
     public ArtistImageUpdateResponseDto updateProfileImage(Long artistId, MultipartFile profileImage) {
 
-        Artist foundArtist = getArtistOrThrow(artistId, false, ErrorCode.ARTIST_NOT_FOUND);
+        Artist foundArtist = artistService.findActiveArtistOrThrow(artistId);
 
         String oldPath = foundArtist.getProfileImage();
 
@@ -126,7 +125,12 @@ public class ArtistAdminService {
     @Transactional
     public void deleteArtist(Long artistId) {
 
-        Artist foundArtist = getArtistOrThrow(artistId, false, ErrorCode.ARTIST_DETAIL_NOT_FOUND);
+        Artist foundArtist = artistRepository.findById(artistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
+
+        if (foundArtist.isDeleted()) {
+            throw new CustomException(ErrorCode.ALREADY_IN_REQUESTED_STATE);
+        }
 
         foundArtist.delete();
 
@@ -145,7 +149,12 @@ public class ArtistAdminService {
     @Transactional
     public void restoreArtist(Long artistId) {
 
-        Artist foundArtist = getArtistOrThrow(artistId, true, ErrorCode.ARTIST_DETAIL_NOT_FOUND);
+        Artist foundArtist = artistRepository.findById(artistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
+
+        if (!foundArtist.isDeleted()) {
+            throw new CustomException(ErrorCode.ALREADY_IN_REQUESTED_STATE);
+        }
 
         foundArtist.restore();
 
@@ -155,11 +164,6 @@ public class ArtistAdminService {
             songRepository.restoreByAlbumIdList(albumIdList);
             albumRepository.restoreByAlbumIdList(albumIdList);
         }
-    }
-
-    private Artist getArtistOrThrow(Long artistId, boolean isDeleted, ErrorCode errorCode) {
-        return artistRepository.findByArtistIdAndIsDeleted(artistId, isDeleted)
-                .orElseThrow(() -> new CustomException(errorCode));
     }
 
     private String normalize(String value) {

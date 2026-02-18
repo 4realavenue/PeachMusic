@@ -463,7 +463,7 @@ class AlbumAdminServiceTest {
         CustomException exception = assertThrows(CustomException.class, () -> albumAdminService.deleteAlbum(album.getAlbumId()));
 
         // then
-        assertEquals(ErrorCode.ALBUM_DETAIL_NOT_FOUND, exception.getErrorCode());
+        assertEquals(ErrorCode.ALBUM_NOT_FOUND, exception.getErrorCode());
     }
 
     @Test
@@ -501,6 +501,6 @@ class AlbumAdminServiceTest {
         CustomException exception = assertThrows(CustomException.class, () -> albumAdminService.restoreAlbum(album.getAlbumId()));
 
         // then
-        assertEquals(ErrorCode.ALBUM_DETAIL_NOT_FOUND, exception.getErrorCode());
+        assertEquals(ErrorCode.ALBUM_NOT_FOUND, exception.getErrorCode());
     }
 }
