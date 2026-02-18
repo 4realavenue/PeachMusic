@@ -8,9 +8,10 @@ document.addEventListener("DOMContentLoaded", () => {
     /* ===== 현재 값 토글 ===== */
     const btnToggleCurrent = document.getElementById("btnToggleCurrent");
     const currentBody = document.getElementById("currentBody");
+
     btnToggleCurrent?.addEventListener("click", () => {
-        const isHidden = currentBody.classList.toggle("hidden");
-        btnToggleCurrent.textContent = isHidden ? "현재 값 보기" : "현재 값 숨기기";
+        const opened = currentBody.classList.toggle("open");
+        btnToggleCurrent.textContent = opened ? "현재 값 숨기기" : "현재 값 보기";
     });
 
     /* ===== 이미지 (서버 이미지 렌더링 X, 선택 시에만 표시) ===== */

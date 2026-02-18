@@ -307,3 +307,20 @@ textarea:focus {
    Toggle
 ========================= */
 .collapsed { display: none !important; }
+
+/* =========================
+   Current toggle - smooth (스르륵)
+   ✅ 다른 곳 건드리지 않음
+========================= */
+#currentBody {
+    max-height: 0;
+    overflow: hidden;
+    padding: 0;
+    transition: max-height 180ms ease, padding 180ms ease;
+}
+
+/* 열림 상태 */
+#currentBody.open {
+    max-height: 999px;
+    padding: 20px;
+}
