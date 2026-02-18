@@ -51,6 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         audio.src = url;
         playerTitle.textContent = title || "Unknown";
+        sessionStorage.setItem("currentSong", url);   // 🔥 추가
         audio.play().catch(err => console.error("재생 실패:", err));
     };
 
@@ -115,4 +116,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return `${m}:${s.toString().padStart(2, "0")}`;
     }
 
+    /* =========================
+   곡 복원
+    ========================= */
+    const savedSong = sessionStorage.getItem("currentSong");
+
+    if (savedSong && !audio.src) {
+        audio.src = savedSong;
+    }
 });

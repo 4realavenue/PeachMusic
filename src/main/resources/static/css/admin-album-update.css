@@ -1,54 +1,66 @@
-/* admin-album-update.css */
-
+/* 페이지 */
 .page {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 24px 18px 60px;
+    max-width: var(--page-max-width);
+    margin: 30px auto 80px;
+    padding: 0 28px;
 }
 
+/* 헤더 */
 .page-head {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     gap: 16px;
-    margin-bottom: 18px;
+    margin-bottom: 22px;
 }
 
 .page-title {
-    font-size: 44px;
+    font-size: var(--font-title);
     font-weight: 900;
-    line-height: 1.05;
-    margin: 0 0 8px;
+    margin: 0 0 6px;
 }
 
 .page-sub {
     margin: 0;
-    color: #666;
-    font-size: 15px;
+    color: var(--text-sub);
+    font-size: var(--font-sm);
 }
 
+/* 🔥 목록으로 버튼 전용 보정 */
+.page-head .btn-ghost {
+    background: #fff;
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-card);
+}
+
+.page-head .btn-ghost:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-hover);
+    background: #fff;
+}
+
+/* grid */
 .grid {
     display: grid;
     grid-template-columns: 1fr 1.15fr;
-    gap: 18px;
+    gap: 22px;
     align-items: stretch;
 }
 
-/* 기존 .stack 삭제/교체 */
 .stack {
-    display: flex;        /* ✅ grid 말고 flex */
+    display: flex;
     flex-direction: column;
-    gap: 18px;
-    height: 100%;         /* ✅ 오른쪽 컬럼 높이를 좌측과 동일하게 */
+    gap: 22px;
+    height: 100%;
 }
 
-/* ✅ 1번째(현재 값)는 고정 */
 .stack > .card:first-child {
     flex: 0 0 auto;
 }
 
 .stack > .card:nth-child(2) .card-body {
-    padding-top: 32px; /* 기본 16px보다 내려가게 */
+    padding-top: 28px;
 }
 
 @media (max-width: 980px) {
@@ -57,57 +69,54 @@
 
 /* card */
 .card {
-    background: #fff;
-    border-radius: 22px;
-    box-shadow: 0 16px 40px rgba(0,0,0,0.06);
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
     overflow: hidden;
     display: flex;
     flex-direction: column;
 }
 
 .card-head {
-    padding: 18px 18px 14px;
-    border-bottom: 1px solid #f1f1f1;
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 12px;
 }
 
-.card-title { font-size: 26px; font-weight: 900; margin: 0 0 6px; }
-.card-desc  { font-size: 14px; color: #666; margin: 0; }
+.card-title {
+    font-size: var(--font-lg);
+    font-weight: 900;
+    margin: 0 0 6px;
+}
+
+.card-desc {
+    font-size: var(--font-sm);
+    color: var(--text-sub);
+    margin: 0;
+}
 
 .card-body {
-    padding: 16px 18px 18px;
+    padding: 20px;
     flex: 1;
 }
 
-/* ✅ 토글 닫히면 카드가 커지지 않게 "display:none"까지 확실히 */
+/* hidden */
 .hidden { display: none !important; }
-.card-body.hidden {
-    display: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: 0 !important;
-}
 
 /* preview */
 .preview {
     position: relative;
     height: 360px;
-    min-height: 360px;
-    max-height: 360px;
-    border-radius: 18px;
+    border-radius: var(--radius-md);
     background: #f2f2f2;
-    border: 1px solid #e9e9e9;
+    border: 1px solid var(--border);
     overflow: hidden;
-
-    /* ✅ placeholder 중앙정렬 (flex 유지하면 z-index 꼬일 때가 있어서 grid로 고정) */
     display: grid;
     place-items: center;
 }
 
-/* ✅ (핵심) 서버 img + 선택 imgPreview 모두 절대배치 → 이미지 때문에 박스/카드가 절대 안늘어남 */
 .preview img,
 .preview #imgPreview {
     position: absolute;
@@ -115,65 +124,95 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
 }
 
 .badge {
     position: absolute;
     top: 14px;
     left: 14px;
-    padding: 10px 14px;
+    padding: 8px 14px;
     border-radius: 999px;
-    background: rgba(255,255,255,0.8);
-    border: 1px solid #e3e3e3;
+    background: rgba(255,255,255,0.9);
+    border: 1px solid var(--border);
     font-weight: 800;
-    font-size: 14px;
-    z-index: 2;
+    font-size: var(--font-xs);
 }
 
-.placeholder { color: #777; font-weight: 700; z-index: 1; }
+.placeholder {
+    color: var(--text-sub);
+    font-weight: 700;
+}
 
-.file-row { display: flex; gap: 10px; margin-top: 14px; margin-bottom: 10px; }
-.file-hint { color: #666; font-size: 14px; margin-bottom: 14px; }
+/* 파일 영역 */
+.file-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 18px;
+}
 
-.sr-only {
-    position: absolute !important;
-    width: 1px; height: 1px;
-    padding: 0; margin: -1px;
-    overflow: hidden;
-    clip: rect(0,0,0,0);
-    white-space: nowrap;
-    border: 0;
+.file-hint {
+    color: var(--text-sub);
+    font-size: var(--font-sm);
+    margin-top: 6px;
 }
 
 /* fields */
-.field { display: grid; gap: 10px; margin-bottom: 16px; }
-.label { font-size: 16px; font-weight: 900; }
-
-input[type="text"], input[type="date"], select, textarea {
-    width: 100%;
-    border: 1px solid #e6e6e6;
-    border-radius: 16px;
-    padding: 14px 16px;
-    font-size: 16px;
-    outline: none;
-    background: #fff;
+.field {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 18px;
 }
 
-.mini { color: #777; font-size: 13px; margin-top: -4px; }
+.label {
+    font-size: var(--font-md);
+    font-weight: 900;
+}
+
+input[type="text"],
+input[type="date"],
+select,
+textarea {
+    width: 100%;
+    height: var(--input-height);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0 18px;
+    font-size: var(--font-md);
+    outline: none;
+    background: #fff;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+textarea {
+    height: auto;
+    padding: 14px 18px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(248,140,174,0.15);
+}
+
+.mini {
+    color: var(--text-sub);
+    font-size: var(--font-xs);
+}
 
 /* actions */
 .actions {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    margin-top: 10px;
+    margin-top: 14px;
 }
 
 .help {
     margin-top: 10px;
-    color: #e11d48;
-    font-size: 14px;
+    color: var(--danger);
+    font-size: var(--font-sm);
     min-height: 18px;
 }
 
@@ -181,21 +220,18 @@ input[type="text"], input[type="date"], select, textarea {
 .kv-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 12px;
 }
-
-.kv-4 { grid-template-columns: 1fr 1fr; }
 
 .kv {
-    border: 1px solid #efefef;
-    border-radius: 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
     padding: 14px 16px;
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    gap: 10px;
 }
-.k { color: #777; font-weight: 800; }
+
+.k { color: var(--text-sub); font-weight: 800; }
 .v { font-weight: 900; }
 
 /* 참여아티스트 */
@@ -207,112 +243,106 @@ input[type="text"], input[type="date"], select, textarea {
 }
 
 .panel {
-    border: 1px solid #efefef;
-    border-radius: 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
     overflow: hidden;
     margin-bottom: 14px;
 }
 
 .panel-title {
-    padding: 12px 14px;
+    padding: 14px;
     font-weight: 900;
-    border-bottom: 1px solid #f2f2f2;
+    border-bottom: 1px solid var(--border);
     display: flex;
-    align-items: center;
     justify-content: space-between;
+}
+
+.panel-hint {
+    color: var(--text-sub);
+    font-size: var(--font-xs);
+    font-weight: 700;
+}
+
+.panel-body {
+    padding: 14px;
+    display: grid;
     gap: 10px;
 }
 
-.panel-hint { color: #777; font-size: 13px; font-weight: 700; }
-
-.panel-body { padding: 12px 14px; display: grid; gap: 10px; }
-
 .panel-empty {
-    color: #777;
+    color: var(--text-sub);
     background: #fafafa;
-    border: 1px dashed #eaeaea;
-    border-radius: 14px;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-md);
     padding: 14px;
     font-weight: 700;
 }
 
 .artist-row {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    padding: 10px 12px;
-    border: 1px solid #f0f0f0;
-    border-radius: 14px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
 }
 
 .artist-name { font-weight: 900; }
 
-.chip-btn {
-    border: 1px solid #e6e6e6;
-    border-radius: 999px;
-    padding: 8px 12px;
-    font-weight: 900;
-    background: #fff;
-    cursor: pointer;
-}
-
-.chip-btn.muted { opacity: 0.6; cursor: not-allowed; }
-.chip-btn.danger { border-color: #ffb4c0; color: #ff2d55; }
-.chip-btn[disabled] { opacity: 0.6; cursor: not-allowed; }
-
 /* buttons */
 .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border-radius: 999px;
-    padding: 12px 16px;
-    border: 1px solid #e6e6e6;
+    height: var(--btn-height);
+    padding: 0 22px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
     background: #fff;
-    color: #111;
+    font-size: var(--font-md);
     font-weight: 800;
     cursor: pointer;
-    text-decoration: none;
 }
 
-.btn:hover { filter: brightness(0.98); }
-
-.btn-ghost { background: #fff; }
+.btn:hover { background: #f7f7f7; }
 
 .btn-primary {
     border: none;
-    background: #ff2d55;
+    background: var(--primary);
     color: #fff;
-    box-shadow: 0 10px 26px rgba(255, 45, 85, 0.25);
+    box-shadow: var(--shadow-primary);
 }
 
 .btn-wide {
     width: 100%;
-    padding: 16px 18px;
-    font-size: 18px;
+    font-size: var(--font-lg);
 }
 
-/* 토글 접힘 */
-.collapsed { display: none !important; }
+/* btn 시스템 위에 back 변형을 정확히 얹기 */
+.btn.btn-back{
+    height: var(--btn-height);
+    padding: 0 24px;
+    border-radius: var(--radius-md);
 
-/* 이미지 박스 placeholder 텍스트 통일 */
-.img-placeholder {
-    display: grid;
-    place-items: center;
-    font-weight: 700;
-    color: #888;
-    letter-spacing: 0.5px;
-    z-index: 1;
-}
+    background: #fff;
+    color: var(--text-main);
+    border: 1px solid var(--border);
 
-/* 이미지 선택 버튼(label) 정렬 */
-.file-actions {
-    display: flex;
-    gap: 10px;
+    font-size: var(--font-md);
+    font-weight: 800;
+
+    box-shadow: var(--shadow-card);
+    text-decoration: none;   /* a 기본 밑줄 방지 */
+    display: inline-flex;    /* a 정렬 보정 */
     align-items: center;
-    margin-top: 14px;
+    justify-content: center;
+
+    transition: transform .15s ease, box-shadow .2s ease, background .15s ease;
 }
 
-.btn.wide { width: 100%; }
+.btn.btn-back:hover{
+    background:#fff;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-hover);
+}
+
+
+.sr-only{
+    margin-top: 10px;
+}

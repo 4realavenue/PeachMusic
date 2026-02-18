@@ -1,30 +1,33 @@
 /* admin-song-update.css */
 /* 아티스트 수정 UI와 동일한 톤(그리드/카드/버튼) 재사용 */
+
+/* =========================
+   Page
+========================= */
 .page {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 24px 18px 60px;
+    max-width: var(--page-max-width);
+    margin: 30px auto 80px;
+    padding: 0 28px;
 }
 
 .page-head {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     gap: 16px;
-    margin-bottom: 18px;
+    margin-bottom: 22px;
 }
 
 .page-title {
-    font-size: 44px;
+    font-size: var(--font-title);
     font-weight: 900;
-    line-height: 1.05;
-    margin: 0 0 8px;
+    margin: 0 0 6px;
 }
 
 .page-sub {
     margin: 0;
-    color: #666;
-    font-size: 15px;
+    color: var(--text-sub);
+    font-size: var(--font-sm);
 }
 
 .page-actions {
@@ -32,34 +35,38 @@
     gap: 10px;
 }
 
-/* layout */
+/* =========================
+   Layout
+========================= */
 .grid {
     display: grid;
     grid-template-columns: 1fr 1.15fr;
-    gap: 18px;
+    gap: 22px;
     align-items: start;
 }
 
 .stack {
     display: grid;
-    gap: 18px;
+    gap: 22px;
 }
 
 @media (max-width: 980px) {
     .grid { grid-template-columns: 1fr; }
 }
 
-/* card */
+/* =========================
+   Card
+========================= */
 .card {
-    background: #fff;
-    border-radius: 22px;
-    box-shadow: 0 16px 40px rgba(0,0,0,0.06);
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
     overflow: hidden;
 }
 
 .card-head {
-    padding: 18px 18px 14px;
-    border-bottom: 1px solid #f1f1f1;
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -67,31 +74,33 @@
 }
 
 .card-title {
-    font-size: 26px;
+    font-size: var(--font-lg);
     font-weight: 900;
     margin: 0 0 6px;
 }
 
 .card-desc {
-    font-size: 14px;
-    color: #666;
+    font-size: var(--font-sm);
+    color: var(--text-sub);
     margin: 0;
 }
 
 .card-body {
-    padding: 16px 18px 18px;
+    padding: 20px;
 }
 
-/* ✅ 공통 hidden은 유지 (다른 섹션들 위해) */
+/* ✅ 공통 hidden은 유지 */
 .hidden { display: none !important; }
 
-/* preview */
+/* =========================
+   Preview
+========================= */
 .preview {
     position: relative;
     height: 420px;
-    border-radius: 18px;
+    border-radius: var(--radius-md);
     background: #f2f2f2;
-    border: 1px solid #e9e9e9;
+    border: 1px solid var(--border);
     overflow: hidden;
     display: grid;
     place-items: center;
@@ -110,12 +119,12 @@
     position: absolute;
     top: 14px;
     left: 14px;
-    padding: 10px 14px;
+    padding: 8px 14px;
     border-radius: 999px;
-    background: rgba(255,255,255,0.8);
-    border: 1px solid #e3e3e3;
+    background: rgba(255,255,255,0.9);
+    border: 1px solid var(--border);
     font-weight: 800;
-    font-size: 14px;
+    font-size: var(--font-xs);
     z-index: 2;
 }
 
@@ -123,15 +132,17 @@
     display: grid;
     place-items: center;
     font-weight: 700;
-    color: #888;
+    color: var(--text-sub);
     letter-spacing: 0.5px;
     z-index: 1;
 }
 
-/* file row */
+/* =========================
+   File
+========================= */
 .file-hint {
-    color: #666;
-    font-size: 14px;
+    color: var(--text-sub);
+    font-size: var(--font-sm);
     margin: 10px 0 14px;
 }
 
@@ -149,157 +160,179 @@
     display: flex;
     gap: 10px;
     align-items: center;
-    margin-top: 14px;
+    margin-top: 16px;
 }
 
-/* fields */
-.field { display: grid; gap: 10px; margin-bottom: 16px; }
-.label { font-size: 16px; font-weight: 900; }
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+/* ✅ 좌측(음원 파일) 카드가 너무 작아 보이는 문제 */
+.file-pane {
+    min-height: 420px;
+}
 
-input[type="text"], input[type="date"], select, textarea {
+/* =========================
+   Fields
+========================= */
+.field {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.label {
+    font-size: var(--font-md);
+    font-weight: 900;
+}
+
+.row2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+input[type="text"],
+input[type="date"],
+select,
+textarea {
     width: 100%;
-    border: 1px solid #e6e6e6;
-    border-radius: 16px;
-    padding: 14px 16px;
-    font-size: 16px;
+    height: var(--input-height);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0 18px;
+    font-size: var(--font-md);
     outline: none;
     background: #fff;
+    transition: border-color .2s ease, box-shadow .2s ease;
 }
 
-textarea { min-height: 140px; resize: vertical; }
+textarea {
+    min-height: 140px;
+    padding: 14px 18px;
+    resize: vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(248,140,174,0.15);
+}
 
 .mini {
-    color: #777;
-    font-size: 13px;
+    color: var(--text-sub);
+    font-size: var(--font-xs);
     margin-top: -4px;
 }
 
-/* actions */
+/* =========================
+   Actions / Help / Separator
+========================= */
 .actions {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    margin-top: 10px;
+    margin-top: 14px;
 }
 
 .help {
     margin-top: 10px;
-    color: #e11d48;
-    font-size: 14px;
+    color: var(--danger);
+    font-size: var(--font-sm);
     min-height: 18px;
 }
 
 .sep {
     border: 0;
-    border-top: 1px solid #f1f1f1;
+    border-top: 1px solid var(--border);
     margin: 18px 0;
 }
 
-/* kv grid */
+/* =========================
+   KV Grid (말줄임/가로 잘림 방지 유지)
+========================= */
 .kv-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
-
-    /* ✅ [추가] grid 아이템이 줄어들 수 있게 (가로 잘림 방지 핵심) */
+    gap: 12px;
     min-width: 0;
 }
 
 .kv {
-    border: 1px solid #efefef;
-    border-radius: 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
     padding: 14px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
 
-    /* ✅ [추가] flex 아이템 축소 허용 + 잘림 방지 */
     min-width: 0;
-    overflow: visible;
 }
 
-/* ✅ 라벨 폭 고정 + 줄바꿈 방지 */
 .k {
-    color: #777;
+    color: var(--text-sub);
     font-weight: 800;
-    flex: 0 0 72px;      /* 라벨(앨범/ID 등) 폭 고정 */
-    white-space: nowrap; /* 라벨 줄바꿈 방지 */
+    flex: 0 0 72px;
+    white-space: nowrap;
 }
 
-/* ✅ 값: 한 줄 말줄임 처리(앨범명이 길어도 보기 좋게) */
 .v {
     font-weight: 900;
     flex: 1 1 auto;
-
-    /* 말줄임 필수 */
     min-width: 0;
 
     text-align: right;
-    white-space: nowrap;     /* 한 줄 고정 */
+    white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis; /* ... */
+    text-overflow: ellipsis;
 
-    /* ✅ [추가] 일부 브라우저에서 말줄임이 안 먹을 때 대비 */
     word-break: break-word;
 }
 
+/* current toggle */
 #currentBody {
     max-height: 0;
     overflow: hidden;
-    padding: 0;                 /* ✅ 접힐 때 padding 제거 */
+    padding: 0;
     transition: max-height 180ms ease, padding 180ms ease;
 }
 
 #currentBody.open {
-    max-height: none;     /* 높이 제한 제거 */
-    overflow: visible;    /* 내부 스크롤 제거 */
-    padding: 16px 18px 18px;
+    max-height: none;
+    overflow: visible;
+    padding: 20px;
 }
 
-/* buttons */
+/* =========================
+   Buttons
+========================= */
 .btn {
+    height: var(--btn-height);
+    padding: 0 22px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text-main);
+    font-weight: 800;
+    font-size: var(--font-md);
+    cursor: pointer;
+    text-decoration: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    border-radius: 999px;
-    padding: 12px 16px;
-    border: 1px solid #e6e6e6;
-    background: #fff;
-    color: #111;
-    font-weight: 800;
-    cursor: pointer;
-    text-decoration: none;
+    transition: background .15s ease;
 }
 
-.btn:hover { filter: brightness(0.98); }
+.btn:hover { background: #f7f7f7; }
 
-.btn-ghost {
-    background: #fff;
-}
+.btn-ghost { background: #fff; }
 
 .btn-primary {
     border: none;
-    background: #ff2d55;
+    background: var(--primary);
     color: #fff;
-    box-shadow: 0 10px 26px rgba(255, 45, 85, 0.25);
+    box-shadow: var(--shadow-primary);
 }
 
 .btn-wide {
     width: 100%;
-    padding: 16px 18px;
-    font-size: 18px;
+    font-size: var(--font-lg);
 }
-
-/* ✅ 좌측(음원 파일) 카드가 너무 작아 보이는 문제: 최소 높이만 부여 */
-.file-card { /* 혹시 이런 클래스면 */
-    min-height: 420px;
-}
-
-/* 클래스가 file-pane이면 이걸로 */
-.file-pane {
-    min-height: 420px;
-}
-
