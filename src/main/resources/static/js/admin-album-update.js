@@ -5,12 +5,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const meta = document.getElementById("albumMeta");
     const albumId = meta?.dataset?.albumId;
 
-    /* ===== 현재 값 토글 ===== */
+    /* ===== 현재 값 토글 (song-update와 동일한 스르륵 느낌) ===== */
     const btnToggleCurrent = document.getElementById("btnToggleCurrent");
     const currentBody = document.getElementById("currentBody");
+
     btnToggleCurrent?.addEventListener("click", () => {
-        const isHidden = currentBody.classList.toggle("hidden");
-        btnToggleCurrent.textContent = isHidden ? "현재 값 보기" : "현재 값 숨기기";
+        const opened = currentBody.classList.toggle("open");
+        btnToggleCurrent.textContent = opened ? "현재 값 숨기기" : "현재 값 보기";
     });
 
     /* ===== 이미지 (선택 시에만 표시) ===== */
@@ -58,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
             img = document.createElement("img");
             img.id = "imgPreview";
             img.alt = "이미지 미리보기";
-            imgBox.appendChild(img);
+            imgBox?.appendChild(img);
         }
         img.src = url;
 
@@ -68,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnSaveImage?.addEventListener("click", async () => {
         if (imgHelp) imgHelp.textContent = "";
 
-        const file = fileInput.files?.[0];
+        const file = fileInput?.files?.[0];
         if (!file) {
             if (imgHelp) imgHelp.textContent = "업로드할 이미지를 선택해주세요.";
             return;
@@ -122,6 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const res = await authFetch(`/api/admin/albums/${albumId}`, {
             method: "PATCH",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
         });
         if (!res) return;
@@ -218,6 +220,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const id = btn.getAttribute("data-add-id");
                     const row = btn.closest(".artist-row");
                     const name = row?.querySelector(".artist-name")?.textContent ?? "-";
+                    if (!id) return;
                     if (selectedMap.has(String(id))) return;
 
                     selectedMap.set(String(id), { artistId: Number(id), artistName: name });
@@ -252,6 +255,7 @@ document.addEventListener("DOMContentLoaded", () => {
             selectedArtistsBox.querySelectorAll("[data-remove-id]").forEach(btn => {
                 btn.addEventListener("click", () => {
                     const id = btn.getAttribute("data-remove-id");
+                    if (!id) return;
                     selectedMap.delete(String(id));
                     renderSelectedArtists();
                 });
@@ -270,6 +274,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const res = await authFetch(`/api/admin/albums/${albumId}/artists`, {
             method: "PUT",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ artistIdList }),
         });
         if (!res) return;
@@ -284,7 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function escapeHtml(str) {
-        return String(str)
+        return String(str ?? "")
             .replaceAll("&", "&amp;")
             .replaceAll("<", "&lt;")
             .replaceAll(">", "&gt;")

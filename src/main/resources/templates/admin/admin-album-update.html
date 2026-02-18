@@ -42,10 +42,7 @@
 
                 <div class="card-body">
                     <div class="preview" id="imgBox">
-                        <!-- ✅ 너가 원한대로 badge는 PROFILE로 -->
                         <span class="badge">PROFILE</span>
-
-                        <!-- ✅ 처음엔 항상 placeholder만 -->
                         <div class="img-placeholder" id="imgPlaceholder">이미지 미리보기</div>
                     </div>
 
@@ -76,7 +73,8 @@
                         <button type="button" class="btn btn-ghost" id="btnToggleCurrent">현재 값 보기</button>
                     </div>
 
-                    <div class="card-body hidden" id="currentBody">
+                    <!-- ✅ 초기엔 hidden, 스르륵은 JS가 open 붙이면서 처리 -->
+                    <div class="card-body" id="currentBody">
                         <div class="kv-grid">
                             <div class="kv"><div class="k">ID</div><div class="v" th:text="${album.albumId}">-</div></div>
                             <div class="kv"><div class="k">앨범명</div><div class="v" th:text="${album.albumName}">-</div></div>

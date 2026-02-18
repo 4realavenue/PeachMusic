@@ -1,11 +1,15 @@
-/* 페이지 */
+/* admin-album-update.css */
+/* admin-song-update.css 톤(그리드/카드/버튼/토글) + “옆으로 뚱뚱해짐” 방지 반영 */
+
+/* =========================
+   Page
+========================= */
 .page {
     max-width: var(--page-max-width);
     margin: 30px auto 80px;
     padding: 0 28px;
 }
 
-/* 헤더 */
 .page-head {
     display: flex;
     align-items: center;
@@ -26,55 +30,44 @@
     font-size: var(--font-sm);
 }
 
-/* 🔥 목록으로 버튼 전용 보정 */
-.page-head .btn-ghost {
-    background: #fff;
-    color: var(--text-main);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow-card);
+.page-actions {
+    display: flex;
+    gap: 10px;
 }
 
-.page-head .btn-ghost:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-hover);
-    background: #fff;
-}
-
-/* grid */
+/* =========================
+   Layout  ✅ (옆으로 늘어남 방지 핵심)
+========================= */
 .grid {
     display: grid;
-    grid-template-columns: 1fr 1.15fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
     gap: 22px;
-    align-items: stretch;
+    align-items: start;
+}
+
+/* ✅ grid item이 내용 때문에 가로로 못 줄어드는 현상 방지 */
+.grid > * {
+    min-width: 0;
 }
 
 .stack {
-    display: flex;
-    flex-direction: column;
+    display: grid; /* song-update 동일 */
     gap: 22px;
-    height: 100%;
-}
-
-.stack > .card:first-child {
-    flex: 0 0 auto;
-}
-
-.stack > .card:nth-child(2) .card-body {
-    padding-top: 28px;
+    min-width: 0;
 }
 
 @media (max-width: 980px) {
     .grid { grid-template-columns: 1fr; }
 }
 
-/* card */
+/* =========================
+   Card
+========================= */
 .card {
     background: var(--bg-card);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-card);
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
 }
 
 .card-head {
@@ -83,6 +76,7 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
+    gap: 12px;
 }
 
 .card-title {
@@ -99,13 +93,14 @@
 
 .card-body {
     padding: 20px;
-    flex: 1;
 }
 
-/* hidden */
+/* ✅ 공통 hidden */
 .hidden { display: none !important; }
 
-/* preview */
+/* =========================
+   Preview
+========================= */
 .preview {
     position: relative;
     height: 360px;
@@ -124,6 +119,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
 }
 
 .badge {
@@ -136,28 +132,48 @@
     border: 1px solid var(--border);
     font-weight: 800;
     font-size: var(--font-xs);
+    z-index: 2;
 }
 
-.placeholder {
-    color: var(--text-sub);
+.img-placeholder {
+    display: grid;
+    place-items: center;
     font-weight: 700;
+    color: var(--text-sub);
+    letter-spacing: 0.5px;
+    z-index: 1;
 }
 
-/* 파일 영역 */
+/* =========================
+   File
+========================= */
+.file-hint {
+    color: var(--text-sub);
+    font-size: var(--font-sm);
+    margin: 10px 0 14px;
+}
+
+/* ✅ 파일 input 숨김 */
+.sr-only {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+}
+
 .file-actions {
     display: flex;
     gap: 10px;
     align-items: center;
-    margin-top: 18px;
+    margin-top: 16px;
 }
 
-.file-hint {
-    color: var(--text-sub);
-    font-size: var(--font-sm);
-    margin-top: 6px;
-}
-
-/* fields */
+/* =========================
+   Fields
+========================= */
 .field {
     display: grid;
     gap: 8px;
@@ -199,9 +215,12 @@ textarea:focus {
 .mini {
     color: var(--text-sub);
     font-size: var(--font-xs);
+    margin-top: -4px;
 }
 
-/* actions */
+/* =========================
+   Actions / Help
+========================= */
 .actions {
     display: flex;
     justify-content: flex-end;
@@ -216,11 +235,14 @@ textarea:focus {
     min-height: 18px;
 }
 
-/* kv */
+/* =========================
+   KV Grid (가로 늘어남 방지)
+========================= */
 .kv-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
+    min-width: 0;
 }
 
 .kv {
@@ -228,13 +250,57 @@ textarea:focus {
     border-radius: var(--radius-md);
     padding: 14px 16px;
     display: flex;
+    align-items: center;
     justify-content: space-between;
+    gap: 10px;
+    min-width: 0;
+
+    /* ✅ 혹시라도 내부가 폭을 밀면 여기서 잘라버림 */
+    overflow: hidden;
 }
 
-.k { color: var(--text-sub); font-weight: 800; }
-.v { font-weight: 900; }
+.k {
+    color: var(--text-sub);
+    font-weight: 800;
+    flex: 0 0 72px;
+    white-space: nowrap;
+}
 
-/* 참여아티스트 */
+.v {
+    font-weight: 900;
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* =========================
+   ✅ current toggle (스르륵 + “옆으로 뚱뚱” 방지)
+   - open일 때 overflow는 무조건 hidden
+   - card-body 패딩(20)과 중복 안 나게 currentBody는 기본 padding 0
+========================= */
+#currentBody {
+    /* card-body라 padding:20이 기본인데, 토글 애니메이션 위해 우리가 제어 */
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+
+    /* ✅ 스르륵 */
+    transition: max-height 180ms ease, padding 180ms ease;
+}
+
+/* ✅ 열릴 때 */
+#currentBody.open {
+    padding: 20px;
+    max-height: 999px;
+    overflow: hidden; /* ✅ 여기서 폭 튐 차단 */
+}
+
+/* =========================
+   참여 아티스트
+========================= */
 .search-row {
     display: grid;
     grid-template-columns: 1fr 120px;
@@ -267,6 +333,9 @@ textarea:focus {
     padding: 14px;
     display: grid;
     gap: 10px;
+
+    /* ✅ 혹시 버튼/텍스트가 폭 밀면 여기서도 방어 */
+    min-width: 0;
 }
 
 .panel-empty {
@@ -281,26 +350,44 @@ textarea:focus {
 .artist-row {
     display: flex;
     justify-content: space-between;
+    gap: 10px;
     padding: 10px 14px;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
+    min-width: 0;
 }
 
-.artist-name { font-weight: 900; }
+.artist-name {
+    font-weight: 900;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
-/* buttons */
+/* =========================
+   Buttons
+========================= */
 .btn {
     height: var(--btn-height);
     padding: 0 22px;
     border-radius: var(--radius-md);
     border: 1px solid var(--border);
     background: #fff;
-    font-size: var(--font-md);
+    color: var(--text-main);
     font-weight: 800;
+    font-size: var(--font-md);
     cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s ease;
 }
 
 .btn:hover { background: #f7f7f7; }
+
+.btn-ghost { background: #fff; }
 
 .btn-primary {
     border: none;
@@ -314,25 +401,20 @@ textarea:focus {
     font-size: var(--font-lg);
 }
 
-/* btn 시스템 위에 back 변형을 정확히 얹기 */
 .btn.btn-back{
     height: var(--btn-height);
     padding: 0 24px;
     border-radius: var(--radius-md);
-
     background: #fff;
     color: var(--text-main);
     border: 1px solid var(--border);
-
     font-size: var(--font-md);
     font-weight: 800;
-
     box-shadow: var(--shadow-card);
-    text-decoration: none;   /* a 기본 밑줄 방지 */
-    display: inline-flex;    /* a 정렬 보정 */
+    text-decoration: none;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-
     transition: transform .15s ease, box-shadow .2s ease, background .15s ease;
 }
 
@@ -340,9 +422,4 @@ textarea:focus {
     background:#fff;
     transform: translateY(-1px);
     box-shadow: var(--shadow-hover);
-}
-
-
-.sr-only{
-    margin-top: 10px;
 }
