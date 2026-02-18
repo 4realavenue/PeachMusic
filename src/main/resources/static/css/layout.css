@@ -176,7 +176,8 @@ body {
     bottom: 0;
     left: 220px; /* 사이드바 width */
     right: 0;
-    height: 90px;
+
+    height: 90px; /* ✅ 기본: 처음엔 완전 노출(열림) */
 
     background: #fff;
     border-top: 1px solid #e8e8e8;
@@ -188,6 +189,61 @@ body {
 
     z-index: 999;
     box-shadow: 0 -8px 20px rgba(0,0,0,0.05);
+
+    transition: height 0.25s ease;
+}
+
+/* ✅ 접힌 상태 */
+.player.collapsed {
+    height: 40px;
+}
+
+/* ✅ 접힌 상태에서는 내부(커버/정보/컨트롤) 숨김 */
+.player.collapsed .album-cover,
+.player.collapsed .song-info,
+.player.collapsed .controls {
+    display: none;
+}
+
+/* ✅ 토글 버튼 (기본은 안 보임 / hover 시만 보임) */
+.player-toggle {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+
+    /* ✅ 살짝 아래에서 올라오는 */
+    transform: translateX(-50%) translateY(6px);
+
+    width: 60px;
+    height: 20px;
+
+    border-radius: 999px;
+    border: 1px solid #e8e8e8;
+    background: #fff;
+
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+
+    /* ✅ 기본 숨김 */
+    opacity: 0;
+    pointer-events: none;
+
+    transition: opacity .15s ease, transform .15s ease;
+}
+
+/* ✅ 열림/접힘 상관없이: 플레이어에 마우스 올리거나 포커스 들어오면만 보임 */
+.player:hover .player-toggle,
+.player:focus-within .player-toggle {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
 }
 
 /* 앨범 */

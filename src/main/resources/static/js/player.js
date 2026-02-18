@@ -23,6 +23,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const playerTitle = document.getElementById("playerTitle");
 
     /* =========================
+       ✅ Player Toggle
+    ========================= */
+
+    const player = document.querySelector(".player");
+    const toggleBtn = document.getElementById("playerToggleBtn");
+
+    toggleBtn?.addEventListener("click", () => {
+        if (!player) return;
+
+        player.classList.toggle("collapsed");
+
+        // collapsed면 ▲, 펼치면 ▼
+        if (player.classList.contains("collapsed")) {
+            toggleBtn.textContent = "▲";
+        } else {
+            toggleBtn.textContent = "▼";
+        }
+    });
+
+    /* =========================
        재생 버튼
     ========================= */
     playBtn?.addEventListener("click", () => {
@@ -50,9 +70,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         audio.src = url;
-        playerTitle.textContent = title || "Unknown";
-        sessionStorage.setItem("currentSong", url);   // 🔥 추가
+        if (playerTitle) playerTitle.textContent = title || "Unknown";
         audio.play().catch(err => console.error("재생 실패:", err));
+
+        // ✅ 곡을 새로 재생하면 자동으로 펼쳐주기(원치 않으면 이 블록 삭제)
+        if (player && toggleBtn && player.classList.contains("collapsed")) {
+            player.classList.remove("collapsed");
+            toggleBtn.textContent = "▼";
+        }
     };
 
     /* =========================
@@ -116,12 +141,4 @@ document.addEventListener("DOMContentLoaded", () => {
         return `${m}:${s.toString().padStart(2, "0")}`;
     }
 
-    /* =========================
-   곡 복원
-    ========================= */
-    const savedSong = sessionStorage.getItem("currentSong");
-
-    if (savedSong && !audio.src) {
-        audio.src = savedSong;
-    }
 });
