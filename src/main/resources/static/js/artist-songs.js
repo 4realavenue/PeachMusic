@@ -145,7 +145,7 @@ import { authFetch, getToken } from "/js/auth.js";
         const row = e.target.closest(".song-row");
         if (!row) return;
         const songId = row.dataset.songId;
-        if (songId) window.location.href = `/songs/${songId}`;
+        if (songId) window.location.href = `/songs/${songId}/page`;
     });
 
     // ✅ 좋아요 클릭
