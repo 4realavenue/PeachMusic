@@ -39,8 +39,7 @@ public class ArtistService {
     @Transactional(readOnly = true)
     public ArtistGetDetailResponseDto getArtistDetail(AuthUser authUser, Long artistId) {
 
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
+        Artist foundArtist = findActiveArtistOrThrow(artistId);
 
         boolean isLiked = false;
 
@@ -57,8 +56,8 @@ public class ArtistService {
      */
     @Transactional(readOnly = true)
     public ArtistPreviewResponseDto getArtistDetailPreview(AuthUser authUser, Long artistId) {
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
+
+        Artist foundArtist = findActiveArtistOrThrow(artistId);
 
         int size = PREVIEW_SIZE;
 
@@ -89,5 +88,10 @@ public class ArtistService {
     @Transactional(readOnly = true)
     public List<ArtistSearchResponseDto> searchArtistList(String word) {
         return artistRepository.findArtistListByWord(word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC);
+    }
+
+    public Artist findActiveArtistOrThrow(Long artistId) {
+        return artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
     }
 }

@@ -385,7 +385,7 @@ class ArtistAdminServiceTest {
         CustomException exception = assertThrows(CustomException.class, () -> artistAdminService.deleteArtist(invalidArtistId));
 
         // then
-        assertEquals(ErrorCode.ARTIST_DETAIL_NOT_FOUND, exception.getErrorCode());
+        assertEquals(ErrorCode.ARTIST_NOT_FOUND, exception.getErrorCode());
     }
 
     @Test
@@ -451,6 +451,6 @@ class ArtistAdminServiceTest {
         CustomException exception = assertThrows(CustomException.class, () -> artistAdminService.restoreArtist(invalidArtistId));
 
         // then
-        assertEquals(ErrorCode.ARTIST_DETAIL_NOT_FOUND, exception.getErrorCode());
+        assertEquals(ErrorCode.ARTIST_NOT_FOUND, exception.getErrorCode());
     }
 }

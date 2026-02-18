@@ -42,8 +42,7 @@ public class AlbumService {
     @Transactional(readOnly = true)
     public AlbumGetDetailResponseDto getAlbumDetail(AuthUser authUser, Long albumId) {
 
-        Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_DETAIL_NOT_FOUND));
+        Album foundAlbum = findActiveAlbumOrThrow(albumId);
 
         boolean isLiked = false;
 
@@ -65,8 +64,8 @@ public class AlbumService {
     @Transactional(readOnly = true)
     public KeysetResponse<AlbumArtistDetailResponseDto> getArtistAlbums(AuthUser authUser, Long artistId, CursorParam cursor) {
 
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
+        Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
 
         SortType sortType = SortType.RELEASE_DATE;
         SortDirection direction = sortType.getDefaultDirection();
@@ -98,5 +97,10 @@ public class AlbumService {
     @Transactional(readOnly = true)
     public List<AlbumSearchResponseDto> searchAlbumList(String word) {
         return albumRepository.findAlbumListByWord(word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
+    }
+
+    public Album findActiveAlbumOrThrow(Long albumId) {
+        return albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
     }
 }

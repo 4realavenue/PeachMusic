@@ -39,18 +39,16 @@ public class SearchService {
 
         word = word.trim();
         searchHistoryService.recordSearchRank(word); // 검색어 랭킹 기록
-        boolean isPopular = searchHistoryService.isPopularKeyword(word);
-        String key = SEARCH_RESULT_KEY + word;
 
-        if (isPopular) { // 검색어가 인기검색어인 경우에 Redis에서 조회
-            SearchPreviewResponseDto cachedResult = getCachedResult(key);
-            if (cachedResult != null) {
-                return cachedResult;
-            }
+        String key = SEARCH_RESULT_KEY + word;
+        SearchPreviewResponseDto cachedResult = getCachedResult(key);
+        if (cachedResult != null) {
+            return cachedResult;
         }
 
         SearchPreviewResponseDto result = createSearchResult(word); // DB 조회
 
+        boolean isPopular = searchHistoryService.isPopularKeyword(word);
         if (isPopular) { // 검색어가 인기검색어인 경우에 Redis에 저장
             saveCacheResult(key, result);
         }
