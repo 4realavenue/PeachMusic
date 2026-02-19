@@ -4,8 +4,6 @@ const popup = document.getElementById("loginPopup");
 
 let dataCache = null;
 
-const STREAMING_BASE_URL = "https://streaming.peachmusics.com/";
-
 const el = {
     albumImage: document.getElementById("albumImage"),
     songName: document.getElementById("songName"),
@@ -42,41 +40,94 @@ const SONG_LIKE_API = (id) => `/api/songs/${id}/likes`;
 const PLAYLIST_LIST_API = "/api/playlists";
 const PLAYLIST_ADD_API = (playlistId) => `/api/playlists/${playlistId}/songs`;
 
-document.addEventListener("DOMContentLoaded", async () => {
+/* =========================
+   Global Player
+========================= */
+function getGlobalAudioEl() {
+    return document.querySelector(".player audio") || document.getElementById("audioPlayer") || null;
+}
 
+function isSameTrack(globalAudio, url) {
+    if (!globalAudio || !globalAudio.src || !url) return false;
+    const currentFile = String(globalAudio.src).split("/").pop();
+    const nextFile = String(url).split("/").pop();
+    return currentFile && nextFile && currentFile === nextFile;
+}
+
+function normalizeAudioUrl(audioPath) {
+    if (!audioPath) return null;
+    const s = String(audioPath);
+    if (s.startsWith("http://") || s.startsWith("https://")) return s;
+    if (s.startsWith("/")) return s;
+    return `/${s}`;
+}
+
+function setPlayBtnState(isPlaying) {
+    if (!el.detailPlayBtn) return;
+    el.detailPlayBtn.classList.toggle("playing", isPlaying);
+    el.detailPlayBtn.textContent = isPlaying ? "⏸" : "▶";
+    el.detailPlayBtn.setAttribute("aria-label", isPlaying ? "일시정지" : "재생");
+}
+
+function wireGlobalAudioSync() {
+    const globalAudio = getGlobalAudioEl();
+    if (!globalAudio) return;
+
+    const sync = () => {
+        const url = dataCache?.audioUrl;
+        if (!url) {
+            setPlayBtnState(false);
+            return;
+        }
+
+        const same = isSameTrack(globalAudio, url);
+        const isPlaying = same && !globalAudio.paused;
+
+        setPlayBtnState(isPlaying);
+    };
+
+    globalAudio.addEventListener("play", sync);
+    globalAudio.addEventListener("pause", sync);
+    globalAudio.addEventListener("ended", sync);
+
+    // 초기 1회
+    sync();
+}
+
+/* =========================
+   Init
+========================= */
+document.addEventListener("DOMContentLoaded", async () => {
     await loadSongDetail();
 
+    wireGlobalAudioSync();
+
+    // ✅ 좋아요는 로그인 필요
     el.heartBtn?.addEventListener("click", async (e) => {
         e.preventDefault();
         if (!getToken()) return showLoginPopup();
         await toggleLike();
     });
 
-    // 🔥 재생 버튼
-    if (el.detailPlayBtn) {
-        el.detailPlayBtn.addEventListener("click", () => {
-            if (!dataCache?.audioUrl) return;
-            window.playSongFromPage(dataCache.audioUrl, dataCache.name);
-        });
+    // ✅ 재생 버튼: 전역 플레이어로 재생(재생수 증가는 전역 player.js에서 songId로 처리)
+    el.detailPlayBtn?.addEventListener("click", async () => {
+        if (!dataCache?.audioUrl) return;
 
-        const globalAudio = document.getElementById("audioPlayer");
+        if (typeof window.playSongFromPage !== "function") {
+            alert("전역 플레이어가 아직 로드되지 않았습니다.");
+            return;
+        }
 
-        globalAudio?.addEventListener("play", () => {
-            if (!dataCache?.audioUrl) return;
+        try {
+            await window.playSongFromPage(dataCache.audioUrl, dataCache.name, songId);
+            // 버튼 상태는 전역 오디오 이벤트로 싱크됨
+        } catch (e) {
+            console.error(e);
+            alert("재생에 실패했습니다.");
+        }
+    });
 
-            const isSame =
-                globalAudio.src.split("/").pop() ===
-                dataCache.audioUrl.split("/").pop();
-
-            if (isSame) el.detailPlayBtn.textContent = "⏸";
-        });
-
-        globalAudio?.addEventListener("pause", () => {
-            el.detailPlayBtn.textContent = "▶";
-        });
-    }
-
-    // 🔥 플레이리스트 버튼
+    // ✅ 플레이리스트 버튼(로그인 필요)
     el.addToPlaylistBtn?.addEventListener("click", async () => {
         if (!getToken()) return showLoginPopup();
         await openPlaylistModal();
@@ -85,6 +136,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     wirePlaylistModalClose();
 });
 
+/* =========================
+   Load & Render
+========================= */
 async function loadSongDetail() {
     const res = getToken()
         ? await authFetch(SONG_DETAIL_API(songId), { method: "GET" })
@@ -93,20 +147,14 @@ async function loadSongDetail() {
     if (!res) return;
 
     const response = await res.json();
-    if (!response.success) return;
+    if (!response?.success) return;
 
     render(response.data);
 }
 
 function render(data) {
-
-    let audioUrl = null;
-    if (data.audio) {
-        audioUrl = data.audio.startsWith("http")
-            ? data.audio
-            : STREAMING_BASE_URL + data.audio.replace(/^\/+/, "");
-    }
-
+    // ✅ audio 경로 정규화 (m3u8)
+    const audioUrl = normalizeAudioUrl(data.audio);
     dataCache = { ...data, audioUrl };
 
     el.albumImage.src = data.albumImage || "/images/default.png";
@@ -115,7 +163,7 @@ function render(data) {
 
     el.songName.textContent = data.name ?? "-";
     el.position.textContent = data.position ?? "-";
-    el.artistName.textContent = "-";
+    el.artistName.textContent = data.artistName ?? "-";
 
     el.genreChips.innerHTML = "";
     (data.genreList ?? []).forEach((g) => {
@@ -141,12 +189,15 @@ function render(data) {
     el.licenseLink.href = license && license !== "-" ? license : "#";
 }
 
+/* =========================
+   Like
+========================= */
 async function toggleLike() {
     const res = await authFetch(SONG_LIKE_API(songId), { method: "POST" });
     if (!res) return;
 
     const result = await res.json();
-    if (!result.success) return;
+    if (!result?.success) return;
 
     const { liked, likeCount } = result.data;
     el.heartBtn.classList.toggle("liked", liked === true);
@@ -156,7 +207,6 @@ async function toggleLike() {
 /* =========================
    Playlist Modal
 ========================= */
-
 function wirePlaylistModalClose() {
     if (!el.playlistModal) return;
 
@@ -185,7 +235,7 @@ async function openPlaylistModal() {
 
     const payload = await res.json();
     if (!payload?.success) {
-        el.playlistList.innerHTML = "플레이리스트 조회 실패";
+        el.playlistList.innerHTML = "플레이리스트 조회에 실패했습니다.";
         return;
     }
 
@@ -197,7 +247,7 @@ async function openPlaylistModal() {
         return;
     }
 
-    playlists.forEach(pl => {
+    playlists.forEach((pl) => {
         const btn = document.createElement("button");
         btn.textContent = pl.playlistName;
         btn.className = "pl-item";
@@ -224,7 +274,7 @@ async function addSongToPlaylist(playlistId) {
     const payload = await res.json();
 
     if (!res.ok || !payload?.success) {
-        alert(payload?.message || "플레이리스트 추가 실패");
+        alert(payload?.message || "플레이리스트 추가에 실패했습니다.");
         return;
     }
 

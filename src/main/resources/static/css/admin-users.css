@@ -71,7 +71,7 @@
 .table-head{
     display:grid;
     grid-template-columns: 80px 1.6fr 1fr 140px 110px 220px;
-
+    column-gap: 24px;
     padding:18px 26px;
     font-weight:900;
     font-size: var(--font-sm);
@@ -87,6 +87,7 @@
 .table-body .row{
     display:grid;
     grid-template-columns: 80px 1.6fr 1fr 140px 110px 220px;
+    column-gap: 24px;
 
     padding:20px 26px;
     border-bottom:1px solid #f3f3f3;

@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!initialWord || initialWord.trim() === "") return;
 
-    title.textContent = `"${initialWord}"와 관련된 곡`;
+    title.textContent = `"${initialWord}"와 관련된 음원`;
 
     loadSongs();
     setupInfiniteScroll();

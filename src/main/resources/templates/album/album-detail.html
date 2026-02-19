@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>앨범 상세</title>
+    <title>앨범 상세 | PeachMusic</title>
 
     <link rel="stylesheet" th:href="@{/css/layout.css}">
     <link rel="stylesheet" th:href="@{/css/album-detail.css}">
@@ -34,8 +34,8 @@
                 </div>
 
                 <div class="album-actions">
-                    <button id="heartBtn" class="heart-btn">❤</button>
-                    <span id="likeCount">0</span>
+                    <span id="likeCount" class="like-count">0</span>
+                    <button id="heartBtn" class="heart-btn" aria-label="앨범 좋아요">❤</button>
                 </div>
             </div>
         </header>
