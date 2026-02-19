@@ -1,6 +1,6 @@
-package com.example.peachmusic.domain.ranking.service;
+package com.example.peachmusic.domain.song.service;
 
-import com.example.peachmusic.domain.ranking.model.RankingResponseDto;
+import com.example.peachmusic.domain.song.dto.response.RankingResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations.TypedTuple;
