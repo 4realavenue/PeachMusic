@@ -1,0 +1,157 @@
+/* =========================
+   메인 기본 레이아웃
+========================= */
+.main-page {
+    width: 1100px;
+    margin: 0 auto;
+    padding: 40px 40px 80px 40px;
+    box-sizing: border-box;
+}
+
+/* =========================
+   섹션
+========================= */
+
+.section {
+    margin-bottom: 70px;
+}
+
+.section-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 25px;
+    letter-spacing: -0.5px;
+}
+
+/* =========================
+   추천 카드
+========================= */
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 22px;
+}
+
+.music-card {
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.music-card:hover {
+    transform: translateY(-6px);
+}
+
+.card-img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #f2f2f2;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-title {
+    margin-top: 12px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.card-sub {
+    font-size: 13px;
+    color: #777;
+    margin-top: 4px;
+}
+
+/* =========================
+   인기 차트 (메인 5개)
+========================= */
+
+.rank-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.rank-item {
+    display: grid;
+    grid-template-columns: 60px 60px 1fr 56px;
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: #f8fafc;
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+.rank-item:hover {
+    background: #e2e8f0;
+}
+
+.rank-number {
+    font-size: 18px;
+    font-weight: 700;
+    color: #444;
+}
+
+/* 썸네일 */
+.rank-thumb {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f2f2f2;
+}
+
+.rank-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ✅ 이미지 없을 때 default.png 대신 회색 박스 */
+.rank-thumb.placeholder {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    background: #f2f2f2;
+}
+
+.rank-title {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* =========================
+   재생 버튼
+========================= */
+
+.rank-play {
+    justify-self: end;
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    cursor: pointer;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: 0.15s;
+    user-select: none;
+}
+
+.rank-play:hover {
+    transform: scale(1.06);
+}
+
+.rank-play.playing {
+    border-color: #111;
+}

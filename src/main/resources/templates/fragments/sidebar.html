@@ -1,0 +1,53 @@
+<aside class="sidebar" th:fragment="sidebar">
+
+    <div class="logo" onclick="location.href='/'">
+        PeachMusic
+    </div>
+
+    <nav class="menu">
+
+        <a class="menu-item" href="/search">검색</a>
+        <a class="menu-item" href="/charts">인기차트</a>
+        <a class="menu-item" href="/playlists">플레이리스트</a>
+
+        <div class="menu-like">
+
+            <button class="menu-item like" id="likeBtn">
+                좋아요
+                <span class="arrow" id="likeArrow">▾</span>
+            </button>
+
+            <div class="like-submenu" id="likeMenu">
+                <a href="/likes/albums">앨범</a>
+                <a href="/likes/songs">노래</a>
+                <a href="/likes/artists">아티스트</a>
+            </div>
+
+        </div>
+
+        <a class="menu-item" href="/recommend">추천</a>
+
+        <a class="menu-item hidden" href="/mypage" id="mypageBtn">
+            마이페이지
+        </a>
+
+        <a class="menu-item hidden" href="/admin" id="adminBtn">
+            관리자 페이지
+        </a>
+
+    </nav>
+
+    <div class="auth-box">
+
+        <button class="login-btn" id="loginBtn"
+                onclick="location.href='/login'">
+            로그인
+        </button>
+
+        <button class="logout-btn hidden" id="logoutBtn">
+            로그아웃
+        </button>
+
+    </div>
+
+</aside>

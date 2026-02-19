@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My Playlists | PeachMusic</title>
+
+    <link rel="stylesheet" href="/css/design-system.css"/>
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/playlists.css}">
+    <script th:src="@{/js/sidebar.js}" defer></script>
+</head>
+<body>
+
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+
+    <section class="playlist-page">
+
+        <div class="playlist-header">
+            <h2>My Playlists</h2>
+            <button id="createPlaylistBtn" class="create-btn">
+                + 플레이리스트 생성
+            </button>
+        </div>
+
+        <div id="emptyMessage" class="empty-message">
+            플레이리스트가 없습니다
+        </div>
+
+        <div class="playlist-grid" id="playlistGrid"></div>
+
+        <!-- =======================
+             생성 모달
+        ======================== -->
+        <div id="createModal" class="modal hidden">
+            <div class="modal-content">
+
+                <h3>플레이리스트 생성</h3>
+
+                <div class="form-group">
+                    <label>플레이리스트 이름</label>
+                    <input type="text" id="playlistNameInput">
+                </div>
+
+                <div class="form-group">
+                    <label>이미지 (선택)</label>
+                    <input type="file" id="playlistImageInput">
+                </div>
+
+                <div class="modal-buttons">
+                    <button id="cancelCreateBtn">취소</button>
+                    <button id="confirmCreateBtn" class="primary">
+                        생성
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+    </section>
+
+</div>
+
+<script type="module" th:src="@{/js/playlists.js}"></script>
+</body>
+</html>

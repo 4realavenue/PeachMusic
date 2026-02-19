@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>앨범 관리 | PeachMusic</title>
+
+    <link rel="stylesheet" href="/css/design-system.css"/>
+    <link rel="stylesheet" href="/css/layout.css"/>
+    <link rel="stylesheet" href="/css/admin-albums.css"/>
+
+    <script th:src="@{/js/sidebar.js}" defer></script>
+    <script type="module" src="/js/admin-albums.js" defer></script>
+</head>
+
+<body>
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+    <section class="admin-albums-page">
+
+        <!-- Header -->
+        <div class="page-head">
+            <div class="page-head-left">
+                <h1 class="page-title">앨범 관리</h1>
+                <p class="page-sub">검색 / 등록 / 비활성화(삭제) / 복구</p>
+            </div>
+
+            <a class="primary-btn" href="/admin/albums/create">앨범 등록</a>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="search-box">
+                <input id="wordInput" type="text" placeholder="앨범명 검색"/>
+                <button id="searchBtn" class="ghost-btn" type="button">검색</button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-card">
+
+            <div class="table-head">
+                <div class="col id">ID</div>
+                <div class="col name">앨범명</div>
+                <div class="col date">발매일</div>
+                <div class="col like">좋아요 수</div>
+                <div class="col manage">관리</div>
+            </div>
+
+            <div id="listBody" class="table-body"></div>
+
+            <div id="emptyBox" class="empty hidden"></div>
+
+            <div class="table-foot">
+                <button id="moreBtn" class="more-btn hidden" type="button">더보기</button>
+            </div>
+        </div>
+
+    </section>
+</div>
+</body>
+</html>

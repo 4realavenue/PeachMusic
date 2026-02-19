@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Jamendo 데이터 수집 | PeachMusic Admin</title>
+
+    <link rel="stylesheet" href="/css/design-system.css"/>
+    <link rel="stylesheet" th:href="@{/css/layout.css}" />
+    <link rel="stylesheet" th:href="@{/css/admin-jamendo.css}" />
+
+    <!-- 공통 -->
+    <script th:src="@{/js/sidebar.js}" defer></script>
+
+    <!-- 🔥 관리자 접근 가드 추가 -->
+    <script type="module" th:src="@{/js/admin-guard.js}" defer></script>
+
+    <!-- Jamendo 로직 -->
+    <script type="module" th:src="@{/js/admin-jamendo.js}" defer></script>
+</head>
+
+<body>
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+    <section class="admin-jamendo-page">
+
+        <div class="page-head-left">
+            <h1 class="page-title">Jamendo 데이터 수집</h1>
+            <p class="page-sub">기간을 입력하여 Jamendo 음원을 DB에 적재합니다.</p>
+        </div>
+
+        <!-- 데이터 초기 적재 -->
+        <div class="jamendo-card">
+
+            <h2 class="card-title">데이터 초기 적재</h2>
+
+            <div class="jamendo-control">
+
+                <div class="date-range">
+                    <input type="date" id="startDate">
+                    <span class="dash">-</span>
+                    <input type="date" id="endDate">
+                </div>
+
+                <button id="loadBtn" class="primary-btn" type="button">
+                    데이터 초기 적재
+                </button>
+
+            </div>
+        </div>
+
+        <!-- 최근 수집 결과 -->
+        <div class="jamendo-card">
+
+            <h2 class="card-title">최근 수집 결과</h2>
+
+            <div class="result-row">
+                <span class="label">요청 기간</span>
+                <span id="lastRange">-</span>
+            </div>
+
+            <div class="result-row">
+                <span class="label">결과</span>
+                <span id="lastStatus">-</span>
+            </div>
+
+        </div>
+
+    </section>
+</div>
+</body>
+</html>

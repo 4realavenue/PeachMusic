@@ -1,0 +1,318 @@
+/* ================================
+   Reset
+================================ */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    background: #fff;
+    color: #111;
+}
+
+/* ================================
+   Layout
+================================ */
+.layout {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* ================================
+   Sidebar
+================================ */
+.sidebar {
+    width: 220px;
+    background: #f2f2f2;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 12px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+
+.logo {
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    background: #1a1a1a;
+    color: #fff;
+    cursor: pointer;
+}
+
+/* ================================
+   Menu
+================================ */
+.menu {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.menu-item,
+.menu a {
+    text-decoration: none;
+    background: none;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #1a1a1a;
+    text-align: left;
+    transition: background 0.15s ease;
+}
+
+.menu-item:hover,
+.menu a:hover {
+    background: #fff;
+}
+
+/* ================================
+   Like Dropdown
+================================ */
+.menu-like {
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-item.like {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.arrow {
+    font-size: 20px;
+}
+
+.like-submenu {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    margin-left: 12px;
+    margin-top: 4px;
+}
+
+.like-submenu.open {
+    display: flex;
+}
+
+.like-submenu a {
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #1a1a1a;
+    border-radius: 10px;
+}
+
+.like-submenu a:hover {
+    background: #aaaaaa;
+}
+
+/* ================================
+   Auth Box
+================================ */
+.auth-box {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.login-btn,
+.logout-btn {
+    border: none;
+    border-radius: 12px;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    background: #aaaaaa;
+    color: #ffffff;
+    transition: opacity 0.2s ease;
+}
+
+.login-btn:hover,
+.logout-btn:hover {
+    opacity: 0.85;
+}
+
+/* ================================
+   Main
+================================ */
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* ================================
+   Content
+================================ */
+.content {
+    flex: 1;
+    padding: 24px;
+    background: #fafafa;
+    padding-bottom: 120px;
+}
+
+/* ================================
+   Player (하단 고정)
+================================ */
+.player {
+    position: fixed;
+    bottom: 0;
+    left: 220px;
+    right: 0;
+
+    height: 90px;
+
+    background: #fff;
+    border-top: 1px solid #e8e8e8;
+
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 0 24px;
+
+    z-index: 999;
+    box-shadow: 0 -8px 20px rgba(0,0,0,0.05);
+
+    transition: height 0.25s ease;
+}
+
+/* 접힌 상태 */
+.player.collapsed {
+    height: 40px;
+}
+
+/* 접힌 상태에서는 내부(커버/정보/컨트롤) 숨김 */
+.player.collapsed .album-cover,
+.player.collapsed .song-info,
+.player.collapsed .controls {
+    display: none;
+}
+
+/* 토글 버튼 (기본은 안 보임 / hover 시만 보임) */
+.player-toggle {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+
+    transform: translateX(-50%) translateY(6px);
+
+    width: 60px;
+    height: 20px;
+
+    border-radius: 999px;
+    border: 1px solid #e8e8e8;
+    background: #fff;
+
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+
+    opacity: 0;
+    pointer-events: none;
+
+    transition: opacity .15s ease, transform .15s ease;
+}
+
+.player:hover .player-toggle,
+.player:focus-within .player-toggle {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* 앨범 */
+.album-cover {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    background: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 곡 정보 */
+.song-info {
+    flex: 1;
+    font-size: 14px;
+    color: #444;
+}
+
+/* 재생바 */
+.progress-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 6px;
+    background: #eee;
+    border-radius: 999px;
+    position: relative;
+    cursor: pointer;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: #ff2d55;
+    border-radius: 999px;
+    transition: width 0.1s linear;
+}
+
+/* 컨트롤 버튼 */
+.controls {
+    display: flex;
+    gap: 10px;
+}
+
+.controls button {
+    height: 36px;
+    width: 36px;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    background: #fff;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.controls button:hover {
+    background: #f2f2f2;
+}
+
+/* ================================
+   Utils
+================================ */
+.hidden {
+    display: none !important;
+}
+
+button, input, select, textarea {
+    font: inherit;
+}

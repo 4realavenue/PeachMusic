@@ -99,7 +99,7 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
         boolean isAsc = direction == SortDirection.ASC;
 
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
-        Expression<Boolean> isLikedExpression = userId == null ? Expressions.constant(false) : albumLike.albumLikeId.isNotNull();
+        Expression<Boolean> isLikedExpression = userId == null ? Expressions.constant(false) : albumLike.albumLikeId.max().isNotNull();
 
         JPAQuery<?> query = queryFactory.from(album)
                 .join(artistAlbum).on(artistAlbum.album.eq(album))

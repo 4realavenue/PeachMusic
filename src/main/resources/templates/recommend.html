@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Recommend | PeachMusic</title>
+
+    <link rel="stylesheet" href="/css/design-system.css"/>
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/recommend.css}">
+
+    <script th:src="@{/js/sidebar.js}" defer></script>
+</head>
+<body>
+
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+
+    <section class="recommend-page">
+
+        <!-- 🔥 새 헤더 -->
+        <div class="recommend-header">
+            <h1 class="recommend-title">For You</h1>
+            <p class="recommend-subtitle">
+                좋아요 및 플레이리스트 기반 개인화 추천
+            </p>
+        </div>
+
+        <!-- 🔥 추천 카드 영역 -->
+        <div id="recommendGrid" class="recommend-grid"></div>
+
+        <!-- 상태 메시지 -->
+        <div id="loading" class="loading hidden">
+            추천곡을 불러오는 중입니다
+        </div>
+
+        <div id="emptyMessage" class="empty hidden">
+            아직 추천 데이터가 없습니다
+        </div>
+
+    </section>
+
+</div>
+
+<script type="module" th:src="@{/js/recommend.js}"></script>
+</body>
+</html>

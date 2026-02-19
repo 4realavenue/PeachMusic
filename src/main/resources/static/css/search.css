@@ -1,0 +1,242 @@
+/* =========================
+   Page
+========================= */
+.search-page{
+    width:100%;
+    max-width: var(--page-max-width);
+    margin:30px auto 80px;
+    padding:0 28px;
+    box-sizing:border-box;
+}
+
+/* =========================
+   Search Bar
+========================= */
+.search-bar{
+    display:flex;
+    gap:12px;
+    margin:40px auto 20px;
+    max-width:600px;
+}
+
+.search-bar input{
+    flex:1;
+    height: var(--input-height);
+    padding:0 16px;
+    border-radius: var(--radius-md);
+    border:1px solid var(--border);
+    font-size: var(--font-sm);
+    outline:none;
+}
+
+.search-bar input:focus{
+    border-color: var(--primary);
+    box-shadow:0 0 0 3px rgba(248,140,174,0.15);
+}
+
+.search-bar button{
+    height: var(--input-height);
+    padding:0 20px;
+    border-radius: var(--radius-md);
+    border:none;
+
+    background: var(--primary);
+    color:#fff;
+
+    font-size: var(--font-sm);
+    font-weight:700;
+
+    cursor:pointer;
+    transition: transform .12s ease, box-shadow .2s ease;
+    box-shadow: var(--shadow-primary);
+}
+
+.search-bar button:hover{
+    transform:translateY(-1px);
+}
+
+/* =========================
+   Popular Section
+========================= */
+.popular-section{
+    max-width:600px;
+    margin:40px auto;
+    border:1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding:20px;
+    background: var(--bg-card);
+    box-shadow: var(--shadow-card);
+}
+
+.popular-title{
+    font-size: var(--font-md);
+    font-weight:800;
+    margin-bottom:16px;
+}
+
+.popular-table{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.popular-row{
+    display:grid;
+    grid-template-columns:50px 1fr;
+    align-items:center;
+
+    padding:12px 14px;
+    border-radius: var(--radius-md);
+    cursor:pointer;
+
+    background:#f7f7f7;
+    font-size: var(--font-sm);
+    transition:background .15s ease;
+}
+
+.popular-row:hover{
+    background:#ececec;
+}
+
+.popular-row .rank{
+    font-weight:800;
+    color: var(--text-sub);
+}
+
+/* =========================
+   Result Section
+========================= */
+.result-section{
+    margin-bottom:60px;
+}
+
+.section-header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:16px;
+}
+
+.result-section h3{
+    font-size: var(--font-lg);
+    font-weight:900;
+    margin:0;
+}
+
+.more-btn{
+    background:none;
+    border:none;
+    color: var(--text-sub);
+    font-size: var(--font-sm);
+    cursor:pointer;
+}
+
+.more-btn:hover{
+    color: var(--text-main);
+}
+
+/* =========================
+   Song List
+========================= */
+.result-list .item{
+    display:grid;
+    grid-template-columns:80px 2fr 2fr 120px;
+    align-items:center;
+
+    padding:16px 10px;
+    border-bottom:1px solid var(--border);
+    cursor:pointer;
+    transition:background .15s ease;
+}
+
+.result-list .item:hover{
+    background:#fafafa;
+}
+
+.result-list .item img{
+    width:60px;
+    height:60px;
+    object-fit:cover;
+    border-radius: var(--radius-md);
+}
+
+/* =========================
+   Album / Artist Grid
+========================= */
+.result-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
+    gap:28px;
+}
+
+.result-grid .card{
+    background: var(--bg-card);
+    padding:14px;
+    border-radius: var(--radius-lg);
+    transition:transform .15s ease, box-shadow .15s ease;
+    cursor:pointer;
+}
+
+.result-grid .card:hover{
+    transform:translateY(-4px);
+    box-shadow: var(--shadow-hover);
+}
+
+.result-grid .card img{
+    width:100%;
+    height:160px;
+    object-fit:cover;
+    border-radius: var(--radius-md);
+    margin-bottom:10px;
+}
+
+/* =========================
+   Dropdown (통일 스타일)
+========================= */
+.search-bar select{
+    height: var(--input-height);
+    padding:0 14px;
+    border-radius: var(--radius-md);
+    border:1px solid var(--border);
+    font-size: var(--font-sm);
+    background:#fff;
+    cursor:pointer;
+    outline:none;
+}
+
+.search-bar select:hover{
+    border-color:#aaa;
+}
+
+.search-bar select:focus{
+    border-color: var(--primary);
+    box-shadow:0 0 0 3px rgba(248,140,174,0.15);
+}
+
+/* 커스텀 화살표 */
+.search-bar select{
+    appearance:none;
+    -webkit-appearance:none;
+    -moz-appearance:none;
+
+    background-image:url("data:image/svg+xml;utf8,<svg fill='%23666' height='20' viewBox='0 0 20 20' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M5.25 7.5l4.75 5 4.75-5z'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right 12px center;
+    background-size:14px;
+    padding-right:36px;
+}
+
+/* =========================
+   Status
+========================= */
+.loading,
+.empty{
+    margin-top:60px;
+    text-align:center;
+    color: var(--text-sub);
+    font-size: var(--font-sm);
+}
+
+.hidden{
+    display:none;
+}

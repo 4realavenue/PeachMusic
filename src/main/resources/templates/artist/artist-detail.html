@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${artistName} + ' - 아티스트'">아티스트</title>
+
+    <link rel="stylesheet" th:href="@{/css/layout.css}" />
+    <link rel="stylesheet" th:href="@{/css/artist-detail.css}" />
+
+    <script th:src="@{/js/sidebar.js}" defer></script>
+</head>
+
+<body>
+
+<div id="loginPopup" class="login-popup hidden">로그인이 필요한 기능입니다.</div>
+
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+    <section class="artist-detail-page">
+
+        <div class="artist-hero">
+            <div class="artist-hero-left">
+                <div class="artist-hero-avatar"
+                     th:style="${artistImageUrl != null} ?
+                        'background-image: url(' + ${artistImageUrl} + '); background-size:cover; background-position:center;' :
+                        'background:none;'">
+                </div>
+            </div>
+
+            <div class="artist-hero-right">
+                <h1 class="artist-hero-name" th:text="${artistName}">Artist</h1>
+
+                <div class="artist-basic">
+                    <div class="artist-basic-row">
+                        <span class="label">국가</span>
+                        <span class="value" th:text="${country} ?: '-'">-</span>
+                    </div>
+
+                    <div class="artist-basic-row">
+                        <span class="label">유형</span>
+                        <span class="value" th:text="${artistType} ?: '-'">-</span>
+                    </div>
+
+                    <div class="artist-basic-row">
+                        <span class="label">데뷔</span>
+                        <span class="value" th:text="${debutDate} ?: '-'">-</span>
+                    </div>
+
+                    <p class="artist-basic-bio"
+                       th:if="${bio != null and !#strings.isEmpty(bio)}"
+                       th:text="${bio}">
+                    </p>
+                </div>
+
+                <div class="artist-hero-meta">
+                    <span id="artistLikeCount" th:text="${likeCount}">0</span>
+
+                    <button id="artistLikeBtn"
+                            class="heart-btn"
+                            th:classappend="${isLiked} ? ' liked' : ''"
+                            type="button"
+                            aria-label="아티스트 좋아요">
+                        ❤
+                    </button>
+                </div>
+
+                <div id="artistMeta"
+                     th:data-artist-id="${artistId}"
+                     th:data-artist-name="${artistName}">
+                </div>
+
+            </div>
+        </div>
+
+        <div id="previewPanel" class="preview-panel">
+            <div class="preview-head">
+                <div class="preview-title">
+                    <span id="previewArtistName">아티스트</span> 앨범/음원 미리보기
+                </div>
+            </div>
+
+            <div class="preview-body">
+
+                <div class="preview-block">
+                    <div class="preview-block-head">
+                        <h2>앨범</h2>
+                        <a id="moreAlbumsLink"
+                           class="preview-more"
+                           th:href="@{/artists/{artistId}/albums/page(artistId=${artistId})}">
+                            더보기
+                        </a>
+                    </div>
+
+                    <div id="albumsPreview" class="preview-grid"></div>
+                </div>
+
+                <div class="preview-block">
+                    <div class="preview-block-head">
+                        <h2>음원</h2>
+                        <a id="moreSongsLink"
+                           class="preview-more"
+                           th:href="@{/artists/{artistId}/songs/page(artistId=${artistId})}">
+                            더보기
+                        </a>
+                    </div>
+
+                    <div id="songsPreview" class="preview-list"></div>
+                </div>
+
+            </div>
+        </div>
+
+    </section>
+</div>
+
+<script type="module" th:src="@{/js/artist-detail.js}"></script>
+</body>
+</html>

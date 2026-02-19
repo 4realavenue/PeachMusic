@@ -1,0 +1,34 @@
+<div class="player" th:fragment="player">
+
+    <!-- ✅ 토글 버튼 (접기/펼치기) -->
+    <button class="player-toggle" id="playerToggleBtn" type="button">▼</button>
+
+    <!-- 실제 오디오 -->
+    <audio id="audioPlayer" preload="metadata"></audio>
+
+    <!-- 앨범 -->
+    <div class="album-cover" id="playerCover">🎵</div>
+
+    <!-- 곡 정보 -->
+    <div class="song-info">
+        <div id="playerTitle">재생 중인 곡 없음</div>
+
+        <div class="progress-wrapper">
+            <span id="currentTime">0:00</span>
+
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <span id="duration">0:00</span>
+        </div>
+    </div>
+
+    <!-- 컨트롤 -->
+    <div class="controls">
+        <button id="prevBtn" type="button">⏮</button>
+        <button id="playBtn" type="button">▶</button>
+        <button id="nextBtn" type="button">⏭</button>
+    </div>
+
+</div>

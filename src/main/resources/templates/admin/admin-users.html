@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>회원 관리 | PeachMusic</title>
+
+    <link rel="stylesheet" href="/css/design-system.css"/>
+    <link rel="stylesheet" th:href="@{/css/layout.css}"/>
+    <link rel="stylesheet" th:href="@{/css/admin-users.css}"/>
+
+    <script type="module" th:src="@{/js/admin-users.js}" defer></script>
+</head>
+
+<body>
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+    <section class="admin-users-page">
+
+        <div class="page-head">
+            <div>
+                <h1 class="page-title">회원 관리</h1>
+                <p class="page-sub">조회 / 검색 / 활성 / 비활성 / 권한 변경</p>
+            </div>
+        </div>
+
+        <!-- 검색 -->
+        <div class="toolbar">
+            <input id="wordInput" type="text" placeholder="이메일 또는 닉네임 검색"/>
+            <button id="searchBtn" class="ghost-btn">검색</button>
+        </div>
+
+        <!-- 테이블 -->
+        <div class="table-card">
+
+            <div class="table-head">
+                <div class="col id">ID</div>
+                <div class="col email">이메일</div>
+                <div class="col nickname">닉네임</div>
+                <div class="col role">권한</div>
+                <div class="col status">상태</div>
+                <div class="col manage">관리</div>
+            </div>
+
+            <div id="listBody" class="table-body"></div>
+
+            <div id="loading" class="loading hidden">로딩중...</div>
+            <div id="endMessage" class="end-message hidden">마지막 데이터입니다.</div>
+
+            <!-- 무한스크롤 감지용 -->
+            <div id="sentinel"></div>
+
+        </div>
+
+    </section>
+</div>
+</body>
+</html>

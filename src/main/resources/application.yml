@@ -16,13 +16,17 @@ spring:
       hibernate:
         format_sql: true
     defer-datasource-initialization: true
-  web:
-    resources:
-      add-mappings: false
   servlet:
     multipart:
       max-file-size: 30MB
       max-request-size: 30MB
+  thymeleaf:
+    prefix: classpath:/templates/
+    check-template-location: true
+    suffix: .html
+    mode: HTML
+    cache: false # 배포시에 true로 전환
+
 
   mail:
     host: ${MAIL_HOST}

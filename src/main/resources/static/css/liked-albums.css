@@ -1,0 +1,126 @@
+/* =========================
+   Page
+========================= */
+.liked-albums-page{
+    max-width: var(--page-max-width);
+    margin: 30px auto 80px;
+    padding: 0 28px;
+}
+
+/* =========================
+   Title
+========================= */
+.page-title{
+    font-size: var(--font-title);
+    font-weight:900;
+    margin-bottom:32px;
+    color: var(--text-main);
+}
+
+/* =========================
+   Album Grid
+========================= */
+.album-grid{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:28px;
+}
+
+/* =========================
+   Card
+========================= */
+.album-card{
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    overflow:hidden;
+    transition:transform .15s ease, box-shadow .15s ease;
+}
+
+.album-card:hover{
+    transform:translateY(-4px);
+    box-shadow: var(--shadow-hover);
+}
+
+.album-image{
+    width:100%;
+    height:260px;
+    object-fit:cover;
+    background:#eee;
+}
+
+.album-info{
+    padding:16px;
+}
+
+.album-name{
+    font-weight:800;
+    font-size: var(--font-md);
+    margin-bottom:10px;
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.album-bottom{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.like-count{
+    font-size: var(--font-sm);
+    color: var(--text-sub);
+}
+
+/* =========================
+   Heart
+========================= */
+.heart-btn{
+    border:none;
+    background:none;
+    font-size:22px;
+    cursor:pointer;
+    color:#bbb;
+    transition:transform .1s ease, color .15s ease;
+}
+
+.heart-btn:hover{
+    transform:scale(1.2);
+}
+
+.heart-btn.liked{
+    color: #ff4d6d;
+}
+
+/* =========================
+   Loading / End
+========================= */
+.loading,
+.end{
+    text-align:center;
+    padding:40px;
+    color: var(--text-sub);
+    font-size: var(--font-sm);
+}
+
+/* =========================
+   Responsive
+========================= */
+@media (max-width: 1000px){
+    .album-grid{
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 720px){
+    .album-grid{
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px){
+    .album-grid{
+        grid-template-columns: 1fr;
+    }
+}

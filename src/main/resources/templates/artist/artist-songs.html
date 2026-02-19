@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>음원 전체</title>
+
+    <link rel="stylesheet" href="/css/design-system.css"/>
+    <link rel="stylesheet" href="/css/layout.css" />
+    <link rel="stylesheet" href="/css/artist-songs.css" />
+    <script th:src="@{/js/sidebar.js}" defer></script>
+</head>
+
+<body>
+
+<!-- ✅ 로그인 필요 팝업(좋아요 클릭 시만 사용) -->
+<div id="loginPopup" class="login-popup hidden">로그인이 필요한 기능입니다.</div>
+
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+    <section class="songs-page">
+
+        <h1 class="page-title">음원 전체</h1>
+        <div id="pageMeta" th:data-artist-id="${artistId}"></div>
+
+        <div id="songsList" class="song-list"></div>
+
+        <div class="load-area">
+            <div id="loadingText" class="loading-text hidden">불러오는 중…</div>
+            <div id="emptyText" class="empty-text hidden">음원이 없습니다.</div>
+            <div id="endText" class="end-text hidden">마지막 페이지입니다.</div>
+            <div id="errorText" class="error-text hidden">오류가 발생했습니다. 다시 시도해 주세요.</div>
+
+            <!-- ✅ 무한스크롤 바닥 감지 -->
+            <div id="sentinel"></div>
+        </div>
+
+    </section>
+</div>
+
+<script type="module" src="/js/artist-songs.js"></script>
+</body>
+</html>

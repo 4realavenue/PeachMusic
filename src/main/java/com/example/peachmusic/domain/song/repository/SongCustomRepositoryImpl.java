@@ -120,7 +120,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
                 .join(song.album, album)
                 .join(songProgressingStatus).on(songProgressingStatus.song.eq(song));
 
-        Expression<Boolean> isLikedExpression = userId == null ? Expressions.constant(false) : songLike.songLikeId.isNotNull();
+        Expression<Boolean> isLikedExpression = userId == null ? Expressions.constant(false) : songLike.songLikeId.max().isNotNull();
 
         if (userId != null) {
             query.leftJoin(songLike).on(songLike.song.eq(song).and(songLike.user.userId.eq(userId)));

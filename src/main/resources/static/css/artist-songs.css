@@ -1,0 +1,141 @@
+/* =========================
+   Page
+========================= */
+.songs-page {
+    width: 100%;
+    max-width: var(--page-max-width);
+    margin: 30px auto 80px;
+    padding: 0;
+}
+
+.page-title {
+    font-size: var(--font-title);
+    font-weight: 900;
+    margin: 0 0 22px;
+    color: var(--text-main);
+}
+
+/* =========================
+   List Card Wrapper
+========================= */
+.song-list {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+}
+
+/* =========================
+   Song Row
+========================= */
+.song-row {
+    display: grid;
+    grid-template-columns: 2fr 140px 80px;
+    align-items: center;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background .15s ease;
+}
+
+.song-row:last-child {
+    border-bottom: none;
+}
+
+.song-row:hover {
+    background: #fafafa;
+}
+
+/* =========================
+   Song Info
+========================= */
+.song-name {
+    font-size: var(--font-lg);
+    font-weight: 900;
+    margin-bottom: 4px;
+    color: var(--text-main);
+}
+
+.song-sub {
+    font-size: var(--font-sm);
+    color: var(--text-sub);
+}
+
+/* =========================
+   Like Area
+========================= */
+.like-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.like-number {
+    font-size: var(--font-md);
+    color: var(--text-sub);
+    font-weight: 700;
+}
+
+/* =========================
+   Heart Button
+========================= */
+.heart-btn {
+    border: none;
+    background: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #bbb;
+    transition: transform .12s ease, color .15s ease;
+}
+
+.heart-btn:hover {
+    transform: scale(1.08);
+}
+
+.heart-btn.liked {
+    color: var(--primary);
+}
+
+.heart-btn.disabled {
+    color: #ddd;
+    cursor: not-allowed;
+}
+
+/* =========================
+   Load / Infinite
+========================= */
+.load-area {
+    margin: 24px 0 10px;
+    text-align: center;
+    font-size: var(--font-sm);
+    color: var(--text-sub);
+}
+
+.hidden { display: none !important; }
+
+#sentinel { height: 1px; }
+
+/* =========================
+   Login Popup
+========================= */
+.login-popup {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #111;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: var(--radius-md);
+    font-size: var(--font-sm);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.login-popup.show {
+    opacity: 1;
+}

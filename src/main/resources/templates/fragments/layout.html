@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+
+<!-- ============================= -->
+<!-- mainLayout -->
+<!-- ============================= -->
+<div th:fragment="mainLayout(content)">
+
+    <div class="layout">
+
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+        <div class="main">
+
+            <!-- 🔥 전역 플레이어 -->
+            <div th:replace="~{fragments/player :: player}"></div>
+
+            <main class="content"
+                  th:replace="${content}">
+            </main>
+
+        </div>
+
+    </div>
+
+    <!-- 🔥 반드시 추가 (전역 플레이어 JS) -->
+    <script th:src="@{/js/player.js}" defer></script>
+
+</div>
+
+
+<!-- ============================= -->
+<!-- authLayout -->
+<!-- ============================= -->
+<div th:fragment="authLayout(content)">
+
+    <div class="layout">
+
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+        <main class="content"
+              th:replace="${content}">
+        </main>
+
+    </div>
+
+    <!-- 🔥 로그인 페이지에서도 player.js 필요 -->
+    <script th:src="@{/js/player.js}" defer></script>
+
+</div>
+
+</body>
+</html>

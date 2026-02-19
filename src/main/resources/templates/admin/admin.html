@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin | PeachMusic</title>
+
+    <link rel="stylesheet" th:href="@{/css/design-system.css}">
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+
+    <script th:src="@{/js/sidebar.js}" defer></script>
+
+    <script type="module" th:src="@{/js/admin-guard.js}"></script>
+</head>
+
+<body>
+
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+    <section class="admin-dashboard">
+
+        <div class="admin-grid">
+            <a href="/admin/artists" class="admin-card blue">아티스트 관리</a>
+            <a href="/admin/albums" class="admin-card green">앨범 관리</a>
+            <a href="/admin/songs" class="admin-card orange">음원 관리</a>
+            <a href="/admin/users" class="admin-card purple">유저 관리</a>
+            <a href="/admin/openapi/jamendo" class="admin-card">외부 음원 관리</a>
+        </div>
+
+    </section>
+</div>
+
+</body>
+</html>

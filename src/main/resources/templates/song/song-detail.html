@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Song | PeachMusic</title>
+
+    <link rel="stylesheet" href="/css/design-system.css"/>
+    <link rel="stylesheet" th:href="@{/css/layout.css}" />
+    <link rel="stylesheet" th:href="@{/css/song-detail.css}" />
+
+    <script th:src="@{/js/sidebar.js}" defer></script>
+</head>
+
+<body>
+
+<!-- 로그인 필요 팝업 -->
+<div id="loginPopup" class="login-popup hidden">로그인이 필요한 기능입니다.</div>
+
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+    <section class="song-detail-page">
+
+        <div class="song-detail-card">
+
+            <div class="album-area">
+                <img id="albumImage" class="album-image" src="/images/default.png" alt="album" />
+            </div>
+
+            <div class="info-area">
+
+                <div class="top-line">
+                    <h1 id="songName" class="song-title">-</h1>
+
+                    <div class="like-box">
+                        <span id="likeCount" class="like-count">0</span>
+
+                        <!-- ✅ 좋아요 -->
+                        <button id="heartBtn" class="heart-btn" type="button" aria-label="음원 좋아요">❤</button>
+
+                        <!-- ✅ 플레이리스트 추가 (+) -->
+                        <button id="addToPlaylistBtn" class="plus-btn" type="button" aria-label="플레이리스트에 추가">＋</button>
+                    </div>
+                </div>
+
+                <div class="meta">
+                    <div class="meta-row">
+                        <span class="label">아티스트</span>
+                        <span id="artistName" class="value">-</span>
+                    </div>
+
+                    <div class="meta-row">
+                        <span class="label">앨범</span>
+                        <a id="albumLink" class="value link" href="#">-</a>
+                    </div>
+
+                    <div class="meta-row">
+                        <span class="label">트랙</span>
+                        <span id="position" class="value">-</span>
+                    </div>
+                </div>
+
+                <div class="chips" id="genreChips"></div>
+
+                <div class="custom-player">
+                    <button id="detailPlayBtn" class="play-btn">▶</button>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="detail-grid">
+            <div class="detail-panel">
+                <div class="panel-title">곡 정보</div>
+
+                <div class="detail-row">
+                    <span class="k">duration</span>
+                    <span class="v" id="duration">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="k">lang</span>
+                    <span class="v" id="lang">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="k">speed</span>
+                    <span class="v" id="speed">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="k">vocal/instrumental</span>
+                    <span class="v" id="vocalInstrumental">-</span>
+                </div>
+            </div>
+
+            <div class="detail-panel">
+                <div class="panel-title">태그</div>
+
+                <div class="tag-row">
+                    <span class="k">instrumentals</span>
+                    <span class="v" id="instrumentals">-</span>
+                </div>
+                <div class="tag-row">
+                    <span class="k">vartags</span>
+                    <span class="v" id="vartags">-</span>
+                </div>
+                <div class="tag-row">
+                    <span class="k">license</span>
+                    <a class="v link" id="licenseLink" href="#" target="_blank" rel="noopener">-</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ✅ 플레이리스트 선택 모달 -->
+        <div id="playlistModal" class="pl-modal hidden" aria-hidden="true">
+            <div class="pl-backdrop" data-close="true"></div>
+
+            <div class="pl-sheet" role="dialog" aria-modal="true" aria-label="플레이리스트 선택">
+                <div class="pl-head">
+                    <div class="pl-title">플레이리스트에 추가</div>
+                    <button id="playlistModalClose" class="pl-close" type="button" aria-label="닫기">✕</button>
+                </div>
+
+                <div id="playlistList" class="pl-list"></div>
+
+                <div class="pl-foot">
+                    <button id="playlistModalCancel" class="pl-cancel" type="button">취소</button>
+                </div>
+            </div>
+        </div>
+
+    </section>
+</div>
+
+<script th:inline="javascript">
+    const songId = /*[[${songId}]]*/ 0;
+</script>
+
+<script type="module" th:src="@{/js/song-detail.js}"></script>
+</body>
+</html>
