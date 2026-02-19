@@ -1,4 +1,5 @@
 import { authFetch, getToken } from "/js/auth.js";
+import { resolveAudioUrl } from "/js/player-hls.js";
 
 /* 로그인 팝업 */
 function showLoginPopup() {
@@ -26,7 +27,9 @@ function formatDate(dateStr) {
     if (!dateStr) return "";
     const d = new Date(dateStr);
     if (isNaN(d)) return String(dateStr);
-    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(
+        d.getDate()
+    ).padStart(2, "0")}`;
 }
 
 /* preview API */
@@ -52,7 +55,7 @@ function bindArtistLike(artistId) {
             const res = await authFetch(`/api/artists/${artistId}/likes`, { method: "POST" });
             if (!res) return;
 
-            const payload = await res.json();
+            const payload = await res.json().catch(() => null);
             if (!payload?.success) return;
 
             const { liked, likeCount } = payload.data;
@@ -66,22 +69,35 @@ function bindArtistLike(artistId) {
 
 /* ✅ play API: 재생수 증가 + streamingUrl 반환 */
 async function fetchPlayUrl(songId) {
-    const res = await authFetch(`/api/songs/${songId}/play`, { method: "GET" });
+    const url = `/api/songs/${songId}/play`;
+
+    const res = getToken()
+        ? await authFetch(url, { method: "GET" })
+        : await fetch(url, { method: "GET" });
+
     if (!res) return null;
 
-    let payload = null;
-    try {
-        payload = await res.json();
-    } catch {
-        payload = null;
-    }
-
+    const payload = await res.json().catch(() => null);
     if (!res.ok || payload?.success === false) {
         alert(payload?.message || "재생에 실패했습니다.");
         return null;
     }
 
-    return payload?.data?.streamingUrl ?? null;
+    return resolveAudioUrl(payload?.data?.streamingUrl ?? null);
+}
+
+/* =========================
+   ✅ Context Queue (미리보기 5곡)
+   - player.js setPlayerQueue(tracks, startSongId, {loop, contextKey}) 규격
+========================= */
+function buildPreviewTracks(dto) {
+    const songs = (dto?.songList ?? []).slice(0, 5);
+    return songs
+        .map((s) => ({
+            songId: Number(s?.songId),
+            title: String(s?.name ?? "Unknown"),
+        }))
+        .filter((t) => Number.isFinite(t.songId));
 }
 
 /* 미리보기 렌더링 */
@@ -143,7 +159,7 @@ function bindAlbumClick(albumsWrap) {
 }
 
 /* ✅ 음원 미리보기: 상세 이동 + 전역 재생 + 리스트 하트 */
-function bindSongInteractions(songsWrap) {
+function bindSongInteractions(songsWrap, tracks, artistId) {
     songsWrap.querySelectorAll(".song-item").forEach((row) => {
         const songId = row.dataset.songId;
         const playBtn = row.querySelector(".track-play");
@@ -157,21 +173,29 @@ function bindSongInteractions(songsWrap) {
             if (songId) window.location.href = `/songs/${songId}/page`;
         });
 
-        // ✅ 재생 버튼: 전역 플레이어 사용
+        // ✅ 재생 버튼: setPlayerQueue + /play + playSongFromPage
         playBtn?.addEventListener("click", async (e) => {
             e.stopPropagation();
 
-            if (typeof window.playSongFromPage !== "function") {
+            if (typeof window.setPlayerQueue !== "function" || typeof window.playSongFromPage !== "function") {
                 alert("전역 플레이어가 아직 로드되지 않았습니다.");
                 return;
             }
 
-            const url = await fetchPlayUrl(songId);
+            const sid = Number(songId);
+            if (!sid) return;
+
+            // 1) 미리보기 5곡 큐 세팅
+            window.setPlayerQueue(tracks, sid, { loop: true, contextKey: `artist-preview:${artistId}` });
+
+            // 2) /play로 url 받기
+            const url = await fetchPlayUrl(sid);
             if (!url) return;
 
             try {
                 const title = row.querySelector(".song-title")?.textContent?.trim() || "Unknown";
-                await window.playSongFromPage(url, title, Number(songId));
+                // 3) 실제 재생
+                await window.playSongFromPage(url, title, sid);
             } catch (err) {
                 console.error(err);
                 alert("재생에 실패했습니다.");
@@ -187,15 +211,19 @@ function bindSongInteractions(songsWrap) {
                 return;
             }
 
-            const res = await authFetch(`/api/songs/${songId}/likes`, { method: "POST" });
-            if (!res) return;
+            try {
+                const res = await authFetch(`/api/songs/${songId}/likes`, { method: "POST" });
+                if (!res) return;
 
-            const payload = await res.json();
-            if (!payload?.success) return;
+                const payload = await res.json().catch(() => null);
+                if (!payload?.success) return;
 
-            const { liked, likeCount } = payload.data;
-            heartBtn.classList.toggle("liked", liked === true);
-            likeCountEl.textContent = String(likeCount ?? 0);
+                const { liked, likeCount } = payload.data;
+                heartBtn.classList.toggle("liked", liked === true);
+                likeCountEl.textContent = String(likeCount ?? 0);
+            } catch (err) {
+                console.error(err);
+            }
         });
     });
 }
@@ -229,7 +257,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         renderPreview(dto, albumsWrap, songsWrap);
         bindAlbumClick(albumsWrap);
-        bindSongInteractions(songsWrap);
+
+        // ✅ 미리보기 5곡 컨텍스트 큐 생성 후 바인딩
+        const tracks = buildPreviewTracks(dto);
+        bindSongInteractions(songsWrap, tracks, artistId);
     } catch (e) {
         console.error(e);
         albumsWrap.innerHTML = `<div style="padding:12px;color:#666;">미리보기를 불러오지 못했어요.</div>`;

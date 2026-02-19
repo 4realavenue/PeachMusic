@@ -1,7 +1,6 @@
-import { playHls, alertPlaybackError } from "/js/player-hls.js";
+import { playHls, alertPlaybackError, resolveAudioUrl } from "/js/player-hls.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-
     /* =========================
        전역 오디오
     ========================= */
@@ -21,12 +20,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const durationEl = document.getElementById("duration");
     const playerTitle = document.getElementById("playerTitle");
 
-    // ✅ prev/next (ID 충돌 방지 버전)
     const prevBtn = document.getElementById("playerPrevBtn");
     const nextBtn = document.getElementById("playerNextBtn");
 
     /* =========================
-       ✅ Player Toggle
+       Player Toggle
     ========================= */
     const player = document.querySelector(".player");
     const toggleBtn = document.getElementById("playerToggleBtn");
@@ -38,54 +36,89 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /* =========================
-       ✅ 재생수 중복 증가 방지(전역 플레이어 기준 곡당 1회)
+       ✅ 컨텍스트 큐
+       - setPlayerQueue로 페이지가 “현재 리스트”를 넘김
+       - ended 자동 다음곡
+       - loop=true면 마지막 다음은 첫 곡, 첫 곡 prev는 마지막 곡
+       - prev 5초 규칙: 5초 이상이면 현재곡 처음부터
     ========================= */
-    const playedOnce = new Set();
-
-    /* =========================
-       ✅ 전역 큐(세션용)
-       - 사용자가 클릭해서 재생한 곡들을 순서대로 쌓음
-       - prev/next는 이 큐 기준으로 이동
-    ========================= */
-    const queue = [];            // [{songId, title}]
+    let queue = []; // [{ songId, title, url? }]
     let currentIndex = -1;
+
+    let loopEnabled = true;
+    let contextKey = null;
 
     function updateNavButtons() {
         if (!prevBtn || !nextBtn) return;
-        prevBtn.disabled = currentIndex <= 0;
-        nextBtn.disabled = currentIndex < 0 || currentIndex >= queue.length - 1;
+        const hasQueue = queue.length > 0 && currentIndex >= 0;
+        prevBtn.disabled = !hasQueue;
+        nextBtn.disabled = !hasQueue;
     }
 
-    function ensureInQueue(songId, title) {
-        const sid = Number(songId);
-        if (!Number.isFinite(sid)) return;
+    function normalizeTracks(tracks) {
+        return Array.isArray(tracks)
+            ? tracks
+                .map((t) => ({
+                    songId: Number(t?.songId),
+                    title: String(t?.title ?? "Unknown"),
+                    url: t?.url ? resolveAudioUrl(t.url) : null, // 선택: url까지 넘기면 /play 재호출 감소
+                }))
+                .filter((t) => Number.isFinite(t.songId))
+            : [];
+    }
 
-        // 현재 곡이 큐의 현재Index와 같으면 패스
-        if (currentIndex >= 0 && queue[currentIndex]?.songId === sid) {
+    function setQueueInternal(tracks = [], startSongId = null) {
+        queue = normalizeTracks(tracks);
+
+        if (queue.length === 0) {
+            currentIndex = -1;
             updateNavButtons();
             return;
         }
 
-        // "현재Index 이후"는 앞으로 가기 스택이므로 잘라냄 (브라우저 히스토리처럼)
-        if (currentIndex >= 0 && currentIndex < queue.length - 1) {
-            queue.splice(currentIndex + 1);
-        }
-
-        // 같은 곡이 뒤에 중복으로 계속 쌓이지 않게: 마지막이 같은 곡이면 교체
-        if (queue.length > 0 && queue[queue.length - 1]?.songId === sid) {
-            queue[queue.length - 1] = { songId: sid, title: title || "Unknown" };
+        if (startSongId != null) {
+            const sid = Number(startSongId);
+            const idx = queue.findIndex((t) => t.songId === sid);
+            currentIndex = idx >= 0 ? idx : 0;
         } else {
-            queue.push({ songId: sid, title: title || "Unknown" });
+            currentIndex = 0;
         }
 
-        currentIndex = queue.length - 1;
         updateNavButtons();
     }
 
+    function findIndexBySongId(songId) {
+        const sid = Number(songId);
+        if (!Number.isFinite(sid)) return -1;
+        return queue.findIndex((t) => t.songId === sid);
+    }
+
+    function getNextIndex() {
+        if (queue.length === 0 || currentIndex < 0) return -1;
+        if (currentIndex + 1 < queue.length) return currentIndex + 1;
+        return loopEnabled ? 0 : -1;
+    }
+
+    function getPrevIndex() {
+        if (queue.length === 0 || currentIndex < 0) return -1;
+        if (currentIndex - 1 >= 0) return currentIndex - 1;
+        return loopEnabled ? queue.length - 1 : -1;
+    }
+
+    /* =========================
+       ✅ /play는 트랙 전환에서만 호출
+       - prev/next/ended에서 사용
+       - 페이지에서 클릭 재생은 “이미 url을 받아서” playSongFromPage로 들어오는게 베스트
+    ========================= */
     async function fetchStreamingUrl(songId) {
         const res = await fetch(`/api/songs/${songId}/play`, { method: "GET" });
+
         let payload = null;
-        try { payload = await res.json(); } catch { payload = null; }
+        try {
+            payload = await res.json();
+        } catch {
+            payload = null;
+        }
 
         if (!res.ok || payload?.success === false) {
             const msg = payload?.message;
@@ -95,27 +128,28 @@ document.addEventListener("DOMContentLoaded", () => {
             return null;
         }
 
-        return payload?.data?.streamingUrl ?? null;
+        return resolveAudioUrl(payload?.data?.streamingUrl ?? null);
     }
 
     async function playByIndex(nextIndex) {
+        if (queue.length === 0) return;
         if (nextIndex < 0 || nextIndex >= queue.length) return;
+
         const item = queue[nextIndex];
         if (!item) return;
 
-        const url = await fetchStreamingUrl(item.songId);
+        // ✅ url을 큐에 같이 넣어준 경우 /play 호출 없이 사용 가능
+        const url = item.url || (await fetchStreamingUrl(item.songId));
         if (!url) return;
 
-        // 인덱스를 먼저 확정(실패하면 다시 돌려도 되지만 UX상 여기서 고정이 낫다)
         currentIndex = nextIndex;
         updateNavButtons();
 
-        // 실제 재생
-        await playTrack(url, item.title, item.songId, { skipQueue: true });
+        await playTrack(url, item.title, item.songId);
     }
 
     /* =========================
-       재생 버튼(전역)
+       전역 재생 버튼
     ========================= */
     playBtn?.addEventListener("click", async () => {
         if (!audio.src) return;
@@ -128,32 +162,77 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /* =========================
-       ✅ 이전/다음 버튼
+       ✅ prev / next
+       - prev: 5초 이상 재생 중이면 현재곡 처음부터
+       - 아니면 이전곡 (loop면 wrap)
+       - next: 다음곡 (loop면 wrap)
     ========================= */
     prevBtn?.addEventListener("click", async () => {
-        if (currentIndex <= 0) return;
-        await playByIndex(currentIndex - 1);
+        if (queue.length === 0 || currentIndex < 0) return;
+
+        if (!audio.paused && audio.currentTime >= 5) {
+            audio.currentTime = 0;
+            try {
+                await audio.play();
+            } catch (e) {
+                alertPlaybackError(e);
+            }
+            return;
+        }
+
+        const prevIdx = getPrevIndex();
+        if (prevIdx < 0) return;
+        await playByIndex(prevIdx);
     });
 
     nextBtn?.addEventListener("click", async () => {
-        if (currentIndex < 0 || currentIndex >= queue.length - 1) return;
-        await playByIndex(currentIndex + 1);
+        if (queue.length === 0 || currentIndex < 0) return;
+        const nextIdx = getNextIndex();
+        if (nextIdx < 0) return;
+        await playByIndex(nextIdx);
     });
 
     /* =========================
-       ✅ 상세/리스트 페이지에서 호출 (전역 재생)
-       - window.playSongFromPage(url, title, songId)
-       - HLS 재생 + 재생 성공 후 재생수 증가(400/404 처리)
-       - ✅ 큐에도 자동 반영
+       ✅ 자동 다음 곡(ended)
     ========================= */
+    audio.addEventListener("ended", async () => {
+        if (queue.length === 0 || currentIndex < 0) return;
+        const nextIdx = getNextIndex();
+        if (nextIdx < 0) return;
+        await playByIndex(nextIdx);
+    });
+
+    /* =========================
+       ✅ 페이지에서 쓰는 "공식 API"
+       1) setPlayerQueue(tracks, startSongId, { loop:true, contextKey:"..." })
+       2) playSongFromPage(url, title, songId)  // 큐는 이미 세팅되어 있다는 전제
+    ========================= */
+
+    // ✅ 공식: 큐 세팅
+    window.setPlayerQueue = function (tracks, startSongId = null, options = {}) {
+        loopEnabled = options?.loop !== false; // 기본 true
+        contextKey = options?.contextKey ?? null;
+
+        setQueueInternal(tracks, startSongId);
+    };
+
+    // ✅ 공식: 재생 (여기서는 /play 재호출 금지)
     window.playSongFromPage = async function (url, title, songId) {
-        if (!url) return;
+        const fixedUrl = resolveAudioUrl(url);
+        if (!fixedUrl) return;
+
+        // 큐에 있는 곡이면 인덱스 맞추기
+        const idx = findIndexBySongId(songId);
+        if (idx >= 0) {
+            currentIndex = idx;
+            updateNavButtons();
+        }
 
         const currentFile = (audio.src || "").split("/").pop();
-        const nextFile = String(url).split("/").pop();
+        const nextFile = String(fixedUrl).split("/").pop();
         const isSame = currentFile && nextFile && currentFile === nextFile;
 
-        // 같은 곡이면 토글만 (재생수 추가 X)
+        // 같은 곡이면 토글만
         if (isSame) {
             try {
                 if (audio.paused) await audio.play();
@@ -164,75 +243,29 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        await playTrack(url, title, songId, { skipQueue: false });
+        await playTrack(fixedUrl, title, songId);
     };
 
-    /**
-     * ✅ 내부 실제 재생 함수
-     * options.skipQueue=true 이면 큐 추가/정리 안 함(Prev/Next에서 호출할 때)
-     */
-    async function playTrack(url, title, songId, options = { skipQueue: false }) {
+    /* =========================
+       ✅ 실제 재생
+       - 여기서 /play 재호출 금지
+    ========================= */
+    async function playTrack(url, title, songId) {
         try {
             if (playerTitle) playerTitle.textContent = title || "Unknown";
 
-            // 기존 재생 정리
             audio.pause();
             audio.currentTime = 0;
 
-            // ✅ 1) HLS 재생
             await playHls(audio, url);
 
-            // ✅ 2) 재생 성공 후 재생수 1회 증가
-            if (songId != null) {
-                await increasePlayCountOnce(Number(songId));
-            }
-
-            // ✅ 3) 큐 반영
-            if (!options?.skipQueue && songId != null) {
-                ensureInQueue(Number(songId), title || "Unknown");
-            } else {
-                updateNavButtons();
-            }
-
-            // ✅ 4) 곡 새로 재생하면 자동 펼치기
+            // 자동 펼치기
             if (player && toggleBtn && player.classList.contains("collapsed")) {
                 player.classList.remove("collapsed");
                 toggleBtn.textContent = "▼";
             }
         } catch (e) {
             alertPlaybackError(e);
-        }
-    }
-
-    /* =========================
-       ✅ 재생수 증가 (곡당 1회)
-    ========================= */
-    async function increasePlayCountOnce(songId) {
-        if (playedOnce.has(songId)) return;
-
-        playedOnce.add(songId);
-
-        let res = null;
-        let payload = null;
-
-        try {
-            res = await fetch(`/api/songs/${songId}/play`, { method: "GET" });
-            try { payload = await res.json(); } catch { payload = null; }
-
-            if (!res.ok || payload?.success === false) {
-                const msg = payload?.message;
-
-                if (res.status === 400) alert(msg || "스트리밍 불가능한 음원입니다.");
-                else if (res.status === 404) alert(msg || "음원이 존재하지 않습니다.");
-                else alert(msg || "재생 횟수 반영에 실패했습니다.");
-
-                // 실패면 다음에 다시 시도 가능하도록 롤백
-                playedOnce.delete(songId);
-            }
-        } catch (e) {
-            console.error(e);
-            alert("재생 횟수 반영 중 서버 오류가 발생했습니다.");
-            playedOnce.delete(songId);
         }
     }
 
@@ -247,16 +280,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (playBtn) playBtn.textContent = "▶";
     });
 
-    /* =========================
-       메타데이터 로드
-    ========================= */
     audio.addEventListener("loadedmetadata", () => {
         if (durationEl) durationEl.textContent = formatTime(audio.duration);
     });
 
-    /* =========================
-       시간 업데이트
-    ========================= */
     audio.addEventListener("timeupdate", () => {
         if (!audio.duration) return;
 
@@ -265,9 +292,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (currentTimeEl) currentTimeEl.textContent = formatTime(audio.currentTime);
     });
 
-    /* =========================
-       프로그레스 클릭 이동
-    ========================= */
     progressBar?.addEventListener("click", (e) => {
         if (!audio.duration) return;
 
@@ -276,9 +300,6 @@ document.addEventListener("DOMContentLoaded", () => {
         audio.currentTime = ratio * audio.duration;
     });
 
-    /* =========================
-       mm:ss 변환
-    ========================= */
     function formatTime(sec) {
         if (!sec || isNaN(sec)) return "0:00";
         const m = Math.floor(sec / 60);
@@ -286,6 +307,5 @@ document.addEventListener("DOMContentLoaded", () => {
         return `${m}:${String(s).padStart(2, "0")}`;
     }
 
-    // 초기 상태
     updateNavButtons();
 });

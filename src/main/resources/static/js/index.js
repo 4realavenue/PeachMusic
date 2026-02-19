@@ -1,4 +1,5 @@
 import { authFetch, getToken } from "/js/auth.js";
+import { resolveAudioUrl } from "/js/player-hls.js";
 
 const listEl = document.getElementById("songsList");
 const errorBox = document.getElementById("errorBox");
@@ -94,7 +95,9 @@ function formatDate(dateStr) {
     if (!dateStr) return "";
     const d = new Date(dateStr);
     if (isNaN(d)) return String(dateStr);
-    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+    return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(
+        d.getDate()
+    ).padStart(2, "0")}`;
 }
 
 function sortLabel(type) {
@@ -114,6 +117,9 @@ function updateSortStatus() {
     sortStatus.textContent = `${sortLabel(state.sortType)} · ${dirLabel(state.direction)}`;
 }
 
+/* =========================
+   Request (토큰 있으면 authFetch)
+========================= */
 async function request(url) {
     return getToken() ? authFetch(url, { method: "GET" }) : fetch(url, { method: "GET" });
 }
@@ -164,7 +170,7 @@ async function fetchPage(cursor) {
 }
 
 /* =========================
-   ✅ 추천 5개 로드 (깨짐 해결 적용)
+   ✅ 추천 5개 로드
 ========================= */
 function createRecommendCard(song) {
     const div = document.createElement("div");
@@ -196,7 +202,6 @@ function createRecommendCard(song) {
 async function loadRecommendTop5() {
     if (!recommendGrid) return;
 
-    // 추천 API가 인증 기반이면 토큰 없을 때 빈칸
     if (!getToken()) {
         recommendGrid.innerHTML = "";
         return;
@@ -219,7 +224,7 @@ async function loadRecommendTop5() {
 }
 
 /* =========================
-   목록 렌더 (🔥 깨짐 해결 적용)
+   목록 렌더
 ========================= */
 function appendRows(items) {
     const hasToken = !!getToken();
@@ -231,7 +236,6 @@ function appendRows(items) {
 
         const imgSrc = resolveImageUrl(s.albumImage);
 
-        // 🔥 핵심: decode -> escape
         const safeName = escapeHtml(decodeEntities(s.name ?? "-"));
         const safeArtist = escapeHtml(decodeEntities(s.artistName ?? "-"));
 
@@ -317,9 +321,36 @@ function resetAndReload() {
     setEnd(false);
     initObserver();
 
-    // 정렬 변경하면 맨 위로
     scrollToTopSmooth();
     loadMore();
+}
+
+/* =========================
+   ✅ "현재 화면 DOM 기준" 큐 생성 + setPlayerQueue 등록
+========================= */
+function buildQueueFromDom() {
+    const rows = Array.from(document.querySelectorAll(".song-row[data-song-id]"));
+    return rows
+        .map((row) => {
+            const songId = Number(row.dataset.songId);
+            const title = row.querySelector(".song-name")?.textContent?.trim() || "Unknown";
+            if (!Number.isFinite(songId)) return null;
+            return { songId, title };
+        })
+        .filter(Boolean);
+}
+
+function setGlobalQueueFromThisPage(startSongId) {
+    const tracks = buildQueueFromDom();
+    if (!tracks.length) return;
+
+    // ✅ 통일: setPlayerQueue만 사용
+    if (typeof window.setPlayerQueue === "function") {
+        window.setPlayerQueue(tracks, Number(startSongId), {
+            loop: true,
+            contextKey: `songs:list:${state.sortType}:${state.direction}`,
+        });
+    }
 }
 
 /* =========================
@@ -401,7 +432,7 @@ listEl.addEventListener("click", (e) => {
     if (songId) location.href = `/songs/${songId}/page`;
 });
 
-// 재생
+// 재생 (✅ /play + resolveAudioUrl + ✅ 큐 등록 + playSongFromPage 3args)
 listEl.addEventListener("click", async (e) => {
     const btn = e.target.closest(".track-play");
     if (!btn) return;
@@ -413,23 +444,37 @@ listEl.addEventListener("click", async (e) => {
         return;
     }
 
-    const songId = btn.dataset.id;
+    const songId = Number(btn.dataset.id);
+    if (!Number.isFinite(songId)) return;
 
     try {
-        const res = await fetch(`/api/songs/${songId}/play`);
-        const payload = await res.json();
-        const url = payload?.data?.streamingUrl ?? null;
+        const res = await request(`/api/songs/${songId}/play`);
+        if (!res) return;
 
-        if (!res.ok || payload?.success === false || !url) {
+        const payload = await res.json().catch(() => null);
+
+        if (!res.ok || payload?.success === false) {
             alert(payload?.message || "재생 가능한 음원이 없습니다.");
+            return;
+        }
+
+        const raw = payload?.data?.streamingUrl ?? null;
+        const url = resolveAudioUrl(raw);
+        if (!url) {
+            alert("재생 가능한 음원 주소가 없습니다.");
             return;
         }
 
         btn.dataset.audioUrl = url;
 
-        const title = btn.closest(".song-row")?.querySelector(".song-name")?.textContent?.trim() || "Unknown";
+        const title =
+            btn.closest(".song-row")?.querySelector(".song-name")?.textContent?.trim() || "Unknown";
 
-        await window.playSongFromPage(url, title, Number(songId));
+        // ✅ 먼저 큐 등록
+        setGlobalQueueFromThisPage(songId);
+
+        // ✅ 통일: 3 args
+        await window.playSongFromPage(url, title, songId);
         syncPlayButtons();
     } catch (err) {
         console.error(err);
@@ -494,7 +539,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateSortStatus();
     updateTopBtn();
 
-    // ✅ 추천 5개
     await loadRecommendTop5();
 
     initObserver();

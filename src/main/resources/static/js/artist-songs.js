@@ -1,4 +1,5 @@
 import { authFetch, getToken } from "/js/auth.js";
+import { resolveAudioUrl } from "/js/player-hls.js";
 
 (() => {
     const artistId = document.getElementById("pageMeta")?.dataset?.artistId;
@@ -19,6 +20,19 @@ import { authFetch, getToken } from "/js/auth.js";
     let loadedAny = false;
 
     /* =========================
+       ✅ 현재 화면 기준 큐 생성
+       (무한스크롤로 추가된 것까지 포함)
+    ========================= */
+    function buildCurrentTracks() {
+        return Array.from(document.querySelectorAll(".song-row"))
+            .map((row) => ({
+                songId: Number(row.dataset.songId),
+                title: row.querySelector(".song-name")?.textContent?.trim() || "Unknown",
+            }))
+            .filter((t) => Number.isFinite(t.songId));
+    }
+
+    /* =========================
        UI helpers
     ========================= */
     function setLoading(on) {
@@ -32,9 +46,15 @@ import { authFetch, getToken } from "/js/auth.js";
         errorText?.classList.add("hidden");
     }
 
-    function showEmpty() { emptyText?.classList.remove("hidden"); }
-    function showEnd() { endText?.classList.remove("hidden"); }
-    function showError() { errorText?.classList.remove("hidden"); }
+    function showEmpty() {
+        emptyText?.classList.remove("hidden");
+    }
+    function showEnd() {
+        endText?.classList.remove("hidden");
+    }
+    function showError() {
+        errorText?.classList.remove("hidden");
+    }
 
     function showLoginPopup() {
         if (!popup) return;
@@ -46,22 +66,15 @@ import { authFetch, getToken } from "/js/auth.js";
         }, 2000);
     }
 
-    /* =========================
-       Cursor
-    ========================= */
     function buildQueryFromCursor(cursorObj) {
         const params = new URLSearchParams();
-        if (!cursorObj || typeof cursorObj !== "object") return params;
+        if (!cursorObj) return params;
         for (const [k, v] of Object.entries(cursorObj)) {
-            if (v === null || v === undefined) continue;
-            params.append(k, String(v));
+            if (v != null) params.append(k, String(v));
         }
         return params;
     }
 
-    /* =========================
-       Utils
-    ========================= */
     function escapeHtml(str) {
         return String(str ?? "")
             .replaceAll("&", "&amp;")
@@ -80,17 +93,11 @@ import { authFetch, getToken } from "/js/auth.js";
         ).padStart(2, "0")}`;
     }
 
-    /* =========================
-       Request
-    ========================= */
     async function request(url) {
         if (getToken()) return authFetch(url, { method: "GET" });
         return fetch(url, { method: "GET" });
     }
 
-    /* =========================
-       Render
-    ========================= */
     function renderSongRow(s) {
         const songId = s.songId;
         const name = s.name ?? "음원";
@@ -117,12 +124,11 @@ import { authFetch, getToken } from "/js/auth.js";
         </span>
       </div>
     `;
-
         return row;
     }
 
     /* =========================
-       Global player sync
+       Global player sync (버튼 표시만)
     ========================= */
     function getGlobalAudioEl() {
         return document.querySelector(".player audio") || document.getElementById("audioPlayer") || null;
@@ -144,13 +150,18 @@ import { authFetch, getToken } from "/js/auth.js";
 
     async function fetchAudioUrl(songId) {
         const res = await request(`/api/songs/${songId}/play`);
-        if (!res || !res.ok) return null;
+        if (!res) return null;
 
         let payload = null;
-        try { payload = await res.json(); } catch { payload = null; }
+        try {
+            payload = await res.json();
+        } catch {
+            payload = null;
+        }
 
-        if (!payload?.success) return null;
-        return payload.data?.streamingUrl ?? null;
+        if (!res.ok || payload?.success === false) return null;
+
+        return resolveAudioUrl(payload?.data?.streamingUrl ?? null);
     }
 
     function wireGlobalAudioSync() {
@@ -162,21 +173,18 @@ import { authFetch, getToken } from "/js/auth.js";
                 const btn = row.querySelector(".track-play");
                 if (!btn) return;
 
-                const url = btn.dataset.audioUrl || null;
-                if (!url) {
-                    setPlayBtnState(btn, false);
-                    return;
-                }
+                const url = btn.dataset.audioUrl;
+                if (!url) return setPlayBtnState(btn, false);
 
                 const same = isSameTrack(globalAudio, url);
-                const isPlaying = same && !globalAudio.paused;
-                setPlayBtnState(btn, isPlaying);
+                setPlayBtnState(btn, same && !globalAudio.paused);
             });
         };
 
         globalAudio.addEventListener("play", sync);
         globalAudio.addEventListener("pause", sync);
         globalAudio.addEventListener("ended", sync);
+        sync();
     }
 
     /* =========================
@@ -272,7 +280,7 @@ import { authFetch, getToken } from "/js/auth.js";
         }
     });
 
-    // ✅ 재생: 전역 플레이어 호출
+    // ✅ 재생: setPlayerQueue + /play + playSongFromPage(3args)
     listEl.addEventListener("click", async (e) => {
         const playBtn = e.target.closest(".track-play");
         if (!playBtn) return;
@@ -282,7 +290,7 @@ import { authFetch, getToken } from "/js/auth.js";
         const songId = Number(playBtn.dataset.id);
         if (!songId) return;
 
-        if (typeof window.playSongFromPage !== "function") {
+        if (typeof window.setPlayerQueue !== "function" || typeof window.playSongFromPage !== "function") {
             alert("전역 플레이어가 아직 로드되지 않았습니다.");
             return;
         }
@@ -293,11 +301,14 @@ import { authFetch, getToken } from "/js/auth.js";
             return;
         }
 
-        // 버튼에 저장(전역 오디오와 같은 곡인지 비교/싱크용)
+        // ✅ 싱크용 url 저장
         playBtn.dataset.audioUrl = url;
 
-        const title =
-            playBtn.closest(".song-row")?.querySelector(".song-name")?.textContent ?? "Unknown";
+        const title = playBtn.closest(".song-row")?.querySelector(".song-name")?.textContent?.trim() || "Unknown";
+
+        // ✅ 현재 화면 전체를 큐로 전달 (무한 반복)
+        const tracks = buildCurrentTracks();
+        window.setPlayerQueue(tracks, songId, { loop: true, contextKey: `artist-songs:${artistId}` });
 
         try {
             await window.playSongFromPage(url, title, songId);

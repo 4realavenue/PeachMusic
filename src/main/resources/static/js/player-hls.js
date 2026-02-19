@@ -1,8 +1,20 @@
-export function resolveAudioUrl(audioPath) {
-    if (!audioPath) return null;
-    if (audioPath.startsWith("http://") || audioPath.startsWith("https://")) return audioPath;
-    if (audioPath.startsWith("/")) return audioPath;
-    return `/${audioPath}`; // "storage/..." -> "/storage/..."
+export function resolveAudioUrl(raw) {
+    if (!raw) return null;
+
+    let s = String(raw).trim();          // ✅ 개행/공백 제거
+    if (!s) return null;
+
+    // 이미 절대경로면 그대로
+    if (s.startsWith("http://") || s.startsWith("https://")) return s;
+
+    // 백슬래시 방지
+    s = s.replaceAll("\\", "/");
+
+    // 슬래시 보정
+    if (!s.startsWith("/")) s = "/" + s;
+
+    const base = "https://streaming.peachmusics.com"; // ✅ 너희 R2 스트리밍 도메인
+    return base + s;
 }
 
 let hlsInstance = null;
