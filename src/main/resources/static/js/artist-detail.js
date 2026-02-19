@@ -58,46 +58,30 @@ function bindArtistLike(artistId) {
             const { liked, likeCount } = payload.data;
             likeBtn.classList.toggle("liked", !!liked);
             likeCountEl.textContent = String(likeCount ?? 0);
-
         } catch (e) {
             console.error(e);
         }
     });
 }
 
-/* ✅ 페이지 내 프리뷰 재생(한 곡만) */
-const previewAudio = new Audio();
-previewAudio.preload = "metadata";
-
-let currentPlayingSongId = null;
-let currentPlayBtn = null;
-
-function setPlayBtnState(btn, isPlaying) {
-    if (!btn) return;
-    btn.classList.toggle("playing", isPlaying);
-    btn.textContent = isPlaying ? "❚❚" : "▶";
-}
-
-previewAudio.addEventListener("ended", () => {
-    if (currentPlayBtn) setPlayBtnState(currentPlayBtn, false);
-    currentPlayingSongId = null;
-    currentPlayBtn = null;
-});
-
-previewAudio.addEventListener("pause", () => {
-    if (currentPlayBtn) setPlayBtnState(currentPlayBtn, false);
-});
-
-previewAudio.addEventListener("play", () => {
-    if (currentPlayBtn) setPlayBtnState(currentPlayBtn, true);
-});
-
-async function getSongAudioUrl(songId) {
+/* ✅ play API: 재생수 증가 + streamingUrl 반환 */
+async function fetchPlayUrl(songId) {
     const res = await authFetch(`/api/songs/${songId}/play`, { method: "GET" });
     if (!res) return null;
-    const payload = await res.json();
-    if (!res.ok || payload?.success === false) return null;
-    return payload.data?.streamingUrl ?? null;
+
+    let payload = null;
+    try {
+        payload = await res.json();
+    } catch {
+        payload = null;
+    }
+
+    if (!res.ok || payload?.success === false) {
+        alert(payload?.message || "재생에 실패했습니다.");
+        return null;
+    }
+
+    return payload?.data?.streamingUrl ?? null;
 }
 
 /* 미리보기 렌더링 */
@@ -105,20 +89,25 @@ function renderPreview(dto, albumsWrap, songsWrap) {
     const albums = (dto?.albumList ?? []).slice(0, 5);
     const songs = (dto?.songList ?? []).slice(0, 5);
 
-    albumsWrap.innerHTML = albums.map(a => `
+    albumsWrap.innerHTML = albums
+        .map(
+            (a) => `
     <div class="album-item" data-album-id="${a.albumId}">
       <div class="preview-album-cover"
            style="background-image:url('${a.albumImage ?? ""}');
                   background-size:cover;background-position:center;">
       </div>
       <div class="album-title">${escapeHtml(a.albumName)}</div>
-      <div class="album-meta">${formatDate(a.albumReleaseDate)} · ❤️ ${a.likeCount ?? 0}</div>
+      <div class="album-meta">${formatDate(a.albumReleaseDate)} · ${a.likeCount ?? 0} 💗</div>
       ${a.isLiked ? `<div class="album-liked-badge">✔ 내가 좋아요</div>` : ""}
     </div>
-  `).join("");
+  `
+        )
+        .join("");
 
-    // ✅ song-item: 클릭=상세 이동 / 버튼=재생/좋아요
-    songsWrap.innerHTML = songs.map(s => `
+    songsWrap.innerHTML = songs
+        .map(
+            (s) => `
     <div class="song-item" data-song-id="${s.songId}">
       <div class="song-left">
         <div class="song-title">${escapeHtml(s.name)}</div>
@@ -129,15 +118,19 @@ function renderPreview(dto, albumsWrap, songsWrap) {
       </div>
 
       <div class="song-right">
-        <button class="mini-heart-btn ${s.liked ? "liked" : ""} ${!getToken() ? "disabled" : ""}"
-                type="button"
-                aria-label="음원 좋아요">❤</button>
-        <span class="mini-like-count">${s.likeCount ?? 0}</span>
-
         <button class="track-play" type="button" aria-label="재생">▶</button>
+
+        <span class="like-group">
+          <span class="mini-like-count">${s.likeCount ?? 0}</span>
+          <button class="mini-heart-btn ${s.liked ? "liked" : ""} ${!getToken() ? "disabled" : ""}"
+                  type="button"
+                  aria-label="음원 좋아요">❤</button>
+        </span>
       </div>
     </div>
-  `).join("");
+  `
+        )
+        .join("");
 }
 
 function bindAlbumClick(albumsWrap) {
@@ -149,7 +142,7 @@ function bindAlbumClick(albumsWrap) {
     });
 }
 
-/* ✅ 음원 미리보기: 상세 이동 + 재생 + 리스트 하트 */
+/* ✅ 음원 미리보기: 상세 이동 + 전역 재생 + 리스트 하트 */
 function bindSongInteractions(songsWrap) {
     songsWrap.querySelectorAll(".song-item").forEach((row) => {
         const songId = row.dataset.songId;
@@ -164,31 +157,25 @@ function bindSongInteractions(songsWrap) {
             if (songId) window.location.href = `/songs/${songId}/page`;
         });
 
-        // 재생 버튼
+        // ✅ 재생 버튼: 전역 플레이어 사용
         playBtn?.addEventListener("click", async (e) => {
             e.stopPropagation();
 
-            const audioUrl = await getSongAudioUrl(songId);
-            if (!audioUrl) {
-                alert("재생 가능한 음원 주소가 없습니다.");
+            if (typeof window.playSongFromPage !== "function") {
+                alert("전역 플레이어가 아직 로드되지 않았습니다.");
                 return;
             }
 
-            // 같은 곡이면 토글
-            if (currentPlayingSongId === songId) {
-                if (previewAudio.paused) await previewAudio.play();
-                else previewAudio.pause();
-                return;
+            const url = await fetchPlayUrl(songId);
+            if (!url) return;
+
+            try {
+                const title = row.querySelector(".song-title")?.textContent?.trim() || "Unknown";
+                await window.playSongFromPage(url, title, Number(songId));
+            } catch (err) {
+                console.error(err);
+                alert("재생에 실패했습니다.");
             }
-
-            // 다른 곡 재생: 이전 버튼 원복
-            if (currentPlayBtn) setPlayBtnState(currentPlayBtn, false);
-
-            currentPlayingSongId = songId;
-            currentPlayBtn = playBtn;
-
-            previewAudio.src = audioUrl;
-            await previewAudio.play();
         });
 
         // 리스트 하트
@@ -242,8 +229,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         renderPreview(dto, albumsWrap, songsWrap);
         bindAlbumClick(albumsWrap);
-        bindSongInteractions(songsWrap); // ✅ 추가
-
+        bindSongInteractions(songsWrap);
     } catch (e) {
         console.error(e);
         albumsWrap.innerHTML = `<div style="padding:12px;color:#666;">미리보기를 불러오지 못했어요.</div>`;

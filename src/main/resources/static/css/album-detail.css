@@ -87,6 +87,9 @@
 
 .dot{ color:#aaa; }
 
+/* =========================
+   Album Like (상단 좋아요)
+========================= */
 .album-actions{
     display: inline-flex;
     align-items: center;
@@ -96,9 +99,12 @@
     background: #f6f6f6;
 }
 
-/* =========================
-   Heart
-========================= */
+.like-count{
+    font-size: 15px;
+    color: #777;
+    font-variant-numeric: tabular-nums;
+}
+
 .heart-btn{
     border: none;
     background: none;
@@ -111,11 +117,6 @@
 }
 .heart-btn:hover{ transform: scale(1.1); }
 .heart-btn.liked{ color: #ff4d6d; }
-
-.like-count{
-    font-size: 15px;
-    color: #777;
-}
 
 /* =========================
    Tracks
@@ -132,7 +133,7 @@
     margin: 20px 0 14px;
 }
 
-.section-title{
+.section-head h2{
     font-size: 26px;
     font-weight: 900;
     margin: 0;
@@ -157,7 +158,7 @@
 
 .track{
     display: grid;
-    grid-template-columns: 46px 46px 1fr 90px 110px;
+    grid-template-columns: 46px 46px 1fr 90px 130px;
     gap: 10px;
     align-items: center;
     padding: 14px 16px;
@@ -218,12 +219,28 @@
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     font-size: 14px;
     color: #777;
     font-variant-numeric: tabular-nums;
 }
 
+/* ✅ 숫자+하트 묶음 */
+.like-group{
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* 숫자 */
+.mini-like-count{
+    font-size: 14px;
+    color: #777;
+    min-width: 14px;
+    text-align: right;
+}
+
+/* 하트 */
 .mini-heart-btn{
     border: none;
     background: none;
@@ -236,6 +253,22 @@
 }
 .mini-heart-btn:hover{ transform: scale(1.12); }
 .mini-heart-btn.liked{ color: #ff4d6d; }
+
+/* + 버튼 */
+.add-pl-btn {
+    border: 1px solid #e2e2e2;
+    background: #fff;
+    border-radius: 10px;
+    padding: 4px 10px;
+    cursor: pointer;
+}
+.add-pl-btn:hover {
+    background: #f7f7f7;
+}
+.add-pl-btn.disabled{
+    opacity: .4;
+    pointer-events: none;
+}
 
 /* =========================
    Login popup
@@ -284,7 +317,6 @@
 /* =========================
    Playlist Modal
 ========================= */
-
 .pl-modal {
     position: fixed;
     inset: 0;
@@ -401,16 +433,4 @@
     border-radius: 12px;
     padding: 8px 14px;
     cursor: pointer;
-}
-
-/* + 버튼 */
-.add-pl-btn {
-    border: 1px solid #e2e2e2;
-    background: #fff;
-    border-radius: 10px;
-    padding: 4px 10px;
-    cursor: pointer;
-}
-.add-pl-btn:hover {
-    background: #f7f7f7;
 }

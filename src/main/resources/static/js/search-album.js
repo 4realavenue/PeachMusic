@@ -8,6 +8,7 @@ let loading = false;
 const hasToken = !!getToken();
 
 const grid = document.getElementById("albumGrid");
+const title = document.getElementById("pageTitle");
 const sentinel = document.getElementById("sentinel");
 const loadingEl = document.getElementById("loading");
 const endMessageEl = document.getElementById("endMessage");
@@ -55,6 +56,8 @@ function showLoginPopup() {
 document.addEventListener("DOMContentLoaded", () => {
 
     if (!initialWord || initialWord.trim() === "") return;
+
+    title.textContent = `"${initialWord}"와 관련된 앨범`;
 
     loadAlbums();
 

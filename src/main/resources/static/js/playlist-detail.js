@@ -7,13 +7,80 @@ import { getToken, removeToken } from "/js/auth.js";
  */
 let imageBust = "";
 
-// 페이지 진입
+/* =========================
+   ✅ 전역 플레이어(공용)
+========================= */
+let currentSongId = null;
+let currentPlayBtn = null;
+
+const SONG_DETAIL_API = (songId) => `/api/songs/${songId}`;
+
+/* 전역 플레이어 오디오 찾기 */
+function getGlobalAudioEl() {
+    return document.querySelector(".player audio") || document.getElementById("audioPlayer") || null;
+}
+
+function isSameTrack(globalAudio, url) {
+    if (!globalAudio || !globalAudio.src || !url) return false;
+    const currentFile = String(globalAudio.src).split("/").pop();
+    const nextFile = String(url).split("/").pop();
+    return currentFile && nextFile && currentFile === nextFile;
+}
+
+function setPlayBtnState(btn, isPlaying) {
+    if (!btn) return;
+    btn.classList.toggle("playing", isPlaying);
+    btn.textContent = isPlaying ? "❚❚" : "▶";
+    btn.setAttribute("aria-label", isPlaying ? "일시정지" : "재생");
+}
+
+function wireGlobalAudioSync() {
+    const globalAudio = getGlobalAudioEl();
+    if (!globalAudio) return;
+
+    const sync = () => {
+        document.querySelectorAll(".song-row").forEach((row) => {
+            const btn = row.querySelector(".track-play");
+            if (!btn) return;
+
+            const url = btn.dataset.audioUrl || null;
+
+            if (!url) {
+                setPlayBtnState(btn, false);
+                return;
+            }
+
+            const same = isSameTrack(globalAudio, url);
+            const isPlaying = same && !globalAudio.paused;
+            setPlayBtnState(btn, isPlaying);
+        });
+
+        if (currentPlayBtn) {
+            const url = currentPlayBtn.dataset.audioUrl || null;
+            const same = url ? isSameTrack(globalAudio, url) : false;
+            if (!same) {
+                currentSongId = null;
+                currentPlayBtn = null;
+            }
+        }
+    };
+
+    globalAudio.addEventListener("play", sync);
+    globalAudio.addEventListener("pause", sync);
+    globalAudio.addEventListener("ended", sync);
+}
+
+/* ================================
+   페이지 진입
+================================ */
 document.addEventListener("DOMContentLoaded", () => {
     const token = getToken();
     if (!token) {
         location.href = "/login";
         return;
     }
+
+    wireGlobalAudioSync();
     loadPlaylistDetail();
 });
 
@@ -21,22 +88,15 @@ document.addEventListener("DOMContentLoaded", () => {
    공통: JSON 안전 파서
 ================================ */
 async function readJsonSafe(res) {
-    try {
-        return await res.json();
-    } catch {
-        return null;
-    }
+    try { return await res.json(); } catch { return null; }
 }
 
 /* ================================
    공통: API 에러 처리
-   - 백엔드 CommonResponse: { success, message, data }
-   - 또는 그 외 JSON/텍스트도 최대한 처리
 ================================ */
 async function handleApiError(res, fallbackMessage = "요청 실패") {
     const data = await readJsonSafe(res);
 
-    // 401: 로그인 필요 (토큰 만료/없음)
     if (res.status === 401) {
         alert(data?.message || "로그인이 필요합니다.");
         try { removeToken(); } catch {}
@@ -44,13 +104,11 @@ async function handleApiError(res, fallbackMessage = "요청 실패") {
         return { ok: false, data };
     }
 
-    // 일반 실패 (HTTP 에러)
     if (!res.ok) {
         alert(data?.message || fallbackMessage);
         return { ok: false, data };
     }
 
-    // HTTP 200이라도 success=false면 실패로 처리
     if (data && data.success === false) {
         alert(data?.message || fallbackMessage);
         return { ok: false, data };
@@ -81,9 +139,7 @@ async function requestJson(url, { method = "GET", body = null } = {}, fallback =
 async function requestForm(url, { method = "POST", formData } = {}, fallback = "요청 실패") {
     const res = await fetch(url, {
         method,
-        headers: {
-            Authorization: getToken(),
-        },
+        headers: { Authorization: getToken() },
         body: formData,
     });
 
@@ -140,11 +196,7 @@ function renderHeader(playlist) {
     setupImageEdit();
 }
 
-/**
- * ✅ 캐시 버스터
- * - imageBust가 비어있으면 원본 URL 사용
- * - 업로드 성공 시 imageBust 갱신 → 바로 반영
- */
+/* ✅ 캐시 버스터 */
 function withCacheBust(url) {
     if (!url) return url;
     if (!imageBust) return url;
@@ -188,7 +240,6 @@ function setupNameEdit() {
         if (!ok) return;
 
         area.classList.add("hidden");
-        // 최신 데이터 다시 반영
         await loadPlaylistDetail();
     };
 }
@@ -240,23 +291,15 @@ function setupImageEdit() {
 
         if (!ok) return;
 
-        /**
-         * ✅ 업로드 성공인데 이미지가 “가끔” 안 바뀌는 문제 해결:
-         * - CDN/브라우저 캐시 때문에 같은 URL이면 예전 이미지가 보일 수 있음
-         * - 업로드 성공 시점에만 bust 값을 갱신해서 즉시 반영
-         */
         imageBust = String(Date.now());
-
-        // input 초기화(같은 파일 다시 선택 가능)
         input.value = "";
-
-        // 최신 데이터 다시 반영
         await loadPlaylistDetail();
     };
 }
 
 /* ================================
-   렌더: 수록곡 목록
+   ✅ 렌더: 수록곡 목록 (재생 - [숫자+하트])
+   ✅ 숫자/하트 간격은 HTML에서 like-group으로 묶어서 CSS gap=4로 제어
 ================================ */
 function renderSongs(songList) {
     const container = document.getElementById("songList");
@@ -265,14 +308,14 @@ function renderSongs(songList) {
     const actionBar = document.createElement("div");
     actionBar.className = "song-action-bar";
     actionBar.innerHTML = `
-    <label>
-      <input type="checkbox" id="selectAllCheckbox">
-      전체 선택
-    </label>
-    <button id="deleteSelectedBtn" class="gray-btn">
-      선택 삭제
-    </button>
-  `;
+        <label>
+          <input type="checkbox" id="selectAllCheckbox">
+          전체 선택
+        </label>
+        <button id="deleteSelectedBtn" class="gray-btn">
+          선택 삭제
+        </button>
+    `;
     container.appendChild(actionBar);
 
     if (!songList || songList.length === 0) {
@@ -284,34 +327,171 @@ function renderSongs(songList) {
     songList.forEach((song) => {
         const row = document.createElement("div");
         row.className = "song-row";
-        row.dataset.id = song.songId;
+        row.dataset.id = String(song.songId);
 
         const coverUrl = resolveImageUrl(song.albumImage);
+        const title = escapeHtml(song.name ?? "-");
 
         row.innerHTML = `
-      <div>
-        <input type="checkbox" class="song-check" value="${song.songId}">
-      </div>
+            <div>
+                <input type="checkbox" class="song-check" value="${song.songId}">
+            </div>
 
-      <div class="song-cover" style="background-image:url('${coverUrl}')"></div>
+            <div class="song-cover" style="background-image:url('${coverUrl}')"></div>
 
-      <div class="song-info">
-        <div class="song-title">${escapeHtml(song.name ?? "-")}</div>
-      </div>
+            <div class="song-info">
+                <div class="song-title">${title}</div>
+            </div>
 
-      <div class="song-like">❤ ${song.likeCount ?? 0}</div>
-    `;
+            <div class="song-actions">
+                <button class="track-play" type="button" aria-label="재생">▶</button>
 
-        // row 클릭 → 음원 페이지 이동 (체크박스 클릭 제외)
+                <!-- ✅ 숫자+하트 묶음 -->
+                <span class="like-group">
+                    <span class="song-like-count">${song.likeCount ?? 0}</span>
+                    <button class="mini-heart-btn ${song.liked ? "liked" : ""}"
+                            type="button"
+                            aria-label="음원 좋아요">❤</button>
+                </span>
+            </div>
+        `;
+
         row.addEventListener("click", (e) => {
             if (e.target.closest(".song-check")) return;
+            if (e.target.closest(".track-play")) return;
+            if (e.target.closest(".mini-heart-btn")) return;
             location.href = `/songs/${song.songId}/page`;
+        });
+
+        const playBtn = row.querySelector(".track-play");
+        playBtn.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            await playViaGlobalPlayer(song.songId, song.name ?? "-", playBtn);
+        });
+
+        const heartBtn = row.querySelector(".mini-heart-btn");
+        const likeCountEl = row.querySelector(".song-like-count");
+
+        heartBtn.addEventListener("click", async (e) => {
+            e.stopPropagation();
+
+            try {
+                const res = await fetch(`/api/songs/${song.songId}/likes`, {
+                    method: "POST",
+                    headers: { Authorization: getToken() },
+                });
+
+                const { ok, data } = await handleApiError(res, "좋아요 처리 실패");
+                if (!ok) return;
+
+                const result = data?.data;
+                heartBtn.classList.toggle("liked", result?.liked === true);
+                likeCountEl.textContent = String(result?.likeCount ?? 0);
+            } catch (err) {
+                console.error(err);
+            }
         });
 
         container.appendChild(row);
     });
 
     attachDeleteLogic();
+    syncPlayButtons();
+}
+
+/* ================================
+   ✅ 전역 플레이어로 재생
+================================ */
+async function playViaGlobalPlayer(songId, title, playBtn) {
+    if (typeof window.playSongFromPage !== "function") {
+        alert("전역 플레이어가 아직 로드되지 않았습니다.");
+        return;
+    }
+
+    const audioUrl = await fetchAudioUrl(songId);
+    if (!audioUrl) return;
+
+    playBtn.dataset.audioUrl = audioUrl;
+
+    const globalAudio = getGlobalAudioEl();
+    const same = isSameTrack(globalAudio, audioUrl);
+
+    if (currentPlayBtn && currentPlayBtn !== playBtn) {
+        setPlayBtnState(currentPlayBtn, false);
+    }
+    currentSongId = songId;
+    currentPlayBtn = playBtn;
+
+    try {
+        await window.playSongFromPage(audioUrl, title, songId);
+
+        if (!same) setPlayBtnState(playBtn, true);
+        else syncPlayButtons();
+    } catch (e) {
+        console.error(e);
+        setPlayBtnState(playBtn, false);
+        currentSongId = null;
+        currentPlayBtn = null;
+        alert("재생에 실패했습니다.");
+    }
+}
+
+async function fetchAudioUrl(songId) {
+    try {
+        const res = await fetch(SONG_DETAIL_API(songId), {
+            headers: { Authorization: getToken() },
+        });
+
+        const { ok, data } = await handleApiError(res, "음원 정보를 불러오지 못했습니다.");
+        if (!ok) return null;
+
+        const raw = data?.data?.audio;
+        const url = resolveAudioUrlSimple(raw);
+
+        if (!url) {
+            alert("재생 가능한 음원 주소가 없습니다.");
+            return null;
+        }
+
+        return url;
+    } catch (e) {
+        console.error(e);
+        alert("음원 정보를 불러오지 못했습니다.");
+        return null;
+    }
+}
+
+/* ✅ 최소 정규화 */
+function resolveAudioUrlSimple(audioPath) {
+    if (!audioPath) return null;
+    const s = String(audioPath);
+    if (s.startsWith("http://") || s.startsWith("https://")) return s;
+    if (s.startsWith("/")) return s;
+    return `/${s}`;
+}
+
+/* ================================
+   ✅ 버튼 싱크 (전역 오디오 기준)
+================================ */
+function syncPlayButtons() {
+    const globalAudio = getGlobalAudioEl();
+
+    document.querySelectorAll(".song-row").forEach((row) => {
+        const btn = row.querySelector(".track-play");
+        if (!btn) return;
+
+        const url = btn.dataset.audioUrl || null;
+
+        if (!url || !globalAudio) {
+            setPlayBtnState(btn, false);
+            return;
+        }
+
+        const same = isSameTrack(globalAudio, url);
+        const isPlaying = same && !globalAudio.paused;
+
+        setPlayBtnState(btn, isPlaying);
+    });
 }
 
 /* ================================

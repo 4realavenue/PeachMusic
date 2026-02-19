@@ -6,7 +6,7 @@
     <!-- 실제 오디오 -->
     <audio id="audioPlayer" preload="metadata"></audio>
 
-    <!-- 앨범 -->
+    <!-- 앨범(일단 이모지 유지, 원하면 커버 URL도 연결 가능) -->
     <div class="album-cover" id="playerCover">🎵</div>
 
     <!-- 곡 정보 -->
@@ -26,9 +26,15 @@
 
     <!-- 컨트롤 -->
     <div class="controls">
-        <button id="prevBtn" type="button">⏮</button>
-        <button id="playBtn" type="button">▶</button>
-        <button id="nextBtn" type="button">⏭</button>
+        <!-- ✅ ID 충돌 방지: playerPrevBtn / playerNextBtn -->
+        <button id="playerPrevBtn" type="button" aria-label="이전">⏮</button>
+        <button id="playBtn" type="button" aria-label="재생/일시정지">▶</button>
+        <button id="playerNextBtn" type="button" aria-label="다음">⏭</button>
     </div>
 
+    <!-- ✅ HLS 라이브러리는 전역 플레이어에서 1번만 로드 -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+    <!-- ✅ 전역 플레이어 스크립트 -->
+    <script type="module" th:src="@{/js/player.js}"></script>
 </div>
