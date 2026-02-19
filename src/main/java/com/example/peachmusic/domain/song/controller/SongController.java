@@ -1,5 +1,7 @@
 package com.example.peachmusic.domain.song.controller;
 
+import com.example.peachmusic.common.enums.SortDirection;
+import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.model.*;
 import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongGetDetailResponseDto;
@@ -18,6 +20,20 @@ import org.springframework.web.bind.annotation.*;
 public class SongController {
 
     private final SongService songService;
+
+    /**
+     * 음원 전체 조회 API
+     */
+    @GetMapping("/songs")
+    public ResponseEntity<CommonResponse<KeysetResponse<SongSearchResponseDto>>> getSongList(
+            @RequestParam(defaultValue = "LIKE") SortType sortType,
+            @RequestParam(required = false) SortDirection direction,
+            @ModelAttribute CursorParam cursor
+    ) {
+        KeysetResponse<SongSearchResponseDto> responseDtoPage = songService.getSongList(sortType, direction, cursor);
+
+        return ResponseEntity.ok(CommonResponse.success("음원 전체 조회에 성공했습니다.", responseDtoPage));
+    }
 
     /**
      * 음원 단건 조회 API

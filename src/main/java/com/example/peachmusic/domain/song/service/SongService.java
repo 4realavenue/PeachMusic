@@ -51,14 +51,25 @@ public class SongService {
     private final SongLikeRepository songLikeRepository;
     private final ArtistRepository artistRepository;
     private final UserService userService;
+    private final ArtistSongRepository artistSongRepository;
+
     private final RedisTemplate<String,String> redisTemplate;
 
     public static final String MUSIC_DAILY_KEY = "music";
-    private final ArtistSongRepository artistSongRepository;
 
     @Value("${r2.public-streaming-base}")
     private String streamingBaseUrl;
 
+    /**
+     * 음원 전체 조회
+     */
+    @Transactional(readOnly = true)
+    public KeysetResponse<SongSearchResponseDto> getSongList(SortType sortType, SortDirection direction, CursorParam cursor) {
+
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(null, DETAIL_SIZE, PUBLIC_VIEW, sortType, direction, cursor);
+
+        return KeysetResponse.of(content, DETAIL_SIZE, last -> last.toCursor(sortType));
+    }
 
     /**
      * 음원 단건 조회
@@ -88,7 +99,10 @@ public class SongService {
                 .map(songGenre -> songGenre.getGenre().getGenreName())
                 .toList();
 
-        return SongGetDetailResponseDto.from(findSong, genreNameList, findAlbum, liked);
+        List<Artist> findArtist = artistSongRepository.findArtistListBySong(findSong);
+        String ArtistName = findArtist.stream().map(Artist::getArtistName).collect(Collectors.joining(","));
+
+        return SongGetDetailResponseDto.from(findAlbum, ArtistName, findSong, genreNameList, liked);
 
     }
 
@@ -171,4 +185,5 @@ public class SongService {
         return songRepository.findBySongIdAndIsDeletedFalse(songId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
     }
+
 }
