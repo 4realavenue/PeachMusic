@@ -54,14 +54,14 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
         return queryFactory
                 .select(Projections.constructor(ArtistSearchResponseDto.class, artist.artistId, artist.artistName, artist.likeCount, artist.isDeleted))
                 .from(artist)
-                .where(searchCondition(word, isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
+                .where(searchCondition(word), isActive(isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
                 .orderBy(keysetOrder(sortType, isAsc)); // Keyset 조건에 사용되는 커서 순서대로 정렬
     }
 
     /**
      * 검색 조건
      */
-    private BooleanExpression searchCondition(String word, boolean isAdmin) {
+    private BooleanExpression searchCondition(String word) {
 
         if (word == null) {
             return null;
@@ -72,11 +72,6 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
         for (String w : word.split("\\s+")) { // 검색 단어가 여러개인 경우 하나씩 조건에 넣어서 and로 묶음
             condition = addCondition(condition, SearchWordCondition.wordMatch(artist.artistName, w));
         }
-
-        if (!isAdmin) {
-            condition = addCondition(condition, isActive());
-        }
-
         return condition;
     }
 
@@ -91,7 +86,10 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
      * 검색 조건
      * - 아티스트가 삭제된 상태가 아닌 경우
      */
-    private BooleanExpression isActive() {
+    private BooleanExpression isActive(boolean isAdmin) {
+        if (isAdmin) {
+            return null;
+        }
         return artist.isDeleted.isFalse();
     }
 

@@ -98,7 +98,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
                 .join(artist).on(artistSong.artist.eq(artist))
                 .join(song.album, album)
                 .join(songProgressingStatus).on(songProgressingStatus.song.eq(song))
-                .where(searchCondition(word, isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
+                .where(searchCondition(word), isActive(isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
                 .groupBy(song.songId) // 아티스트 이름을 문자열로 합치는데 음원 id를 기준으로 함
                 .orderBy(keysetOrder(sortType, isAsc)); // Keyset 조건에 사용되는 커서 순서대로 정렬
     }
@@ -128,7 +128,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
 
         return query
                 .select(Projections.constructor(SongArtistDetailResponseDto.class, song.songId, song.name, artistNames, song.likeCount, album.albumImage, songProgressingStatus.progressingStatus, isLikedExpression, album.albumId, song.releaseDate))
-                .where(artist.artistId.eq(artistId), isActive(), keysetCondition(sortType, isAsc, cursor))
+                .where(artist.artistId.eq(artistId), isActive(false), keysetCondition(sortType, isAsc, cursor))
                 .groupBy(song.songId)
                 .orderBy(keysetOrder(sortType, isAsc));
     }
@@ -136,7 +136,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
     /**
      * 검색 조건
      */
-    private BooleanExpression searchCondition(String word, boolean isAdmin) {
+    private BooleanExpression searchCondition(String word) {
 
         if (word == null) {
             return null;
@@ -147,11 +147,6 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
         for (String w : word.split("\\s+")) { // 검색 단어가 여러개인 경우 하나씩 조건에 넣어서 and로 묶음
             condition = addCondition(condition, SearchWordCondition.wordMatch(song.name, w).or(artistNameExists(w)));
         }
-
-        if (!isAdmin) {
-            condition = addCondition(condition, isActive());
-        }
-
         return condition;
     }
 
@@ -185,7 +180,10 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
      * 검색 조건
      * - 음원이 삭제된 상태가 아닌 경우
      */
-    private BooleanExpression isActive() {
+    private BooleanExpression isActive(boolean isAdmin) {
+        if (isAdmin) {
+            return null;
+        }
         return song.isDeleted.isFalse().and(song.streamingStatus.isTrue());
     }
 
