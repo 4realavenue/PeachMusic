@@ -27,10 +27,10 @@ public class RankingService {
     public List<RankingResponseDto> findMusicTop100() {
 
         // 1주간의 데이터를 합친것 중 상위 Top 100 뽑아냄
-        Set<TypedTuple<String>> result = redisTemplate.opsForZSet().reverseRangeWithScores(SONG_RANK_KEY, 0, 100);
+        Set<TypedTuple<String>> result = redisTemplate.opsForZSet().reverseRangeWithScores(SONG_RANK_KEY, 0, 99);
 
         // 결과가 빈값이면 빈리스트 반환
-        if ( result == null ) {
+        if (result == null || result.isEmpty()) {
             return Collections.emptyList();
         }
 

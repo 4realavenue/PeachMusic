@@ -152,33 +152,22 @@ public class SongService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public SongPlayResponseDto playSong(Long songId) {
 
-        LocalDate currentDate = LocalDate.now();
         Song song = songRepository.findById(songId).orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
-
-        List<Artist> artistList = artistSongRepository.findArtistListBySong(song);
-
-        String artistName = artistList.stream().map(Artist::getArtistName).collect(Collectors.joining(", "));
 
         String streamingUrl = streamingBaseUrl + "/" + song.getAudio();
 
-        // 키에 날짜 반영
-        String key =  MUSIC_DAILY_KEY + currentDate;
-        // music:2025-02-04
-
-        // 레디스에 이름과 id 동시 저장을 위해 조합
-        String value = song.getName() + ":" + songId;
+        String key =  MUSIC_DAILY_KEY + LocalDate.now(); // 키에 날짜 반영
+        String value = song.getName() + ":" + songId; // 레디스에 이름과 id 동시 저장을 위해 조합
 
         // Redis에 저장
         redisTemplate.opsForZSet().incrementScore(key, value ,1);
-
-        //TTL 설정
         redisTemplate.expire(key, Duration.ofDays(RedisResetTime.RESET_DATE));
 
         // DB에 저장
         song.addPlayCount();
         songRepository.save(song);
 
-        return SongPlayResponseDto.from(song, artistName, streamingUrl);
+        return SongPlayResponseDto.from(streamingUrl);
     }
 
     public Song findActiveSongOrThrow(Long songId) {
