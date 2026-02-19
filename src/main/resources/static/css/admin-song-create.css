@@ -97,7 +97,6 @@
     padding: 20px;
 }
 
-/* 등록 화면은 미리보기 없음 */
 .preview,
 .preview-empty,
 .file-info { display: none !important; }

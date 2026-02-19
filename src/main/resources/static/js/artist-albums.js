@@ -146,7 +146,7 @@ import { authFetch, getToken } from "/js/auth.js";
         }
     }
 
-    // ✅ 카드 클릭: 상세 이동 (하트 누르면 막기)
+    // ✅ 카드 클릭: 상세 이동
     gridEl.addEventListener("click", (e) => {
         const heartBtn = e.target.closest(".heart-btn");
         if (heartBtn) return; // 하트는 별도 처리

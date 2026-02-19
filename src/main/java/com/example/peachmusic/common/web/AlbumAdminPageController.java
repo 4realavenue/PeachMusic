@@ -20,26 +20,24 @@ import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/admin")
 public class AlbumAdminPageController {
 
     private final AlbumRepository albumRepository;
     private final ArtistAlbumRepository artistAlbumRepository;
 
-    @GetMapping("/albums")
+    @GetMapping("/admin/albums")
     public String adminAlbums() {
         return "admin/albums";
     }
 
-    @GetMapping("/albums/create")
+    @GetMapping("/admin/albums/create")
     public String albumCreatePage() {
         return "admin/admin-album-create";
     }
 
-    @GetMapping("/albums/{albumId}/update")
+    @GetMapping("/admin/albums/{albumId}/update")
     public String adminAlbumUpdatePage(@PathVariable Long albumId, Model model) {
 
-        // ✅ 현재 앨범(soft delete 포함) 조회
         Album album = albumRepository.findById(albumId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 

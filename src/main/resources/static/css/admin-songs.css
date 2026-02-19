@@ -247,13 +247,13 @@
 }
 
 /* =========================
-   Meta  ✅ 겹침 수정(여기만 변경)
+   Meta
 ========================= */
 .col.meta{
     font-size: var(--font-xs);
     color: var(--text-sub);
 
-    display:flex;              /* ✅ 2줄을 확실히 위아래로 */
+    display:flex;
     flex-direction:column;
     align-items:flex-start;
     justify-content:center;
@@ -262,7 +262,6 @@
     line-height:1.35;
 }
 
-/* 메타 2줄(div) 공통: 넘치면 말줄임 */
 .col.meta > div{
     max-width:100%;
     white-space:nowrap;
@@ -287,7 +286,7 @@
 }
 
 /* =========================
-   Badge  ✅ status-badge만 사이즈/정렬 안정화
+   Badge
 ========================= */
 .badge,
 .status-badge{
@@ -299,7 +298,6 @@
     background:#fff;
 }
 
-/* ✅ 진행상태 뱃지(TRANSOCDE_FAILED 등)만 살짝 작게 + 정렬 안정 */
 .status-badge{
     display:inline-flex;
     align-items:center;

@@ -7,13 +7,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/admin/users")
 class UserAdminPageController {
 
     /**
      * 관리자 회원 관리 페이지
      */
-    @GetMapping
+    @GetMapping("/admin/users")
     public String adminUsersPage() {
         return "admin/admin-users";
     }

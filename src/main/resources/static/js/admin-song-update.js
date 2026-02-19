@@ -64,16 +64,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const infoHelp = document.getElementById("infoHelp");
 
     /* =========================
-       ✅ 현재 값 토글 (수정 포인트)
-       - hidden 토글 금지
-       - open만 토글
+       현재 값 토글
     ========================= */
     const btnToggleCurrent = document.getElementById("btnToggleCurrent");
     const currentBody = document.getElementById("currentBody");
 
     if (currentBody) {
-        // 처음엔 접힌 상태로 시작
-        currentBody.classList.remove("hidden"); // 혹시 붙어있어도 제거
+        currentBody.classList.remove("hidden");
         currentBody.classList.remove("open");
     }
 

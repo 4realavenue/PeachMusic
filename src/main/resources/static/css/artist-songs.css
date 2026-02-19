@@ -5,7 +5,7 @@
     width: 100%;
     max-width: var(--page-max-width);
     margin: 30px auto 80px;
-    padding: 0; /* layout.css의 .content padding 사용 */
+    padding: 0;
 }
 
 .page-title {

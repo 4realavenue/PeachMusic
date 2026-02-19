@@ -1,11 +1,10 @@
-// /js/admin-album-update.js
 import { authFetch } from "/js/auth.js";
 
 document.addEventListener("DOMContentLoaded", () => {
     const meta = document.getElementById("albumMeta");
     const albumId = meta?.dataset?.albumId;
 
-    /* ===== 현재 값 토글 (song-update와 동일한 스르륵 느낌) ===== */
+    /* ===== 현재 값 토글 ===== */
     const btnToggleCurrent = document.getElementById("btnToggleCurrent");
     const currentBody = document.getElementById("currentBody");
 

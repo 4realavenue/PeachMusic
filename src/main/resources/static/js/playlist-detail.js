@@ -77,7 +77,6 @@ async function requestJson(url, { method = "GET", body = null } = {}, fallback =
 
 /* ================================
    공통: FormData 요청 (파일 업로드)
-   ⚠️ Content-Type 직접 넣지 말기(boundary 깨짐)
 ================================ */
 async function requestForm(url, { method = "POST", formData } = {}, fallback = "요청 실패") {
     const res = await fetch(url, {
@@ -102,7 +101,6 @@ async function loadPlaylistDetail() {
         return;
     }
 
-    // 상세 조회는 그냥 fetch로 (GET + JSON)
     const res = await fetch(`/api/playlists/${playlistId}`, {
         headers: { Authorization: getToken() },
     });
@@ -217,7 +215,7 @@ function setupDeletePlaylist() {
 }
 
 /* ================================
-   이미지 수정 (캐시 이슈 해결 포함)
+   이미지 수정
 ================================ */
 function setupImageEdit() {
     const btn = document.getElementById("imageEditBtn");

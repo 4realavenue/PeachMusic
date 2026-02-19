@@ -186,8 +186,6 @@ async function hydrateRowWithDetail(li, songId) {
 
 async function fetchSongDetail(songId) {
     try {
-        // 토큰 있으면 authFetch로 liked 같은 값까지 맞출 수 있는데,
-        // 지금은 차트에서 좋아요 제거했으니 fetch만 써도 됨.
         const res = getToken()
             ? await authFetch(SONG_DETAIL_API(songId), { method: "GET" })
             : await fetch(SONG_DETAIL_API(songId));

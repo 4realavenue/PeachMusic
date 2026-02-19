@@ -18,19 +18,18 @@ public class ArtistAdminPageController {
 
     private final ArtistRepository artistRepository;
 
-    @GetMapping("/artists")
+    @GetMapping("/admin/artists")
     public String adminArtists() {
         return "admin/artists";
     }
 
-    @GetMapping("/artists/create")
+    @GetMapping("/admin/artists/create")
     public String artistCreatePage() {
         return "admin/admin-artist-create";
     }
 
-    @GetMapping("/artists/{artistId}/update")
+    @GetMapping("/admin/artists/{artistId}/update")
     public String adminArtistUpdatePage(@PathVariable Long artistId, Model model) {
-        // ✅ API 추가 안 해도 됨: 서버 렌더링으로 현재값만 내려주기
         Artist artist = artistRepository.findById(artistId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
 

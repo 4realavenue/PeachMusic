@@ -1,6 +1,3 @@
-/* admin-album-update.css */
-/* admin-song-update.css 톤(그리드/카드/버튼/토글) + “옆으로 뚱뚱해짐” 방지 반영 */
-
 /* =========================
    Page
 ========================= */
@@ -36,7 +33,7 @@
 }
 
 /* =========================
-   Layout  ✅ (옆으로 늘어남 방지 핵심)
+   Layout
 ========================= */
 .grid {
     display: grid;
@@ -45,13 +42,12 @@
     align-items: start;
 }
 
-/* ✅ grid item이 내용 때문에 가로로 못 줄어드는 현상 방지 */
 .grid > * {
     min-width: 0;
 }
 
 .stack {
-    display: grid; /* song-update 동일 */
+    display: grid;
     gap: 22px;
     min-width: 0;
 }
@@ -95,7 +91,6 @@
     padding: 20px;
 }
 
-/* ✅ 공통 hidden */
 .hidden { display: none !important; }
 
 /* =========================
@@ -153,7 +148,6 @@
     margin: 10px 0 14px;
 }
 
-/* ✅ 파일 input 숨김 */
 .sr-only {
     position: absolute !important;
     width: 1px; height: 1px;
@@ -236,7 +230,7 @@ textarea:focus {
 }
 
 /* =========================
-   KV Grid (가로 늘어남 방지)
+   KV Grid
 ========================= */
 .kv-grid {
     display: grid;
@@ -255,7 +249,6 @@ textarea:focus {
     gap: 10px;
     min-width: 0;
 
-    /* ✅ 혹시라도 내부가 폭을 밀면 여기서 잘라버림 */
     overflow: hidden;
 }
 
@@ -277,17 +270,13 @@ textarea:focus {
 }
 
 /* =========================
-   ✅ current toggle (스르륵 + “옆으로 뚱뚱” 방지)
-   - open일 때 overflow는 무조건 hidden
-   - card-body 패딩(20)과 중복 안 나게 currentBody는 기본 padding 0
+   ✅ current toggle
 ========================= */
 #currentBody {
-    /* card-body라 padding:20이 기본인데, 토글 애니메이션 위해 우리가 제어 */
     padding: 0;
     max-height: 0;
     overflow: hidden;
 
-    /* ✅ 스르륵 */
     transition: max-height 180ms ease, padding 180ms ease;
 }
 
@@ -334,7 +323,6 @@ textarea:focus {
     display: grid;
     gap: 10px;
 
-    /* ✅ 혹시 버튼/텍스트가 폭 밀면 여기서도 방어 */
     min-width: 0;
 }
 

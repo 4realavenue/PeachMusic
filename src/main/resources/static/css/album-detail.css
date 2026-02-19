@@ -9,7 +9,7 @@
 }
 
 /* =========================
-   Hero (Apple Music vibe)
+   Hero
 ========================= */
 .album-hero{
     display: grid;
@@ -21,11 +21,9 @@
     background: #fff;
     box-shadow: 0 10px 30px rgba(0,0,0,0.06);
 
-    /* ✅ 가로폭 고정 */
     width: 100%;
     max-width: 980px;
 
-    /* ✅ 혹시 다른 CSS가 inline-grid로 덮는 경우 방지 */
     display: grid !important;
 }
 
@@ -65,13 +63,11 @@
     letter-spacing: -0.02em;
     word-break: keep-all;
 
-    /* ✅ 긴 제목 때문에 히어로 높이가 커지는 걸 방지 (2줄까지만 + …) */
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 
-    /* ✅ 짧은 제목도 높이 균형 맞추기(2줄 공간 확보) */
     min-height: calc(1.05em * 2);
 }
 
@@ -84,7 +80,6 @@
     font-size: 16px;
     margin-bottom: 16px;
 
-    /* ✅ 아티스트/날짜 줄바꿈으로 높이 커지는 거 방지 */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -102,7 +97,7 @@
 }
 
 /* =========================
-   Heart (grey -> pink)
+   Heart
 ========================= */
 .heart-btn{
     border: none;
@@ -162,12 +157,12 @@
 
 .track{
     display: grid;
-    grid-template-columns: 46px 46px 1fr 90px 110px; /* ✅ 번호, 재생, 이름, 시간, 좋아요 */
+    grid-template-columns: 46px 46px 1fr 90px 110px;
     gap: 10px;
     align-items: center;
     padding: 14px 16px;
     border-bottom: 1px solid #f0f0f0;
-    cursor: pointer; /* ✅ 클릭 가능 */
+    cursor: pointer;
 }
 
 .track:last-child{ border-bottom: none; }
@@ -199,7 +194,6 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* ✅ 재생 버튼 */
 .track-play{
     width: 36px;
     height: 36px;
@@ -220,7 +214,6 @@
     border-color:#111;
 }
 
-/* ✅ 트랙 좋아요 영역 (미니 하트 + 카운트) */
 .track-like{
     display: flex;
     justify-content: flex-end;
@@ -243,7 +236,6 @@
 }
 .mini-heart-btn:hover{ transform: scale(1.12); }
 .mini-heart-btn.liked{ color: #ff4d6d; }
-/* ✅ disabled 스타일 제거: 비로그인도 클릭 가능(팝업 방식) */
 
 /* =========================
    Login popup
@@ -284,13 +276,13 @@
     }
 
     .track{
-        grid-template-columns: 40px 46px 1fr 72px; /* ✅ 모바일: 좋아요 숨김 */
+        grid-template-columns: 40px 46px 1fr 72px;
     }
     .track-like{ display: none; }
 }
 
 /* =========================
-   Playlist Modal (Safe Version)
+   Playlist Modal
 ========================= */
 
 .pl-modal {

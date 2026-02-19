@@ -95,7 +95,6 @@ function renderPlaylists(list) {
             </div>
         `;
 
-        // 🔥 여기 추가 (중요)
         item.addEventListener("click", () => {
             location.href = `/playlists/${p.playlistId}`;
         });

@@ -73,7 +73,7 @@ function render(list) {
 }
 
 /* =========================
-   좋아요 토글 (아티스트와 동일 방식)
+   좋아요 토글
 ========================= */
 grid.addEventListener("click", async (e) => {
 
@@ -94,7 +94,6 @@ grid.addEventListener("click", async (e) => {
 
         const { liked, likeCount } = result.data;
 
-        // 🔥 클래스 기반 토글
         heartBtn.classList.toggle("liked", liked);
 
         // 좋아요 수 업데이트

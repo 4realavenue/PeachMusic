@@ -6,7 +6,7 @@ const hasToken = !!getToken();
 const PLAYLIST_LIST_API = "/api/playlists";
 const PLAYLIST_ADD_SONG_API = (playlistId) => `/api/playlists/${playlistId}/songs`;
 
-// ✅ 페이지 내 “프리뷰 재생”용 오디오(하나만)
+// ✅ 페이지 내 “프리뷰 재생”용 오디오
 const previewAudio = new Audio();
 previewAudio.preload = "metadata";
 
@@ -185,7 +185,7 @@ async function addSongToPlaylist(playlistId, songId) {
         let payload = null;
         try { payload = await res.json(); } catch { payload = null; }
 
-        // ✅ 에러코드 처리(네가 준 명세대로)
+        // ✅ 에러코드 처리
         if (!res.ok) {
             const msg = payload?.message;
 

@@ -1,7 +1,7 @@
 import { authFetch } from "/js/auth.js";
 
 const API_CREATE = "/api/admin/albums";
-const API_ARTISTS = "/api/admin/artists"; // 관리자 아티스트 목록 API 재사용
+const API_ARTISTS = "/api/admin/artists";
 
 const els = {
     albumName: document.getElementById("albumName"),
@@ -108,7 +108,6 @@ async function searchArtists() {
     const params = new URLSearchParams();
     if (word) params.set("word", word);
 
-    // 첫 페이지 검색만: lastId 없이 (필요하면 나중에 "더보기" 붙이면 됨)
     const res = await authFetch(`${API_ARTISTS}?${params.toString()}`, { method: "GET" });
     if (!res) return;
 

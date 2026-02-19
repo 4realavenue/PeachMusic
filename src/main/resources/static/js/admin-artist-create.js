@@ -35,7 +35,6 @@ function getExt(filename) {
 }
 
 async function safeReadJson(res) {
-    // content-type이 json이면 json으로, 아니면 text로 읽어서 최소 메시지라도 뽑기
     const ct = res.headers.get("content-type") || "";
     try {
         if (ct.includes("application/json")) return await res.json();
@@ -129,8 +128,6 @@ form?.addEventListener("submit", async (e) => {
         return;
     }
 
-    // ✅ enum 값은 백엔드 ArtistType과 맞춰서 "SOLO" / "GROUP"
-    // select value가 이미 SOLO/GROUP면 그대로, 소문자면 대문자 변환
     const rawType = (form.artistType?.value || "").trim();
     const artistType = rawType ? rawType.toUpperCase() : null;
 
@@ -164,9 +161,8 @@ form?.addEventListener("submit", async (e) => {
     }
 
     const fd = new FormData();
-    // ✅ @RequestPart("request")
     fd.append("request", new Blob([JSON.stringify(request)], { type: "application/json" }));
-    // ✅ @RequestPart("profileImage") optional
+    // @RequestPart("profileImage") optional
     if (selectedFile) fd.append("profileImage", selectedFile);
 
     submitBtn.disabled = true;
@@ -177,7 +173,6 @@ form?.addEventListener("submit", async (e) => {
         const res = await authFetch("/api/admin/artists", {
             method: "POST",
             body: fd,
-            // ❌ Content-Type 직접 설정 금지
         });
 
         if (!res) return; // authFetch가 401 처리했을 가능성
@@ -191,8 +186,6 @@ form?.addEventListener("submit", async (e) => {
 
         alert(payload?.message || "아티스트가 생성되었습니다.");
 
-        // 생성 후 이동 (너희 페이지 라우팅에 맞춰 조절)
-        // 목록 페이지가 /admin/artists 라면:
         location.href = "/admin/artists";
 
     } catch (err) {

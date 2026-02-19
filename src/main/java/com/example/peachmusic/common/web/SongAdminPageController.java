@@ -13,22 +13,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/admin")
 public class SongAdminPageController {
 
     private final SongRepository songRepository;
 
-    @GetMapping("/songs")
+    @GetMapping("/admin/songs")
     public String adminSongs() {
         return "admin/songs"; // 목록 페이지(원하면 나중에 연결)
     }
 
-    @GetMapping("/songs/create")
+    @GetMapping("/admin/songs/create")
     public String adminSongCreatePage() {
         return "admin/admin-song-create";
     }
 
-    @GetMapping("/songs/{songId}/update")
+    @GetMapping("/admin/songs/{songId}/update")
     public String songUpdatePage(@PathVariable Long songId, Model model) {
 
         Song song = songRepository.findById(songId)

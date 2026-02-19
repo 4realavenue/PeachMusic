@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (playerTitle) playerTitle.textContent = title || "Unknown";
         audio.play().catch(err => console.error("재생 실패:", err));
 
-        // ✅ 곡을 새로 재생하면 자동으로 펼쳐주기(원치 않으면 이 블록 삭제)
+        // ✅ 곡을 새로 재생하면 자동으로 펼쳐주기
         if (player && toggleBtn && player.classList.contains("collapsed")) {
             player.classList.remove("collapsed");
             toggleBtn.textContent = "▼";

@@ -1,4 +1,3 @@
-// /static/js/admin-artist-update.js
 import { authFetch } from "/js/auth.js";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -75,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const formData = new FormData();
-        // ✅ 파라미터명: profileImage
+        // 파라미터명: profileImage
         formData.append("profileImage", file);
 
         const res = await authFetch(`/api/admin/artists/${artistId}/image`, {
