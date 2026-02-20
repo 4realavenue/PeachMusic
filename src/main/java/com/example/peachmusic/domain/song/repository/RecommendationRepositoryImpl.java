@@ -125,6 +125,31 @@ public class RecommendationRepositoryImpl implements RecommendationRepository {
                 .fetch();
     }
 
+    @Override
+    public Map<Long, SongFeatureDto> findRecommendFeatureMapWithoutGenre(List<Long> mergedSongIdList) {
+
+        // Seed 데이터가 없으면 종료
+        if (mergedSongIdList == null || mergedSongIdList.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<Tuple> result = queryFactory
+                .select(song.songId, genre.genreName, song.speed, song.vartags, song.instruments)
+                .from(song)
+                .leftJoin(songGenre).on(songGenre.song.eq(song))
+                .leftJoin(genre).on(songGenre.genre.eq(genre))
+                .where(
+                        song.songId.notIn(mergedSongIdList),
+                        hasAllFeature(),
+                        isStreamingSuccessStatus()
+                )
+                .orderBy(song.likeCount.desc())
+                .limit(500)
+                .fetch();
+
+        return convertMap(result);
+    }
+
     // Tuple -> SongFeatureDto Map으로 변환(.transfrom 사용시 오류 발생)
     private Map<Long, SongFeatureDto> convertMap(List<Tuple> result) {
         // 결과를 저장할 Map -> Key : songId, Value : 해당 곡의 FeatureDto
