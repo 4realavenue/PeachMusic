@@ -14,6 +14,19 @@ public interface AlbumRepository extends JpaRepository<Album, Long>, AlbumCustom
     // 활성 상태(isDeleted=false)인 앨범 조회
     Optional<Album> findByAlbumIdAndIsDeletedFalse(Long albumId);
 
+    @Query("""
+        select distinct a from Album a
+        where a.albumId = :albumId and a.isDeleted = false
+            and exists (
+                select 1
+                from Song s
+                where s.album = a
+                    and s.isDeleted = false
+                    and s.streamingStatus = true
+            )
+    """)
+    Optional<Album> findActiveAlbumWithActiveSong(Long albumId); // 앨범과 음원 모두 활성화 상태인 앨범 조회
+
     // 앨범 이름과 앨범 발매일로 단건 조회 (삭제 여부와 관계없이 조회)
     Optional<Album> findByAlbumNameAndAlbumReleaseDate(String albumName, LocalDate albumReleaseDate);
 
