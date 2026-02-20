@@ -43,8 +43,8 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
      * 검색 - 미리보기
      */
     @Override
-    public List<ArtistSearchResponseDto> findArtistListByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction) {
-        return baseQuery(null, word, isAdmin, sortType, direction, null).limit(size).fetch();
+    public List<ArtistSearchResponseDto> findArtistListByWord(AuthUser authUser, String word, int size, boolean isAdmin, SortType sortType, SortDirection direction) {
+        return baseQuery(authUser, word, isAdmin, sortType, direction, null).limit(size).fetch();
     }
 
     /**

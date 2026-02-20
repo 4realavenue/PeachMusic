@@ -139,8 +139,8 @@ public class SongService {
      * 음원 검색 - 미리보기
      */
     @Transactional(readOnly = true)
-    public List<SongSearchResponseDto> searchSongList(String word) {
-        return songRepository.findSongListByWord(word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
+    public List<SongSearchResponseDto> searchSongList(AuthUser authUser, String word) {
+        return songRepository.findSongListByWord(authUser, word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
     }
 
     /**

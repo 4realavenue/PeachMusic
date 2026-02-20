@@ -51,8 +51,8 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
      * 검색 - 미리보기
      */
     @Override
-    public List<AlbumSearchResponseDto> findAlbumListByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction) {
-        return baseQuery(null, word, isAdmin, sortType, direction, null).limit(size).fetch();
+    public List<AlbumSearchResponseDto> findAlbumListByWord(AuthUser authUser, String word, int size, boolean isAdmin, SortType sortType, SortDirection direction) {
+        return baseQuery(authUser, word, isAdmin, sortType, direction, null).limit(size).fetch();
     }
 
     /**

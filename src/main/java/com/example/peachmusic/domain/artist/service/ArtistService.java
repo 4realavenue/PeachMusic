@@ -84,8 +84,8 @@ public class ArtistService {
      * @return 아티스트 검색 응답 DTO 리스트
      */
     @Transactional(readOnly = true)
-    public List<ArtistSearchResponseDto> searchArtistList(String word) {
-        return artistRepository.findArtistListByWord(word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC);
+    public List<ArtistSearchResponseDto> searchArtistList(AuthUser authUser, String word) {
+        return artistRepository.findArtistListByWord(authUser, word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC);
     }
 
     public Artist findActiveArtistOrThrow(Long artistId) {

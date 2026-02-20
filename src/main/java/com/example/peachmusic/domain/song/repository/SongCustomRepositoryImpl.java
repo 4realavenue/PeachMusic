@@ -51,8 +51,8 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
      * 검색 - 미리보기
      */
     @Override
-    public List<SongSearchResponseDto> findSongListByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction) {
-        return baseQuery(null, word, isAdmin, sortType, direction, null).limit(size).fetch();
+    public List<SongSearchResponseDto> findSongListByWord(AuthUser authUser, String word, int size, boolean isAdmin, SortType sortType, SortDirection direction) {
+        return baseQuery(authUser, word, isAdmin, sortType, direction, null).limit(size).fetch();
     }
 
     /**

@@ -93,7 +93,7 @@ public class AlbumService {
      * @return 앨범 검색 응답 DTO 리스트
      */
     @Transactional(readOnly = true)
-    public List<AlbumSearchResponseDto> searchAlbumList(String word) {
-        return albumRepository.findAlbumListByWord(word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
+    public List<AlbumSearchResponseDto> searchAlbumList(AuthUser authUser, String word) {
+        return albumRepository.findAlbumListByWord(authUser, word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
     }
 }

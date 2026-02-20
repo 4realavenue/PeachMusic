@@ -11,7 +11,7 @@ import java.util.List;
 public interface AlbumCustomRepository {
 
     List<AlbumSearchResponseDto> findAlbumKeysetPageByWord(AuthUser authUser, String word, int size, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor);
-    List<AlbumSearchResponseDto> findAlbumListByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction);
+    List<AlbumSearchResponseDto> findAlbumListByWord(AuthUser authUser, String word, int size, boolean isAdmin, SortType sortType, SortDirection direction);
     List<AlbumArtistDetailResponseDto> findAlbumList(AuthUser authUser, Long artistId, int size);
     List<AlbumArtistDetailResponseDto> findAlbumByArtistKeyset(AuthUser authUser, Long artistId, SortType sortType, SortDirection sortDirection, CursorParam cursor, int size);
 }
