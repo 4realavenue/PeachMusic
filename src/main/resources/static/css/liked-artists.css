@@ -105,7 +105,7 @@
 }
 
 .heart-btn.liked{
-    color: #ff4d6d;
+    color: var(--primary);;
 }
 
 /* =========================

@@ -1,6 +1,8 @@
 import { authFetch, getToken } from "/js/auth.js";
 import { resolveAudioUrl } from "/js/player-hls.js";
 
+const hasToken = !!getToken();
+
 /* ✅ 플레이리스트 API */
 const PLAYLIST_LIST_API = "/api/playlists";
 const PLAYLIST_ADD_SONG_API = (playlistId) => `/api/playlists/${playlistId}/songs`;
@@ -281,7 +283,13 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadAlbum() {
     if (!albumId) return;
 
-    const res = await fetch(`/api/albums/${albumId}`);
+    // 🔥 핵심 수정: 로그인 시 authFetch 사용
+    const res = hasToken
+        ? await authFetch(`/api/albums/${albumId}`, { method: "GET" })
+        : await fetch(`/api/albums/${albumId}`);
+
+    if (!res) return;
+
     const payload = await res.json();
     if (!payload?.success) return;
 
@@ -289,6 +297,7 @@ async function loadAlbum() {
 
     // ✅ 렌더 시점 토큰 상태(버튼 disabled 클래스용)
     const tokenNow = !!getToken();
+
 
     // 기본 정보
     document.getElementById("albumImage").src = resolveImageUrl(album.albumImage);
@@ -303,7 +312,7 @@ async function loadAlbum() {
     const likeCountEl = document.getElementById("likeCount");
 
     likeCountEl.textContent = String(album.likeCount ?? 0);
-    heartBtn.classList.toggle("liked", album.isLiked === true);
+    heartBtn.classList.toggle("liked", album.liked === true);
 
     heartBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
@@ -351,7 +360,7 @@ async function loadAlbum() {
       <div class="track-like">
         <span class="like-group">
           <span class="mini-like-count">${song.likeCount ?? 0}</span>
-          <button class="mini-heart-btn ${song.liked ? "liked" : ""} ${!tokenNow ? "disabled" : ""}"
+          <button class="mini-heart-btn ${(song.liked ?? song.liked) ? "liked" : ""} ${!tokenNow ? "disabled" : ""}"
                   type="button"
                   aria-label="음원 좋아요">❤</button>
         </span>

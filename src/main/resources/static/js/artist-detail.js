@@ -246,6 +246,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (moreAlbumsLink) moreAlbumsLink.href = `/artists/${artistId}/albums/page`;
     if (moreSongsLink) moreSongsLink.href = `/artists/${artistId}/songs/page`;
 
+    try {
+        const detailRes = getToken()
+            ? await authFetch(`/api/artists/${artistId}`, { method: "GET" })
+            : await fetch(`/api/artists/${artistId}`);
+
+        if (detailRes && detailRes.ok) {
+            const detailPayload = await detailRes.json();
+            if (detailPayload?.success) {
+                const { liked, likeCount } = detailPayload.data;
+
+                const likeBtn = document.getElementById("artistLikeBtn");
+                const likeCountEl = document.getElementById("artistLikeCount");
+
+                // ✅ 새로고침 시 liked 상태 반영
+                likeBtn?.classList.toggle("liked", liked === true);
+
+                // ✅ 좋아요 숫자 반영
+                if (likeCountEl) {
+                    likeCountEl.textContent = String(likeCount ?? 0);
+                }
+            }
+        }
+    } catch (e) {
+        console.error("artist detail load failed", e);
+    }
+
+    /* ========================= */
+
     bindArtistLike(artistId);
 
     try {
