@@ -23,7 +23,7 @@ public class AlbumLikeCustomRepositoryImpl implements AlbumLikeCustomRepository 
      * 정렬 기준:
      * - albumLikeId DESC
      * Keyset 조건:
-     * - 마지막 조회된 lastId(albumLikeId)보다 작은 데이터 조회
+     * - 마지막 조회된 lastLikeId(albumLikeId)보다 작은 데이터 조회
      * size + 1 조회 후 다음 페이지 존재 여부(hasNext) 판단
      */
     @Override
@@ -38,7 +38,7 @@ public class AlbumLikeCustomRepositoryImpl implements AlbumLikeCustomRepository 
     }
 
     /**
-     * 첫 페이지 조회 시 lastId가 없으면
+     * 첫 페이지 조회 시 lastLikeId가 없으면
      * Keyset 조건을 적용하지 않기 위해 null 반환
      */
     private BooleanExpression lastLikeIdCondition(Long lastLikeId) {
