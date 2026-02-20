@@ -36,11 +36,160 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     /* =========================
+       ✅ Volume Popover + Keyboard + Hint(1회)
+    ========================= */
+    const volumeWrap = document.getElementById("volumeWrap");
+    const volumeBtn = document.getElementById("volumeBtn");
+    const volumePopover = document.getElementById("volumePopover");
+    const volumeRange = document.getElementById("volumeRange");
+    const volumeHint = document.getElementById("volumeHint");
+
+    const VOL_KEY = "peach_player_volume";   // 0~1
+    const MUTE_KEY = "peach_player_muted";   // "1" | "0"
+    const HINT_KEY = "peach_player_volume_hint_seen"; // "1"
+
+    const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
+
+    function updateVolumeIcon() {
+        if (!volumeBtn) return;
+
+        if (audio.muted || audio.volume === 0) {
+            volumeBtn.textContent = "🔇";
+            volumeBtn.setAttribute("aria-label", "음소거 해제");
+            return;
+        }
+        if (audio.volume < 0.5) {
+            volumeBtn.textContent = "🔈";
+            volumeBtn.setAttribute("aria-label", "음소거");
+            return;
+        }
+        volumeBtn.textContent = "🔊";
+        volumeBtn.setAttribute("aria-label", "음소거");
+    }
+
+    function saveVolume() {
+        localStorage.setItem(VOL_KEY, String(audio.volume));
+        localStorage.setItem(MUTE_KEY, audio.muted ? "1" : "0");
+    }
+
+    function loadVolume() {
+        const v = Number(localStorage.getItem(VOL_KEY));
+        const muted = localStorage.getItem(MUTE_KEY) === "1";
+        const vol = Number.isFinite(v) ? clamp(v, 0, 1) : 0.8;
+
+        audio.volume = vol;
+        audio.muted = muted;
+
+        if (volumeRange) volumeRange.value = String(Math.round(vol * 100));
+        updateVolumeIcon();
+    }
+
+    function setPopover(open) {
+        if (!volumePopover || !volumeBtn) return;
+
+        volumePopover.classList.toggle("open", open);
+        volumePopover.setAttribute("aria-hidden", open ? "false" : "true");
+        volumeBtn.setAttribute("aria-expanded", open ? "true" : "false");
+
+        if (open) {
+            // 열리면 슬라이더 포커스 → 키보드 조절 바로 가능
+            volumeRange?.focus();
+
+            // ✅ 힌트는 "처음 1회만" 잠깐 보여주고 자동 숨김
+            const seen = localStorage.getItem(HINT_KEY) === "1";
+            if (volumeHint) {
+                if (!seen) {
+                    volumeHint.classList.remove("hidden");
+                    localStorage.setItem(HINT_KEY, "1");
+                    setTimeout(() => volumeHint.classList.add("hidden"), 2500);
+                } else {
+                    volumeHint.classList.add("hidden");
+                }
+            }
+        }
+    }
+
+    function togglePopover() {
+        const isOpen = volumePopover?.classList.contains("open");
+        setPopover(!isOpen);
+    }
+
+    function stepVolume(delta) {
+        const next = clamp(audio.volume + delta, 0, 1);
+        audio.volume = next;
+        if (audio.muted && next > 0) audio.muted = false;
+
+        if (volumeRange) volumeRange.value = String(Math.round(next * 100));
+        updateVolumeIcon();
+        saveVolume();
+    }
+
+    function isVolumeFocused() {
+        const a = document.activeElement;
+        return (
+            a === volumeBtn ||
+            a === volumeRange ||
+            (volumePopover && a instanceof Node && volumePopover.contains(a))
+        );
+    }
+
+    volumeBtn?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        togglePopover();
+    });
+
+    // 바깥 클릭 → 닫기
+    document.addEventListener("click", (e) => {
+        if (!volumePopover?.classList.contains("open")) return;
+        const t = e.target;
+        if (volumeWrap && t instanceof Node && volumeWrap.contains(t)) return;
+        setPopover(false);
+    });
+
+    // ESC → 닫기
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && volumePopover?.classList.contains("open")) {
+            setPopover(false);
+            volumeBtn?.focus();
+        }
+    });
+
+    // 슬라이더 입력
+    volumeRange?.addEventListener("input", () => {
+        const v = clamp(Number(volumeRange.value) / 100, 0, 1);
+        audio.volume = v;
+        if (audio.muted && v > 0) audio.muted = false;
+        updateVolumeIcon();
+        saveVolume();
+    });
+
+    // 키보드 조절(볼륨 영역 포커스일 때만)
+    document.addEventListener("keydown", (e) => {
+        if (!isVolumeFocused()) return;
+
+        if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+            e.preventDefault();
+            stepVolume(-0.05);
+        } else if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+            e.preventDefault();
+            stepVolume(+0.05);
+        } else if (e.key === "m" || e.key === "M") {
+            e.preventDefault();
+            audio.muted = !audio.muted;
+            updateVolumeIcon();
+            saveVolume();
+        }
+    });
+
+    audio.addEventListener("volumechange", () => {
+        if (volumeRange) volumeRange.value = String(Math.round(clamp(audio.volume, 0, 1) * 100));
+        updateVolumeIcon();
+    });
+
+    loadVolume();
+
+    /* =========================
        ✅ 컨텍스트 큐
-       - setPlayerQueue로 페이지가 “현재 리스트”를 넘김
-       - ended 자동 다음곡
-       - loop=true면 마지막 다음은 첫 곡, 첫 곡 prev는 마지막 곡
-       - prev 5초 규칙: 5초 이상이면 현재곡 처음부터
     ========================= */
     let queue = []; // [{ songId, title, url? }]
     let currentIndex = -1;
@@ -61,7 +210,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 .map((t) => ({
                     songId: Number(t?.songId),
                     title: String(t?.title ?? "Unknown"),
-                    url: t?.url ? resolveAudioUrl(t.url) : null, // 선택: url까지 넘기면 /play 재호출 감소
+                    url: t?.url ? resolveAudioUrl(t.url) : null, // url 포함 시 /play 재호출 감소
                 }))
                 .filter((t) => Number.isFinite(t.songId))
             : [];
@@ -107,8 +256,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* =========================
        ✅ /play는 트랙 전환에서만 호출
-       - prev/next/ended에서 사용
-       - 페이지에서 클릭 재생은 “이미 url을 받아서” playSongFromPage로 들어오는게 베스트
     ========================= */
     async function fetchStreamingUrl(songId) {
         const res = await fetch(`/api/songs/${songId}/play`, { method: "GET" });
@@ -138,7 +285,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const item = queue[nextIndex];
         if (!item) return;
 
-        // ✅ url을 큐에 같이 넣어준 경우 /play 호출 없이 사용 가능
         const url = item.url || (await fetchStreamingUrl(item.songId));
         if (!url) return;
 
@@ -163,13 +309,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* =========================
        ✅ prev / next
-       - prev: 5초 이상 재생 중이면 현재곡 처음부터
-       - 아니면 이전곡 (loop면 wrap)
-       - next: 다음곡 (loop면 wrap)
     ========================= */
     prevBtn?.addEventListener("click", async () => {
         if (queue.length === 0 || currentIndex < 0) return;
 
+        // 5초 규칙
         if (!audio.paused && audio.currentTime >= 5) {
             audio.currentTime = 0;
             try {
@@ -204,24 +348,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* =========================
        ✅ 페이지에서 쓰는 "공식 API"
-       1) setPlayerQueue(tracks, startSongId, { loop:true, contextKey:"..." })
-       2) playSongFromPage(url, title, songId)  // 큐는 이미 세팅되어 있다는 전제
     ========================= */
-
-    // ✅ 공식: 큐 세팅
     window.setPlayerQueue = function (tracks, startSongId = null, options = {}) {
         loopEnabled = options?.loop !== false; // 기본 true
         contextKey = options?.contextKey ?? null;
-
         setQueueInternal(tracks, startSongId);
     };
 
-    // ✅ 공식: 재생 (여기서는 /play 재호출 금지)
     window.playSongFromPage = async function (url, title, songId) {
         const fixedUrl = resolveAudioUrl(url);
         if (!fixedUrl) return;
 
-        // 큐에 있는 곡이면 인덱스 맞추기
         const idx = findIndexBySongId(songId);
         if (idx >= 0) {
             currentIndex = idx;
@@ -248,7 +385,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* =========================
        ✅ 실제 재생
-       - 여기서 /play 재호출 금지
     ========================= */
     async function playTrack(url, title, songId) {
         try {
