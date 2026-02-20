@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const progressFill = document.getElementById("progressFill");
     const progressBar = document.getElementById("progressBar");
     const currentTimeEl = document.getElementById("currentTime");
-    const durationEl = document.getElementById("duration");
+    const playerDurationEl = document.getElementById("playerDuration");
     const playerTitle = document.getElementById("playerTitle");
 
     const prevBtn = document.getElementById("playerPrevBtn");
@@ -417,7 +417,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     audio.addEventListener("loadedmetadata", () => {
-        if (durationEl) durationEl.textContent = formatTime(audio.duration);
+        if (playerDurationEl) playerDurationEl.textContent = formatTime(audio.duration);
     });
 
     audio.addEventListener("timeupdate", () => {
