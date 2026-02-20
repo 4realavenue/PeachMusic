@@ -37,12 +37,17 @@ public class RecommendationService {
             return recommendColdStartService.getTop50();
         }
 
-        // 사용자의 좋아요 / 플레이리스트 음원의 장르 아이디 조회
-        List<Long> seedGenreIdList = songRepository.findSeedGenreList(mergedSongIdList);
-
         // songId, 장르, 스피드, 태그, 악기 등 음원 기반 User Profile Vector 생성
         Map<String, Double> userVectorMap = createUserVector(mergedSongIdList);
 
+        if(userVectorMap == null || userVectorMap.isEmpty()) {
+            return recommendColdStartService.getTop50();
+        }
+
+        // 사용자의 좋아요 / 플레이리스트 음원의 장르 아이디 조회
+        List<Long> seedGenreIdList = songRepository.findSeedGenreList(mergedSongIdList);
+
+        // 1차 장르기반 추천
         // 후보곡과 User Vector 간 유사도 계산
         List<SongRecommendationScoreDto> scoredSongList = rankRecommendSongList(mergedSongIdList, userVectorMap, seedGenreIdList);
 
@@ -50,7 +55,19 @@ public class RecommendationService {
         List<Long> orderBySongIdList = getTopSongIdList(scoredSongList);
 
         // 추천 결과 DB 조회
-        return songRepository.findRecommendedSongList(orderBySongIdList);
+        if(!orderBySongIdList.isEmpty()) {
+            return songRepository.findRecommendedSongList(orderBySongIdList);
+        }
+
+        // 2차 장르 필터 제거 후 재시도
+        List<SongRecommendationScoreDto> fallbackScoreList = rankRecommendSongListWithoutGenre(mergedSongIdList, userVectorMap);
+
+        List<Long> fallbackSongIdList = getTopSongIdList(fallbackScoreList);
+
+        if (!fallbackSongIdList.isEmpty()) {
+            return songRepository.findRecommendedSongList(fallbackSongIdList);
+        }
+        return recommendColdStartService.getTop50();
     }
 
     /**
@@ -103,6 +120,30 @@ public class RecommendationService {
         return scoredSongList;
     }
 
+    /**
+     * 장르 제외 후보곡 랭킹 계산
+     */
+    private List<SongRecommendationScoreDto> rankRecommendSongListWithoutGenre(List<Long> mergedSongIdList, Map<String, Double> userVectorMap) {
+
+        Map<Long, SongFeatureDto> recommendFeatureMap = songRepository.findRecommendFeatureMapWithoutGenre(mergedSongIdList);
+
+        List<SongRecommendationScoreDto> scoredSongList = new ArrayList<>();
+
+        for (SongFeatureDto songFeatureDto : recommendFeatureMap.values()) {
+
+            Map<String, Double> recommendVectorMap =
+                    featureVectorizer.vectorizeSongMap(songFeatureDto);
+
+            double score = CosineSimilarity.compute(userVectorMap, recommendVectorMap);
+
+            if (score > 0) {
+                scoredSongList.add(new SongRecommendationScoreDto(songFeatureDto, score));
+            }
+        }
+
+        return scoredSongList;
+
+    }
 
     /**
      * 추천 상위 50곡 추출 (PriorityQueue 적용)

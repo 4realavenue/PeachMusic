@@ -11,4 +11,5 @@ public interface RecommendationRepository {
     List<SongRecommendationResponseDto> findRecommendedSongList(List<Long> orderBySongIdList);
     List<SongRecommendationResponseDto> findRecommendedSongListForColdStart();
     List<Long> findSeedGenreList(List<Long> mergedSongIdList);
+    Map<Long, SongFeatureDto> findRecommendFeatureMapWithoutGenre(List<Long> mergedSongIdList);
 }

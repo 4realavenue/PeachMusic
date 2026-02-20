@@ -122,7 +122,7 @@ public class JamendoSongService {
                 JamendoMusicInfoDto musicInfo = dto.getJamendoMusicInfo();
                 JamendoTagDto tags = (musicInfo != null) ? musicInfo.getTags() : null;
 
-                if (musicInfo == null || musicInfo.getSpeed() == null || tags == null || tags.getInstruments() == null || tags.getMoods() == null) {
+                if (musicInfo == null || musicInfo.getLang() == null || !"en".equalsIgnoreCase(musicInfo.getLang()) || musicInfo.getSpeed() == null || tags == null || tags.getInstruments() == null || tags.getInstruments().isEmpty() || tags.getMoods() == null || tags.getMoods().isEmpty()) {
                     continue;
                 }
 
@@ -193,7 +193,7 @@ public class JamendoSongService {
      */
     private String joinList(List<String> list) {
         if (list == null || list.isEmpty()) {
-            return null;
+            return "";
         }
         return String.join(",", list);
     }
