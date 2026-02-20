@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.mail.component;
+package com.example.peachmusic.domain.user.component;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;

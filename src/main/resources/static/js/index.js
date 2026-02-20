@@ -38,7 +38,7 @@ function showLoading(on) {
 }
 function showError(msg) {
     if (!errorBox) return;
-    errorBox.classList.remove("hidden");
+    errorBox.classList.remove("hidden")
     errorBox.textContent = msg;
 }
 function hideError() {
@@ -117,9 +117,6 @@ function updateSortStatus() {
     sortStatus.textContent = `${sortLabel(state.sortType)} · ${dirLabel(state.direction)}`;
 }
 
-/* =========================
-   Request (토큰 있으면 authFetch)
-========================= */
 async function request(url) {
     return getToken() ? authFetch(url, { method: "GET" }) : fetch(url, { method: "GET" });
 }
@@ -202,6 +199,7 @@ function createRecommendCard(song) {
 async function loadRecommendTop5() {
     if (!recommendGrid) return;
 
+    // 추천 API가 인증 기반이면 토큰 없을 때 빈칸
     if (!getToken()) {
         recommendGrid.innerHTML = "";
         return;
@@ -539,7 +537,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateSortStatus();
     updateTopBtn();
 
-    await loadRecommendTop5();
+    const token = localStorage.getItem("accessToken"); // ✅ sidebar.js와 동일 기준
+    const recommendSection = document.getElementById("recommendSection");
+
+    // ✅ 비로그인: 추천 섹션 숨김(또는 remove)
+    if (!token) {
+        if (recommendSection) recommendSection.remove(); // 숨기고 싶으면 .classList.add("hidden")
+    } else {
+        // ✅ 로그인: 추천 5개 로드
+        await loadRecommendTop5();
+    }
 
     initObserver();
     loadMore();

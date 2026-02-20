@@ -1,8 +1,8 @@
-package com.example.peachmusic.domain.ranking.controller;
+package com.example.peachmusic.domain.song.controller;
 
 import com.example.peachmusic.common.model.CommonResponse;
-import com.example.peachmusic.domain.ranking.model.RankingResponseDto;
-import com.example.peachmusic.domain.ranking.service.RankingService;
+import com.example.peachmusic.domain.song.dto.response.RankingResponseDto;
+import com.example.peachmusic.domain.song.service.RankingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
