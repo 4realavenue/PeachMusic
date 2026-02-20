@@ -11,6 +11,10 @@ const els = {
     listBody: document.getElementById("listBody"),
     moreBtn: document.getElementById("moreBtn"),
     emptyBox: document.getElementById("emptyBox"),
+
+    // ✅ 추가
+    sentinel: document.getElementById("sentinel"),
+    toTopBtn: document.getElementById("toTopBtn"),
 };
 
 const retryDownloadBtn = document.getElementById("retryDownloadBtn");
@@ -27,6 +31,7 @@ let state = {
     lastId: null,
     loading: false,
     hasNext: true,
+    observer: null, // ✅ 무한 스크롤 observer
 };
 
 /* =========================
@@ -64,7 +69,9 @@ function setEmpty(isEmpty) {
 }
 
 function setMoreVisible(visible) {
-    els.moreBtn?.classList.toggle("hidden", !visible);
+    // ✅ 더보기 버튼은 구조만 남기고 실제 사용은 안 함 (hidden 유지)
+    // 필요하면 visible에 따라 토글 가능하지만, 여기선 무한스크롤이라 항상 숨김 유지
+    els.moreBtn?.classList.add("hidden");
 }
 
 /* =========================
@@ -106,7 +113,7 @@ function renderRows(items, append = true) {
             : `<a class="song-link" href="/songs/${s.songId}/page">${escapeHtml(s.name)}</a>`;
 
         const albumImageHtml = s.albumImage
-            ? `<img class="album-cover" src="${escapeHtml(s.albumImage)}"/>`
+            ? `<img class="album-cover" src="${escapeHtml(s.albumImage)}" onerror="this.onerror=null;this.style.display='none';"/>`
             : `<div class="album-cover-fallback">🎵</div>`;
 
         return `
@@ -151,12 +158,16 @@ function renderRows(items, append = true) {
 ========================= */
 async function fetchList({ reset = false } = {}) {
     if (state.loading) return;
+    if (!state.hasNext && !reset) return;
+
     state.loading = true;
 
     if (reset) {
         state.lastId = null;
         state.hasNext = true;
         els.listBody.innerHTML = "";
+        setEmpty(false);
+
         selected.clear();
         retryDownloadBtn?.setAttribute("disabled", true);
         retryTranscodeBtn?.setAttribute("disabled", true);
@@ -171,12 +182,14 @@ async function fetchList({ reset = false } = {}) {
         const res = await authFetch(`${API_URL}?${params}`, { method: "GET" });
         if (!res) return;
 
-        const json = await res.json();
-        const data = json.data || {};
+        const json = await safeJson(res);
+        const data = json?.data || {};
         const content = data.content || [];
 
         if (content.length === 0 && els.listBody.children.length === 0) {
             setEmpty(true);
+            state.hasNext = false;
+            setMoreVisible(false);
             return;
         }
 
@@ -196,6 +209,29 @@ async function fetchList({ reset = false } = {}) {
 }
 
 /* =========================
+   ✅ Infinite Scroll
+========================= */
+function setupInfiniteScroll() {
+    if (!els.sentinel) return;
+
+    if (state.observer) {
+        try { state.observer.disconnect(); } catch (_) {}
+        state.observer = null;
+    }
+
+    state.observer = new IntersectionObserver(
+        (entries) => {
+            const entry = entries[0];
+            if (!entry?.isIntersecting) return;
+            if (state.hasNext && !state.loading) fetchList({ reset: false });
+        },
+        { root: null, rootMargin: "300px", threshold: 0 }
+    );
+
+    state.observer.observe(els.sentinel);
+}
+
+/* =========================
    Selection
 ========================= */
 function syncSelectAll() {
@@ -203,6 +239,74 @@ function syncSelectAll() {
     if (!selectAll) return;
     selectAll.checked = boxes.length > 0 &&
         Array.from(boxes).every(cb => cb.checked);
+}
+
+/* =========================
+   ✅ To Top Button (admin 공통: 내부 스크롤 대응)
+========================= */
+function getScrollableAncestor(el) {
+    let cur = el;
+    while (cur && cur !== document.body && cur !== document.documentElement) {
+        const style = window.getComputedStyle(cur);
+        const oy = style.overflowY;
+        const canScroll = (oy === "auto" || oy === "scroll") && cur.scrollHeight > cur.clientHeight + 5;
+        if (canScroll) return cur;
+        cur = cur.parentElement;
+    }
+    return null;
+}
+
+function guessScroller() {
+    if (els.listBody) {
+        const anc = getScrollableAncestor(els.listBody);
+        if (anc) return anc;
+    }
+    return document.scrollingElement || document.documentElement;
+}
+
+function setupToTop() {
+    if (!els.toTopBtn) return;
+
+    // 레이아웃 overflow/transform 이슈 회피: body로 이동
+    if (els.toTopBtn.parentElement !== document.body) {
+        document.body.appendChild(els.toTopBtn);
+    }
+
+    const scroller = guessScroller();
+
+    const getTop = () => {
+        if (scroller === document.documentElement || scroller === document.body || scroller === document.scrollingElement) {
+            return window.scrollY || document.documentElement.scrollTop || 0;
+        }
+        return scroller.scrollTop || 0;
+    };
+
+    let ticking = false;
+    const updateTopBtn = () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+            const y = getTop();
+            // ✅ admin 공통 기준 (스크롤 좀 하면 등장)
+            els.toTopBtn.classList.toggle("hidden", !(y > 500));
+            ticking = false;
+        });
+    };
+
+    window.addEventListener("scroll", updateTopBtn, { passive: true, capture: true });
+    if (scroller && scroller !== window) {
+        scroller.addEventListener("scroll", updateTopBtn, { passive: true, capture: true });
+    }
+
+    updateTopBtn();
+
+    els.toTopBtn.addEventListener("click", () => {
+        if (scroller === document.documentElement || scroller === document.body || scroller === document.scrollingElement) {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+            scroller.scrollTo({ top: 0, behavior: "smooth" });
+        }
+    });
 }
 
 /* =========================
@@ -216,7 +320,7 @@ function bindEvents() {
         fetchList({ reset: true });
     });
 
-    // 더보기
+    // 더보기 (기존 코드 유지: 혹시 숨김 풀어 쓰고 싶으면)
     els.moreBtn?.addEventListener("click", () => {
         if (state.hasNext) fetchList();
     });
@@ -310,5 +414,7 @@ function bindEvents() {
 ========================= */
 document.addEventListener("DOMContentLoaded", () => {
     bindEvents();
+    setupInfiniteScroll();
+    setupToTop();
     fetchList({ reset: true });
 });

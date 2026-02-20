@@ -133,7 +133,7 @@
 .table-head,
 .row{
     display:grid;
-    grid-template-columns: 110px minmax(260px, 520px) 120px 170px;
+    grid-template-columns: 110px 92px minmax(260px, 520px) 120px 170px;
     align-items:center;
 }
 
@@ -154,6 +154,11 @@
     justify-self:center;
 }
 
+.table-head .col.profile{
+    text-align:center;
+    justify-self:center;
+}
+
 /* =========================
    Body
 ========================= */
@@ -166,13 +171,6 @@
     border-bottom:none;
 }
 
-.row.clickable{
-    cursor:pointer;
-}
-.row.clickable:hover{
-    background:#fafafa;
-}
-
 /* =========================
    Columns
 ========================= */
@@ -180,15 +178,59 @@
     font-weight:800;
 }
 
+.col.profile{
+    display:flex;
+    justify-content:center;
+    justify-self:center;
+}
+
+.artist-thumb{
+    width:52px;
+    height:52px;
+    border-radius:16px;
+    overflow:hidden;
+    background:#f2f2f2;
+    border:1px solid #eee;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.06);
+    flex:0 0 auto;
+}
+.artist-thumb img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.row.is-deleted .artist-thumb{
+    opacity:0.55;
+    filter: grayscale(0.15);
+}
+
+/* ✅ 핵심 수정: 이름/배지 레이아웃 안정화 */
 .col.name{
     font-weight:900;
     display:flex;
     align-items:center;
     justify-content:space-between;
     gap:12px;
-    min-width:0;
+    min-width:0; /* ✅ ellipsis 동작 필수 */
 }
 
+/* ✅ 길어도 배지 밀지 않도록: 텍스트 영역을 유연하게, 배지는 고정 */
+.col.name .artist-link,
+.col.name .artist-link.disabled{
+    flex: 1 1 auto;        /* ✅ 텍스트가 남는 공간만 사용 */
+    min-width: 0;          /* ✅ ellipsis 동작 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;   /* ✅ 한 줄 고정 */
+}
+
+/* ✅ 배지는 항상 제 자리 (밀림/줄바꿈/찌그러짐 방지) */
+.col.name .badge{
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
 
 .col.like{
     font-weight:800;
@@ -289,7 +331,7 @@
     background:#f7f7f7;
 }
 
-.hidden{ display:none; }
+.hidden{ display:none !important; }
 
 .empty{
     text-align:center;
@@ -304,7 +346,12 @@
 @media (max-width:900px){
     .table-head,
     .row{
-        grid-template-columns: 90px minmax(200px, 1fr) 90px 160px;
+        grid-template-columns: 90px 86px minmax(200px, 1fr) 90px 160px;
+    }
+    .artist-thumb{
+        width:48px;
+        height:48px;
+        border-radius:14px;
     }
 }
 
@@ -335,9 +382,6 @@
     font-weight:800;
     color:inherit;
     text-decoration:none;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
 }
 .artist-link:hover {
     text-decoration:underline;
@@ -347,3 +391,37 @@
     cursor:not-allowed;
     text-decoration:none;
 }
+
+/* =========================
+   Infinite Scroll Sentinel
+========================= */
+.sentinel{
+    height: 1px;
+    width: 100%;
+}
+
+/* =========================
+   To Top Button (index와 동일)
+========================= */
+:root{
+    --player-safe-bottom: 96px;
+}
+
+.to-top{
+    position: fixed;
+    right: 22px;
+    bottom: calc(22px + var(--player-safe-bottom));
+    width: 46px;
+    height: 46px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: #111;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: var(--shadow-card);
+    transition: transform .12s ease, opacity .12s ease;
+    z-index: 9999;
+}
+.to-top:hover{ transform: translateY(-2px); }

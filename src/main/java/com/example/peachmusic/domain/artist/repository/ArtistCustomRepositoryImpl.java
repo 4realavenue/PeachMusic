@@ -64,7 +64,7 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
         }
 
         return query
-                .select(Projections.constructor(ArtistSearchResponseDto.class, artist.artistId, artist.artistName, artist.likeCount, isLikedExpression, artist.isDeleted))
+                .select(Projections.constructor(ArtistSearchResponseDto.class, artist.artistId, artist.artistName, artist.profileImage, artist.likeCount, isLikedExpression, artist.isDeleted))
                 .from(artist)
                 .where(searchCondition(word), isActive(isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
                 .orderBy(keysetOrder(sortType, isAsc)); // Keyset 조건에 사용되는 커서 순서대로 정렬
