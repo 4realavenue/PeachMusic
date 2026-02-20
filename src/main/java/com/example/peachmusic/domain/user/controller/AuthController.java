@@ -28,7 +28,7 @@ public class AuthController {
             @Valid @RequestBody UserCreateRequestDto request
     ) {
         authService.createUser(request);
-        return new ResponseEntity<>(CommonResponse.success("유저 생성 성공"), HttpStatus.CREATED);
+        return new ResponseEntity<>(CommonResponse.success("유저가 생성되었습니다."), HttpStatus.CREATED);
     }
 
     /**
