@@ -15,6 +15,10 @@ public class SearchWordCondition {
      * @return 검색어가 특정 필드 안에 포함되어 있는지
      */
     public static BooleanExpression wordMatch(StringPath path, String word) {
-        return Expressions.booleanTemplate("function('match_against', {0}, {1}) > 0", path, word);
+        if (word.length() > 3) {
+            return Expressions.booleanTemplate("function('match_against', {0}, {1}) > 0", path, word);
+        }
+        return Expressions.stringTemplate("concat(' ', {0}, ' ')", path)
+                .like(Expressions.stringTemplate("concat('% ', {0}, ' %')", word));
     }
 }
