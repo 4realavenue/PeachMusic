@@ -53,4 +53,33 @@ public interface AlbumRepository extends JpaRepository<Album, Long>, AlbumCustom
         and a.albumId in :albumIdList
         """)
     void restoreByAlbumIdList(@Param("albumIdList") List<Long> albumIdList);
+
+    // albumIdList 중 활성 아티스트가 0명인 앨범만 반환
+    @Query("""
+            select a.albumId
+            from Album a
+            where a.albumId in :albumIdList
+            and 0 = (
+                select count(aa)
+                from ArtistAlbum aa
+                where aa.album.albumId = a.albumId
+                and aa.artist.isDeleted = false
+            )
+            """)
+    List<Long> findOrphanAlbumIdListWhereNoActiveArtistList(@Param("albumIdList") List<Long> albumIdList);
+
+    // albumIdList 중 삭제된 앨범이면서 활성 아티스트가 1명 이상인 앨범만 반환
+    @Query("""
+            select a.albumId
+            from Album a
+            where a.albumId in :albumIdList
+            and a.isDeleted = true
+            and (
+                select count(aa)
+                from ArtistAlbum aa
+                where aa.album.albumId = a.albumId
+                and aa.artist.isDeleted = false
+            ) > 0
+            """)
+    List<Long> findRestorableAlbumIdListWithActiveArtistList(@Param("albumIdList") List<Long> albumIdList);
 }

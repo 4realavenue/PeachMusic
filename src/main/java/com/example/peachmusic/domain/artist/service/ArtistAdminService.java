@@ -132,14 +132,24 @@ public class ArtistAdminService {
             throw new CustomException(ErrorCode.ALREADY_IN_REQUESTED_STATE);
         }
 
+        // 아티스트가 참여한 앨범들 전부 확보 (앨범 삭제 여부와 무관)
+        List<Long> relatedAlbumIdList = artistAlbumRepository.findDistinctAlbumIdListByArtistId(artistId);
+
         foundArtist.delete();
 
-        List<Long> albumIdList = artistAlbumRepository.findAlbumIdListByArtistIdAndIsDeleted(artistId, false);
-
-        if (!albumIdList.isEmpty()) {
-            songRepository.softDeleteByAlbumIdList(albumIdList);
-            albumRepository.softDeleteByAlbumIdList(albumIdList);
+        if (relatedAlbumIdList.isEmpty()) {
+            return;
         }
+
+        // 관련 앨범 중 활성 아티스트가 0명인 앨범만 삭제
+        List<Long> orphanAlbumIdList = albumRepository.findOrphanAlbumIdListWhereNoActiveArtistList(relatedAlbumIdList);
+
+        if (orphanAlbumIdList.isEmpty()) {
+            return;
+        }
+
+        songRepository.softDeleteByAlbumIdList(orphanAlbumIdList);
+        albumRepository.softDeleteByAlbumIdList(orphanAlbumIdList);
     }
 
     /**
@@ -158,12 +168,21 @@ public class ArtistAdminService {
 
         foundArtist.restore();
 
-        List<Long> albumIdList = artistAlbumRepository.findAlbumIdListByArtistIdAndIsDeleted(artistId, true);
+        List<Long> relatedAlbumIdList = artistAlbumRepository.findDistinctAlbumIdListByArtistId(artistId);
 
-        if (!albumIdList.isEmpty()) {
-            songRepository.restoreByAlbumIdList(albumIdList);
-            albumRepository.restoreByAlbumIdList(albumIdList);
+        if (relatedAlbumIdList.isEmpty()) {
+            return;
         }
+
+        // 삭제된 앨범 중에서 활성 아티스트가 1명 이상인 앨범만 복구
+        List<Long> restorableAlbumIdList = albumRepository.findRestorableAlbumIdListWithActiveArtistList(relatedAlbumIdList);
+
+        if (restorableAlbumIdList.isEmpty()) {
+            return;
+        }
+
+        albumRepository.restoreByAlbumIdList(restorableAlbumIdList);
+        songRepository.restoreByAlbumIdList(restorableAlbumIdList);
     }
 
     private String normalize(String value) {
