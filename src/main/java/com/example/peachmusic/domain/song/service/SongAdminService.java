@@ -122,7 +122,7 @@ public class SongAdminService {
 
         final int size = DETAIL_SIZE;
 
-        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(word, size, ADMIN_VIEW, null, null, cursor);
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(null, word, size, ADMIN_VIEW, null, null, cursor);
 
         return KeysetResponse.of(content, size, last -> new NextCursor(last.getSongId(), null));
     }

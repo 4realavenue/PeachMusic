@@ -70,22 +70,19 @@ public class AlbumService {
 
         SortType sortType = SortType.RELEASE_DATE;
         SortDirection direction = sortType.getDefaultDirection();
-        final int size = DETAIL_SIZE;
 
-        Long userId = (authUser == null) ? null : authUser.getUserId();
+        List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(authUser, foundArtist.getArtistId(), sortType, direction, cursor, DETAIL_SIZE);
 
-        List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(userId, foundArtist.getArtistId(), sortType, direction, cursor, size);
-
-        return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), last.getAlbumReleaseDate()));
+        return KeysetResponse.of(content, DETAIL_SIZE, last -> new NextCursor(last.getAlbumId(), last.getAlbumReleaseDate()));
     }
 
     /**
      * 앨범 검색 - 자세히 보기
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<AlbumSearchResponseDto> searchAlbumPage(SearchConditionParam condition, CursorParam cursor) {
+    public KeysetResponse<AlbumSearchResponseDto> searchAlbumPage(AuthUser authUser, SearchConditionParam condition, CursorParam cursor) {
 
-        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
+        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(authUser, condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
 
         return KeysetResponse.of(content, DETAIL_SIZE, last -> last.toCursor(condition.getSortType()));
     }
