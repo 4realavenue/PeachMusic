@@ -73,7 +73,7 @@ public class ArtistAdminService {
 
         final int size = DETAIL_SIZE;
 
-        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(word, size, ADMIN_VIEW, null, null, cursor);
+        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(null, word, size, ADMIN_VIEW, null, null, cursor);
 
         return KeysetResponse.of(content, size, last -> new NextCursor(last.getArtistId(), null));
     }

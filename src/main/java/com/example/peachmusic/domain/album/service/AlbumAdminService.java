@@ -89,7 +89,7 @@ public class AlbumAdminService {
 
         final int size = DETAIL_SIZE;
 
-        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(word, size, ADMIN_VIEW, null, null, cursor);
+        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(null, word, size, ADMIN_VIEW, null, null, cursor);
 
         return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), null));
     }

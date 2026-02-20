@@ -61,10 +61,8 @@ public class ArtistService {
 
         int size = PREVIEW_SIZE;
 
-        Long userId = (authUser == null) ? null : authUser.getUserId();
-
-        List<AlbumArtistDetailResponseDto> albumList = albumRepository.findAlbumList(userId, foundArtist.getArtistId(), size);
-        List<SongArtistDetailResponseDto> songList = songRepository.findSongList(userId, foundArtist.getArtistId(), size);
+        List<AlbumArtistDetailResponseDto> albumList = albumRepository.findAlbumList(authUser, foundArtist.getArtistId(), size);
+        List<SongArtistDetailResponseDto> songList = songRepository.findSongList(authUser, foundArtist.getArtistId(), size);
 
         return ArtistPreviewResponseDto.of(albumList, songList);
     }
@@ -73,9 +71,9 @@ public class ArtistService {
      * 아티스트 검색 - 자세히 보기
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<ArtistSearchResponseDto> searchArtistPage(SearchConditionParam condition, CursorParam cursor) {
+    public KeysetResponse<ArtistSearchResponseDto> searchArtistPage(AuthUser authUser, SearchConditionParam condition, CursorParam cursor) {
 
-        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
+        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(authUser, condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
 
         return KeysetResponse.of(content, DETAIL_SIZE, last -> last.toCursor(condition.getSortType()));
     }
@@ -86,8 +84,8 @@ public class ArtistService {
      * @return 아티스트 검색 응답 DTO 리스트
      */
     @Transactional(readOnly = true)
-    public List<ArtistSearchResponseDto> searchArtistList(String word) {
-        return artistRepository.findArtistListByWord(word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC);
+    public List<ArtistSearchResponseDto> searchArtistList(AuthUser authUser, String word) {
+        return artistRepository.findArtistListByWord(authUser, word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC);
     }
 
     public Artist findActiveArtistOrThrow(Long artistId) {

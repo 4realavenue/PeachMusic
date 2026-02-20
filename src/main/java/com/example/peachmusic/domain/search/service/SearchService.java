@@ -1,5 +1,6 @@
 package com.example.peachmusic.domain.search.service;
 
+import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
 import com.example.peachmusic.domain.album.service.AlbumService;
 import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
@@ -35,7 +36,7 @@ public class SearchService {
      * @return 검색 응답 DTO
      */
     @Transactional(readOnly = true)
-    public SearchPreviewResponseDto searchPreview(String word) {
+    public SearchPreviewResponseDto searchPreview(AuthUser authUser, String word) {
 
         word = word.trim();
         searchHistoryService.recordSearchRank(word); // 검색어 랭킹 기록
@@ -46,7 +47,7 @@ public class SearchService {
             return cachedResult;
         }
 
-        SearchPreviewResponseDto result = createSearchResult(word); // DB 조회
+        SearchPreviewResponseDto result = createSearchResult(authUser, word); // DB 조회
 
         boolean isPopular = searchHistoryService.isPopularKeyword(word);
         if (isPopular) { // 검색어가 인기검색어인 경우에 Redis에 저장
@@ -72,10 +73,10 @@ public class SearchService {
     /**
      * DB에서 검색 결과 조회
      */
-    private SearchPreviewResponseDto createSearchResult(String word) {
-        List<ArtistSearchResponseDto> artistList = artistService.searchArtistList(word);
-        List<AlbumSearchResponseDto> albumList = albumService.searchAlbumList(word);
-        List<SongSearchResponseDto> songList = songService.searchSongList(word);
+    private SearchPreviewResponseDto createSearchResult(AuthUser authUser, String word) {
+        List<ArtistSearchResponseDto> artistList = artistService.searchArtistList(authUser, word);
+        List<AlbumSearchResponseDto> albumList = albumService.searchAlbumList(authUser, word);
+        List<SongSearchResponseDto> songList = songService.searchSongList(authUser, word);
 
         return SearchPreviewResponseDto.of(word, artistList, albumList, songList);
     }
