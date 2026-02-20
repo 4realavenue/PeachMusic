@@ -19,7 +19,6 @@ const loadingEl = document.getElementById("loading");
 const endMessage = document.getElementById("endMessage");
 const popup = document.getElementById("loginPopup");
 
-const hasToken = !!getToken();
 let observer = null;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -50,7 +49,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+/* =========================
+   무한스크롤
+========================= */
 function setupInfiniteScroll() {
+
     observer = new IntersectionObserver(async (entries) => {
         if (entries[0].isIntersecting) {
             await loadSongs();
@@ -73,9 +76,13 @@ function resetAndReload() {
     loadSongs();
 }
 
+/* =========================
+   데이터 로드
+========================= */
 async function loadSongs() {
 
     if (!hasNext || loading) return;
+
     loading = true;
     loadingEl.classList.remove("hidden");
 
@@ -90,7 +97,13 @@ async function loadSongs() {
     }
 
     try {
-        const res = await fetch(`/api/search/songs?${params}`);
+
+        const res = getToken()
+            ? await authFetch(`/api/search/songs?${params}`)
+            : await fetch(`/api/search/songs?${params}`);
+
+        if (!res) return;
+
         const response = await res.json();
         if (!response.success) return;
 
@@ -100,8 +113,8 @@ async function loadSongs() {
 
         hasNext = data.hasNext;
 
-        if (hasNext && data.cursor) {
-            lastId = data.cursor.lastId;
+        if (hasNext && data.nextCursor) {
+            lastId = data.nextCursor.lastId;
         } else {
             endMessage.classList.remove("hidden");
             observer?.disconnect();
@@ -115,11 +128,12 @@ async function loadSongs() {
     loading = false;
 }
 
+/* =========================
+   렌더
+========================= */
 function renderSongs(list) {
 
     list.forEach(song => {
-
-        const songId = song.songId ?? song.id;
 
         const row = document.createElement("div");
         row.className = "song-row";
@@ -133,9 +147,8 @@ function renderSongs(list) {
                 <span class="like-number">${song.likeCount ?? 0}</span>
 
                 <button class="heart-btn 
-                        ${song.liked ? 'liked' : ''} 
-                        ${!hasToken ? 'disabled' : ''}"
-                        data-id="${songId}">
+                        ${song.liked ? 'liked' : ''}"
+                        data-id="${song.songId}">
                     ❤
                 </button>
             </div>
@@ -145,11 +158,14 @@ function renderSongs(list) {
 
         row.addEventListener("click", (e) => {
             if (e.target.closest(".heart-btn")) return;
-            location.href = `/songs/${songId}/page`;
+            location.href = `/songs/${song.songId}/page`;
         });
     });
 }
 
+/* =========================
+   로그인 팝업
+========================= */
 function showLoginPopup() {
     popup.classList.remove("hidden");
     popup.classList.add("show");
@@ -160,6 +176,9 @@ function showLoginPopup() {
     }, 2000);
 }
 
+/* =========================
+   좋아요 토글 (안정화 버전)
+========================= */
 listContainer.addEventListener("click", async (e) => {
 
     const heartBtn = e.target.closest(".heart-btn");
@@ -167,7 +186,7 @@ listContainer.addEventListener("click", async (e) => {
 
     e.stopPropagation();
 
-    if (!hasToken) {
+    if (!getToken()) {
         showLoginPopup();
         return;
     }
@@ -175,22 +194,26 @@ listContainer.addEventListener("click", async (e) => {
     const songId = heartBtn.dataset.id;
 
     try {
+
         const res = await authFetch(`/api/songs/${songId}/likes`, {
             method: "POST"
         });
+
+        if (!res) return;
 
         const result = await res.json();
         if (!result.success) return;
 
         const { liked, likeCount } = result.data;
 
-        heartBtn.classList.toggle("liked", liked);
+        /* 🔥ㅁㅍㅁ 즉시 UI 반영 */
+        heartBtn.classList.toggle("liked", liked === true);
 
         const likeNumber = heartBtn
             .closest(".song-row")
             .querySelector(".like-number");
 
-        likeNumber.textContent = likeCount;
+        likeNumber.textContent = likeCount ?? 0;
 
     } catch (err) {
         console.error(err);
