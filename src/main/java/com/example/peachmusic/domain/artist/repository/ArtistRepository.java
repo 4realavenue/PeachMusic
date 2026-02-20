@@ -13,7 +13,7 @@ public interface ArtistRepository extends JpaRepository<Artist, Long>, ArtistCus
     Optional<Artist> findByArtistIdAndIsDeletedFalse(Long artistId);
 
     // 전달받은 artistIdList에 해당하는 활성 상태(isDeleted=false) 아티스트 조회
-    List<Artist> findAllByArtistIdInAndIsDeletedFalse(List<Long> artistIds);
+    List<Artist> findAllByArtistIdInAndIsDeletedFalse(List<Long> artistIdList);
 
     @Query("""
         select a.likeCount

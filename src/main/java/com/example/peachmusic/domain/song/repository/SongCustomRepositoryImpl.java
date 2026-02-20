@@ -237,7 +237,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
      * 날짜가 Keyset이 되는 경우
      */
     private BooleanExpression dateKeyset(boolean asc, CursorParam cursor) {
-        BooleanExpression dateCondition = asc ? song.releaseDate.gt(cursor.getLastDate()) : album.albumReleaseDate.lt(cursor.getLastDate());
+        BooleanExpression dateCondition = asc ? song.releaseDate.gt(cursor.getLastDate()) : song.releaseDate.lt(cursor.getLastDate());
         return dateCondition.or(song.releaseDate.eq(cursor.getLastDate()).and(idKeyset(asc, cursor.getLastId())));
     }
 
@@ -273,7 +273,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
         return switch (sortType) {
             case LIKE -> asc ? song.likeCount.asc() : song.likeCount.desc();
             case NAME -> asc ? song.name.asc() : song.name.desc();
-            case RELEASE_DATE -> asc ? song.releaseDate.asc() : album.albumReleaseDate.desc();
+            case RELEASE_DATE -> asc ? song.releaseDate.asc() : song.releaseDate.desc();
             case PLAY -> asc ? song.playCount.asc() : song.playCount.desc();
         };
     }
