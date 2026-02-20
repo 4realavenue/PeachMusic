@@ -268,11 +268,18 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadAlbum() {
     if (!albumId) return;
 
-    const res = await fetch(`/api/albums/${albumId}`);
+    // 🔥 핵심 수정: 로그인 시 authFetch 사용
+    const res = hasToken
+        ? await authFetch(`/api/albums/${albumId}`, { method: "GET" })
+        : await fetch(`/api/albums/${albumId}`);
+
+    if (!res) return;
+
     const payload = await res.json();
     if (!payload?.success) return;
 
     const album = payload.data;
+
 
     // 기본 정보
     document.getElementById("albumImage").src = resolveImageUrl(album.albumImage);
@@ -292,7 +299,7 @@ async function loadAlbum() {
     likeCountEl.classList?.add("like-count");
 
     likeCountEl.textContent = String(album.likeCount ?? 0);
-    heartBtn.classList.toggle("liked", album.isLiked === true);
+    heartBtn.classList.toggle("liked", album.liked === true);
 
     heartBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
@@ -336,7 +343,7 @@ async function loadAlbum() {
           <div class="track-like">
             <span class="like-group">
               <span class="mini-like-count">${song.likeCount ?? 0}</span>
-              <button class="mini-heart-btn ${song.liked ? "liked" : ""}"
+              <button class="mini-heart-btn ${(song.liked ?? song.liked) ? "liked" : ""}"
                       type="button"
                       aria-label="음원 좋아요">❤</button>
             </span>
