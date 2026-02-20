@@ -26,11 +26,12 @@ public class SongController {
      */
     @GetMapping("/songs")
     public ResponseEntity<CommonResponse<KeysetResponse<SongSearchResponseDto>>> getSongList(
+            @AuthenticationPrincipal AuthUser authUser,
             @RequestParam(defaultValue = "LIKE") SortType sortType,
             @RequestParam(required = false) SortDirection direction,
             @ModelAttribute CursorParam cursor
     ) {
-        KeysetResponse<SongSearchResponseDto> responseDtoPage = songService.getSongList(sortType, direction, cursor);
+        KeysetResponse<SongSearchResponseDto> responseDtoPage = songService.getSongList(authUser, sortType, direction, cursor);
 
         return ResponseEntity.ok(CommonResponse.success("음원 전체 조회에 성공했습니다.", responseDtoPage));
     }
@@ -70,10 +71,11 @@ public class SongController {
      */
     @GetMapping("/search/songs")
     public ResponseEntity<CommonResponse<KeysetResponse<SongSearchResponseDto>>> searchSong(
+            @AuthenticationPrincipal AuthUser authUser,
             @Valid @ModelAttribute SearchConditionParam condition,
             @ModelAttribute CursorParam cursor
     ) {
-        KeysetResponse<SongSearchResponseDto> responseDto = songService.searchSongPage(condition, cursor);
+        KeysetResponse<SongSearchResponseDto> responseDto = songService.searchSongPage(authUser, condition, cursor);
 
         return ResponseEntity.ok(CommonResponse.success("음원 검색이 완료되었습니다.", responseDto));
     }

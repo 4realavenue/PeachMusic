@@ -16,6 +16,7 @@ public class AlbumSearchResponseDto {
     private final LocalDate releaseDate;
     private final String albumImage;
     private final Long likeCount;
+    private final boolean isLiked;
     private final boolean isDeleted;
 
     public NextCursor toCursor(SortType sortType) {

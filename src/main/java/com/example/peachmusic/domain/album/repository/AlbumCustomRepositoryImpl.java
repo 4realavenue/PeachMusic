@@ -4,6 +4,7 @@ import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
+import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.CursorParam;
 import com.example.peachmusic.common.query.SearchWordCondition;
 import com.example.peachmusic.common.repository.KeysetPolicy;
@@ -42,50 +43,50 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
      * 검색 - 자세히 보기
      */
     @Override
-    public List<AlbumSearchResponseDto> findAlbumKeysetPageByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor) {
-        return baseQuery(word, isAdmin, sortType, direction, cursor).limit(size+1).fetch(); // 요청한 사이즈보다 하나 더 많은 데이터를 조회
+    public List<AlbumSearchResponseDto> findAlbumKeysetPageByWord(AuthUser authUser, String word, int size, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor) {
+        return baseQuery(authUser, word, isAdmin, sortType, direction, cursor).limit(size+1).fetch(); // 요청한 사이즈보다 하나 더 많은 데이터를 조회
     }
 
     /**
      * 검색 - 미리보기
      */
     @Override
-    public List<AlbumSearchResponseDto> findAlbumListByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction) {
-        return baseQuery(word, isAdmin, sortType, direction, null).limit(size).fetch();
+    public List<AlbumSearchResponseDto> findAlbumListByWord(AuthUser authUser, String word, int size, boolean isAdmin, SortType sortType, SortDirection direction) {
+        return baseQuery(authUser, word, isAdmin, sortType, direction, null).limit(size).fetch();
     }
 
     /**
      * 특정 아티스트의 앨범 - 미리보기
      */
     @Override
-    public List<AlbumArtistDetailResponseDto> findAlbumList(Long userId, Long artistId, int size) {
-        return baseQueryByArtist(userId, artistId, SortType.RELEASE_DATE, SortDirection.DESC, null).limit(size).fetch();
+    public List<AlbumArtistDetailResponseDto> findAlbumList(AuthUser authUser, Long artistId, int size) {
+        return baseQueryByArtist(authUser, artistId, SortType.RELEASE_DATE, SortDirection.DESC, null).limit(size).fetch();
     }
 
     /**
      * 특정 아티스트의 앨범 - 자세히 보기
      */
     @Override
-    public List<AlbumArtistDetailResponseDto> findAlbumByArtistKeyset(Long userId, Long artistId, SortType sortType, SortDirection sortDirection, CursorParam cursor, int size) {
-        return baseQueryByArtist(userId, artistId, sortType, sortDirection, cursor).limit(size + 1).fetch();
+    public List<AlbumArtistDetailResponseDto> findAlbumByArtistKeyset(AuthUser authUser, Long artistId, SortType sortType, SortDirection sortDirection, CursorParam cursor, int size) {
+        return baseQueryByArtist(authUser, artistId, sortType, sortDirection, cursor).limit(size + 1).fetch();
     }
 
     /**
      * 기본 쿼리
      */
-    private JPAQuery<AlbumSearchResponseDto> baseQuery(String word, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor) {
+    private JPAQuery<AlbumSearchResponseDto> baseQuery(AuthUser authUser, String word, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor) {
 
         keysetPolicy.validateCursor(sortType, cursor); // 커서 검증
         boolean isAsc = keysetPolicy.isAscending(sortType, direction);
 
         // 아티스트 이름을 문자열로 합치기
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
+        Expression<Boolean> isLikedExpression = authUser == null ? Expressions.constant(false) : albumLike.albumLikeId.max().isNotNull();
 
-        return queryFactory
-                .select(Projections.constructor(AlbumSearchResponseDto.class, album.albumId, album.albumName, artistNames, album.albumReleaseDate, album.albumImage, album.likeCount, album.isDeleted))
-                .from(album)
-                .join(artistAlbum).on(artistAlbum.album.eq(album))
-                .join(artist).on(artistAlbum.artist.eq(artist))
+        JPAQuery<?> query = baseFrom(authUser);
+
+        return query
+                .select(Projections.constructor(AlbumSearchResponseDto.class, album.albumId, album.albumName, artistNames, album.albumReleaseDate, album.albumImage, album.likeCount, isLikedExpression, album.isDeleted))
                 .where(searchCondition(word), isActive(isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
                 .groupBy(album.albumId) // 아티스트 이름을 문자열로 합치는데 앨범 id를 기준으로 함
                 .orderBy(keysetOrder(sortType, isAsc)); // Keyset 조건에 사용되는 커서 순서대로 정렬
@@ -94,27 +95,33 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
     /**
      * 아티스트 상세 전용 공통 쿼리
      */
-    private JPAQuery<AlbumArtistDetailResponseDto> baseQueryByArtist(Long userId, Long artistId, SortType sortType, SortDirection direction, CursorParam cursor) {
+    private JPAQuery<AlbumArtistDetailResponseDto> baseQueryByArtist(AuthUser authUser, Long artistId, SortType sortType, SortDirection direction, CursorParam cursor) {
 
         keysetPolicy.validateCursor(sortType, cursor);
         boolean isAsc = direction == SortDirection.ASC;
 
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
-        Expression<Boolean> isLikedExpression = userId == null ? Expressions.constant(false) : albumLike.albumLikeId.max().isNotNull();
+        Expression<Boolean> isLikedExpression = authUser == null ? Expressions.constant(false) : albumLike.albumLikeId.max().isNotNull();
 
-        JPAQuery<?> query = queryFactory.from(album)
-                .join(artistAlbum).on(artistAlbum.album.eq(album))
-                .join(artist).on(artistAlbum.artist.eq(artist));
-
-        if (userId != null) {
-            query.leftJoin(albumLike).on(albumLike.album.eq(album).and(albumLike.user.userId.eq(userId)));
-        }
+        JPAQuery<?> query = baseFrom(authUser);
 
         return query
                 .select(Projections.constructor(AlbumArtistDetailResponseDto.class, album.albumId, album.albumName, artistNames, album.albumReleaseDate, album.albumImage, album.likeCount, album.isDeleted, isLikedExpression))
                 .where(artist.artistId.eq(artistId), isActive(false), keysetCondition(sortType, isAsc, cursor))
                 .groupBy(album.albumId)
                 .orderBy(keysetOrder(sortType, isAsc));
+    }
+
+    private JPAQuery<?> baseFrom(AuthUser authUser) {
+        JPAQuery<?> query = queryFactory
+                .from(album)
+                .join(artistAlbum).on(artistAlbum.album.eq(album))
+                .join(artist).on(artistAlbum.artist.eq(artist));
+
+        if (authUser != null) {
+            query.leftJoin(albumLike).on(albumLike.album.eq(album).and(albumLike.user.userId.eq(authUser.getUserId())));
+        }
+        return query;
     }
 
     /**
