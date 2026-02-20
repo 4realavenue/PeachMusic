@@ -37,7 +37,7 @@ function showLoading(on) {
 }
 function showError(msg) {
     if (!errorBox) return;
-    errorBox.classList.remove("hidden");
+    errorBox.classList.remove("hidden")
     errorBox.textContent = msg;
 }
 function hideError() {
@@ -486,7 +486,6 @@ directionSelect?.addEventListener("change", () => {
 toTopBtn?.addEventListener("click", () => scrollToTopSmooth());
 window.addEventListener("scroll", updateTopBtn, { passive: true });
 
-// init
 document.addEventListener("DOMContentLoaded", async () => {
     state.sortType = sortSelect?.value || "LIKE";
     state.direction = directionSelect?.value || "DESC";
@@ -494,8 +493,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateSortStatus();
     updateTopBtn();
 
-    // ✅ 추천 5개
-    await loadRecommendTop5();
+    const token = localStorage.getItem("accessToken"); // ✅ sidebar.js와 동일 기준
+    const recommendSection = document.getElementById("recommendSection");
+
+    // ✅ 비로그인: 추천 섹션 숨김(또는 remove)
+    if (!token) {
+        if (recommendSection) recommendSection.remove(); // 숨기고 싶으면 .classList.add("hidden")
+    } else {
+        // ✅ 로그인: 추천 5개 로드
+        await loadRecommendTop5();
+    }
 
     initObserver();
     loadMore();
