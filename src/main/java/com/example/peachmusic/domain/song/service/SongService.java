@@ -7,6 +7,7 @@ import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.*;
+import com.example.peachmusic.domain.album.dto.response.ArtistSummaryDto;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.artist.entity.Artist;
@@ -33,7 +34,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
 import static com.example.peachmusic.common.constants.SearchViewSize.PREVIEW_SIZE;
@@ -101,9 +101,12 @@ public class SongService {
                 .toList();
 
         List<Artist> findArtist = artistSongRepository.findArtistListBySong(findSong);
-        String ArtistName = findArtist.stream().map(Artist::getArtistName).collect(Collectors.joining(","));
 
-        return SongGetDetailResponseDto.from(findAlbum, ArtistName, findSong, genreNameList, liked);
+        List<ArtistSummaryDto> artistList = findArtist.stream()
+                .map(ArtistSummaryDto::from)
+                .toList();
+
+        return SongGetDetailResponseDto.from(findAlbum, artistList, findSong, genreNameList, liked);
 
     }
 
