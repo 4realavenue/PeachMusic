@@ -14,6 +14,8 @@ public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRep
 
     Optional<Song> findBySongIdAndIsDeletedFalse(Long songId);
 
+    Optional<Song> findBySongIdAndIsDeletedFalseAndStreamingStatusTrue(Long songId);
+
     boolean existsSongByAlbumAndPosition(Album album, Long position);
 
     // 앨범 음원 목록 조회
