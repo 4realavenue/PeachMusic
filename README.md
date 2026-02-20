@@ -349,6 +349,10 @@ MySQL 실행 후 DB 생성
 CREATE DATABASE peach_music;
 ```
 
+생성한 peach_music 데이터베이스를 선택한 후,
+프로젝트 루트 경로의 sql 폴더에 포함된 DDL 파일들을
+파일명 순서대로 실행하여 테이블을 생성해주세요.
+
 Redis 실행
 
 ```bash
