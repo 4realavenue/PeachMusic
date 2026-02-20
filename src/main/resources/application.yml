@@ -9,7 +9,7 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
   jpa:
-    show-sql: true
+    show-sql: false
     hibernate:
       ddl-auto: update
     properties:
@@ -72,3 +72,8 @@ management:
   endpoint:
     health:
       show-details: always
+
+logging:
+  level:
+    org.hibernate.SQL: off
+    org.hibernate.type.descriptor.sql: off
