@@ -232,9 +232,8 @@
 /* 파일 선택 버튼 영역 */
 .form-group input[type="file"]::file-selector-button{
     height: 36px;
-    padding: 0 14px;
     margin-right: 12px;
-
+    margin-top:5px;
     border-radius: var(--radius-md);
     border: 1px solid var(--border);
 

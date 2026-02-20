@@ -5,34 +5,18 @@ let lastSortValue = null;
 let hasNext = true;
 let loading = false;
 
-const hasToken = !!getToken();
+let currentSort = "LIKE";
+let currentDirection = "DESC";
 
 const grid = document.getElementById("albumGrid");
 const title = document.getElementById("pageTitle");
 const sentinel = document.getElementById("sentinel");
 const loadingEl = document.getElementById("loading");
 const endMessageEl = document.getElementById("endMessage");
-
-/* =========================
-   이미지 경로 안전 처리
-========================= */
-function resolveImageUrl(imagePath) {
-
-    if (!imagePath) return "/images/default.png";
-
-    // 외부 Open API URL
-    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
-        return imagePath;
-    }
-
-    // 이미 / 로 시작하면 그대로
-    if (imagePath.startsWith("/")) {
-        return imagePath;
-    }
-
-    // 내부 업로드 경로
-    return `/${imagePath}`;
-}
+const searchBtn = document.getElementById("searchBtn");
+const searchInput = document.getElementById("searchInput");
+const sortSelect = document.getElementById("sortSelect");
+const directionSelect = document.getElementById("directionSelect");
 
 /* =========================
    로그인 팝업
@@ -58,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!initialWord || initialWord.trim() === "") return;
 
     title.textContent = `"${initialWord}"와 관련된 앨범`;
+    searchInput.value = initialWord;
 
     loadAlbums();
 
@@ -68,22 +53,62 @@ document.addEventListener("DOMContentLoaded", () => {
     }, { threshold: 0.1 });
 
     observer.observe(sentinel);
+
+    /* 🔎 검색 */
+    searchBtn?.addEventListener("click", handleSearch);
+    searchInput?.addEventListener("keydown", e => {
+        if (e.key === "Enter") handleSearch();
+    });
+
+    /* 🔥 정렬 */
+    sortSelect?.addEventListener("change", () => {
+        currentSort = sortSelect.value;
+        resetAndReload();
+    });
+
+    directionSelect?.addEventListener("change", () => {
+        currentDirection = directionSelect.value;
+        resetAndReload();
+    });
 });
+
+/* =========================
+   검색
+========================= */
+function handleSearch() {
+    const word = searchInput.value.trim();
+    if (!word) return;
+
+    location.href = `/search/albums?word=${encodeURIComponent(word)}`;
+}
+
+/* =========================
+   정렬 변경 시 초기화
+========================= */
+function resetAndReload() {
+    lastId = null;
+    lastSortValue = null;
+    hasNext = true;
+    loading = false;
+    grid.innerHTML = "";
+    endMessageEl.classList.add("hidden");
+    loadAlbums();
+}
 
 /* =========================
    데이터 로드
 ========================= */
 async function loadAlbums() {
 
-    if (!hasNext) return;
+    if (!hasNext || loading) return;
 
     loading = true;
     loadingEl.classList.remove("hidden");
 
     const params = new URLSearchParams({
         word: initialWord,
-        sortType: "LIKE",
-        direction: "DESC"
+        sortType: currentSort,
+        direction: currentDirection
     });
 
     if (lastId !== null) {
@@ -92,9 +117,14 @@ async function loadAlbums() {
     }
 
     try {
-        const res = await fetch(`/api/search/albums?${params}`);
-        const response = await res.json();
 
+        const res = getToken()
+            ? await authFetch(`/api/search/albums?${params}`)
+            : await fetch(`/api/search/albums?${params}`);
+
+        if (!res) return;
+
+        const response = await res.json();
         if (!response.success) return;
 
         const data = response.data;
@@ -119,7 +149,7 @@ async function loadAlbums() {
 }
 
 /* =========================
-   카드 렌더링
+   렌더
 ========================= */
 function renderAlbums(list) {
 
@@ -130,18 +160,13 @@ function renderAlbums(list) {
         card.dataset.id = album.albumId;
 
         card.innerHTML = `
-            <img src="${resolveImageUrl(album.albumImage)}" alt="album">
-
+            <img src="${album.albumImage || '/images/default.png'}" alt="album">
             <div class="album-name">${album.albumName}</div>
-
             <div class="album-artist">${album.artistName}</div>
 
             <div class="album-bottom">
                 <span class="like-number">${album.likeCount ?? 0}</span>
-
-                <button class="heart-btn 
-                        ${album.liked ? 'liked' : ''} 
-                        ${!hasToken ? 'disabled' : ''}"
+                <button class="heart-btn ${album.liked ? 'liked' : ''}"
                         data-id="${album.albumId}">
                     ❤
                 </button>
@@ -153,18 +178,17 @@ function renderAlbums(list) {
 }
 
 /* =========================
-   클릭 이벤트 통합 처리
+   클릭 처리
 ========================= */
 grid.addEventListener("click", async (e) => {
 
-    // 1️⃣ 하트 클릭
     const heartBtn = e.target.closest(".heart-btn");
 
     if (heartBtn) {
 
         e.stopPropagation();
 
-        if (!hasToken) {
+        if (!getToken()) {
             showLoginPopup();
             return;
         }
@@ -172,20 +196,25 @@ grid.addEventListener("click", async (e) => {
         const albumId = heartBtn.dataset.id;
 
         try {
-            const res = await authFetch(`/api/albums/${albumId}/likes`, { method: "POST" });
-            const result = await res.json();
 
+            const res = await authFetch(`/api/albums/${albumId}/likes`, {
+                method: "POST"
+            });
+
+            if (!res) return;
+
+            const result = await res.json();
             if (!result.success) return;
 
             const { liked, likeCount } = result.data;
 
-            heartBtn.classList.toggle("liked", liked);
+            heartBtn.classList.toggle("liked", liked === true);
 
             const likeNumber = heartBtn
                 .closest(".album-bottom")
                 .querySelector(".like-number");
 
-            likeNumber.textContent = likeCount;
+            likeNumber.textContent = likeCount ?? 0;
 
         } catch (err) {
             console.error(err);
@@ -194,12 +223,8 @@ grid.addEventListener("click", async (e) => {
         return;
     }
 
-    // 2️⃣ 카드 클릭 → 앨범 단건 조회
     const card = e.target.closest(".album-card");
     if (!card) return;
 
-    const albumId = card.dataset.id;
-    if (!albumId) return;
-
-    location.href = `/albums/${albumId}/page`;
+    location.href = `/albums/${card.dataset.id}/page`;
 });

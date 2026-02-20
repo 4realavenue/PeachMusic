@@ -249,7 +249,7 @@ function appendRows(items) {
       <div class="song-actions">
         <button class="track-play" type="button" aria-label="재생" data-id="${s.songId}">▶</button>
         <span class="like-number">${s.likeCount ?? 0}</span>
-        <button class="heart-btn ${s.isLiked ? "liked" : ""} ${!hasToken ? "disabled" : ""}"
+        <button class="heart-btn ${s.liked ? "liked" : ""} ${!hasToken ? "disabled" : ""}"
                 type="button"
                 aria-label="좋아요"
                 data-id="${s.songId}">❤</button>
@@ -484,6 +484,9 @@ listEl.addEventListener("click", async (e) => {
     if (!heartBtn) return;
 
     e.stopPropagation();
+
+    // 🔥 수정: disabled 버튼은 완전 차단
+    if (heartBtn.hasAttribute("disabled")) return;
 
     if (!getToken()) {
         showLoginPopup();
