@@ -1,4 +1,4 @@
-package com.example.peachmusic.domain.ranking.model;
+package com.example.peachmusic.domain.song.dto.response;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

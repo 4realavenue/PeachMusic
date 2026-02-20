@@ -1,9 +1,9 @@
-package com.example.peachmusic.domain.mail.service;
+package com.example.peachmusic.domain.user.service;
 
 import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.CommonResponse;
-import com.example.peachmusic.domain.mail.component.RedisEmailVerificationConfig;
+import com.example.peachmusic.domain.user.component.RedisEmailVerificationConfig;
 import com.example.peachmusic.domain.user.repository.UserRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
