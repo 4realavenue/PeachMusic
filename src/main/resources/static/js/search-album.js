@@ -5,6 +5,9 @@ let lastSortValue = null;
 let hasNext = true;
 let loading = false;
 
+let currentSort = "LIKE";
+let currentDirection = "DESC";
+
 const hasToken = !!getToken();
 
 const grid = document.getElementById("albumGrid");
@@ -12,6 +15,10 @@ const title = document.getElementById("pageTitle");
 const sentinel = document.getElementById("sentinel");
 const loadingEl = document.getElementById("loading");
 const endMessageEl = document.getElementById("endMessage");
+const searchBtn = document.getElementById("searchBtn");
+const searchInput = document.getElementById("searchInput");
+const sortSelect = document.getElementById("sortSelect");
+const directionSelect = document.getElementById("directionSelect");
 
 /* =========================
    이미지 경로 안전 처리
@@ -54,6 +61,9 @@ function showLoginPopup() {
    초기 실행
 ========================= */
 document.addEventListener("DOMContentLoaded", () => {
+    if (typeof initialWord !== "undefined" && searchInput) {
+        searchInput.value = initialWord;
+    }
 
     if (!initialWord || initialWord.trim() === "") return;
 
@@ -68,7 +78,44 @@ document.addEventListener("DOMContentLoaded", () => {
     }, { threshold: 0.1 });
 
     observer.observe(sentinel);
+
+    /* 🔎 검색 */
+    searchBtn?.addEventListener("click", handleSearch);
+    searchInput?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") handleSearch();
+    });
+
+    /* 🔥 수정: 정렬 이벤트 연결 */
+    sortSelect?.addEventListener("change", () => {
+        currentSort = sortSelect.value;
+        resetAndReload();
+    });
+
+    directionSelect?.addEventListener("change", () => {
+        currentDirection = directionSelect.value;
+        resetAndReload();
+    });
 });
+
+function handleSearch() {
+    const word = searchInput?.value.trim();
+    if (!word) return;
+
+    location.href = `/search/albums?word=${encodeURIComponent(word)}`;
+}
+
+/* =========================
+   정렬 변경 시 초기화 함수 추가
+========================= */
+function resetAndReload() {
+    lastId = null;
+    lastSortValue = null;
+    hasNext = true;
+    grid.innerHTML = "";
+    endMessageEl.classList.add("hidden");
+    loadAlbums();
+}
+
 
 /* =========================
    데이터 로드
@@ -82,8 +129,8 @@ async function loadAlbums() {
 
     const params = new URLSearchParams({
         word: initialWord,
-        sortType: "LIKE",
-        direction: "DESC"
+        sortType: currentSort,
+        direction: currentDirection
     });
 
     if (lastId !== null) {

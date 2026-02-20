@@ -113,9 +113,21 @@ function renderPreview(dto, albumsWrap, songsWrap) {
            style="background-image:url('${a.albumImage ?? ""}');
                   background-size:cover;background-position:center;">
       </div>
+
       <div class="album-title">${escapeHtml(a.albumName)}</div>
-      <div class="album-meta">${formatDate(a.albumReleaseDate)} · ${a.likeCount ?? 0} 💗</div>
-      ${a.isLiked ? `<div class="album-liked-badge">✔ 내가 좋아요</div>` : ""}
+
+      <div class="album-meta-row">
+        <span class="album-date">
+          ${formatDate(a.albumReleaseDate)}
+        </span>
+
+        <span class="like-group">
+          <span class="mini-like-count">${a.likeCount ?? 0}</span>
+          <button class="mini-heart-btn ${a.liked ? "liked" : ""} ${!getToken() ? "disabled" : ""}"
+                  type="button"
+                  aria-label="앨범 좋아요">❤</button>
+        </span>
+      </div>
     </div>
   `
         )
@@ -149,11 +161,43 @@ function renderPreview(dto, albumsWrap, songsWrap) {
         .join("");
 }
 
-function bindAlbumClick(albumsWrap) {
-    albumsWrap.querySelectorAll(".album-item").forEach((el) => {
-        el.addEventListener("click", () => {
-            const albumId = el.dataset.albumId;
+function bindAlbumInteractions(albumsWrap) {
+    albumsWrap.querySelectorAll(".album-item").forEach((row) => {
+        const albumId = row.dataset.albumId;
+        const heartBtn = row.querySelector(".mini-heart-btn");
+        const likeCountEl = row.querySelector(".mini-like-count");
+
+        // 앨범 상세 이동 (하트 제외)
+        row.addEventListener("click", (e) => {
+            if (e.target.closest(".mini-heart-btn")) return;
             if (albumId) window.location.href = `/albums/${albumId}/page`;
+        });
+
+        // 좋아요 토글 (song과 동일 패턴)
+        heartBtn?.addEventListener("click", async (e) => {
+            e.stopPropagation();
+
+            if (!getToken()) {
+                showLoginPopup();
+                return;
+            }
+
+            try {
+                const res = await authFetch(`/api/albums/${albumId}/likes`, {
+                    method: "POST"
+                });
+                if (!res) return;
+
+                const payload = await res.json().catch(() => null);
+                if (!payload?.success) return;
+
+                const { liked, likeCount } = payload.data;
+
+                heartBtn.classList.toggle("liked", liked === true);
+                likeCountEl.textContent = String(likeCount ?? 0);
+            } catch (err) {
+                console.error(err);
+            }
         });
     });
 }
@@ -284,11 +328,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         const dto = payload.data;
 
         renderPreview(dto, albumsWrap, songsWrap);
-        bindAlbumClick(albumsWrap);
 
         // ✅ 미리보기 5곡 컨텍스트 큐 생성 후 바인딩
         const tracks = buildPreviewTracks(dto);
         bindSongInteractions(songsWrap, tracks, artistId);
+        bindAlbumInteractions(albumsWrap);
     } catch (e) {
         console.error(e);
         albumsWrap.innerHTML = `<div style="padding:12px;color:#666;">미리보기를 불러오지 못했어요.</div>`;
