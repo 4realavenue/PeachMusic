@@ -1,4 +1,5 @@
 import { authFetch, getToken } from "/js/auth.js";
+import { resolveAudioUrl } from "/js/player-hls.js";
 
 const hasToken = !!getToken();
 
@@ -7,13 +8,13 @@ const PLAYLIST_LIST_API = "/api/playlists";
 const PLAYLIST_ADD_SONG_API = (playlistId) => `/api/playlists/${playlistId}/songs`;
 
 /* =========================
-   Global Player (전역 재생바)
+   Global Player
 ========================= */
 function getGlobalAudioEl() {
     return document.querySelector(".player audio") || document.getElementById("audioPlayer") || null;
 }
 
-let currentPlayingSongId = null; // 이 페이지에서 마지막으로 재생 시도한 곡
+let currentPlayingSongId = null;
 let currentPlayBtn = null;
 
 function isSameTrackPlaying(globalAudio, audioUrl) {
@@ -21,6 +22,13 @@ function isSameTrackPlaying(globalAudio, audioUrl) {
     const currentFile = String(globalAudio.src).split("/").pop();
     const nextFile = String(audioUrl).split("/").pop();
     return currentFile && nextFile && currentFile === nextFile;
+}
+
+function setPlayBtnState(btn, isPlaying) {
+    if (!btn) return;
+    btn.classList.toggle("playing", isPlaying);
+    btn.textContent = isPlaying ? "❚❚" : "▶";
+    btn.setAttribute("aria-label", isPlaying ? "일시정지" : "재생");
 }
 
 /* =========================
@@ -46,7 +54,6 @@ function showLoginPopup() {
 
     popup.classList.remove("hidden");
     popup.classList.add("show");
-
     setTimeout(() => {
         popup.classList.remove("show");
         popup.classList.add("hidden");
@@ -66,27 +73,8 @@ function formatDate(iso) {
     return String(iso).replaceAll("-", ".");
 }
 
-function setPlayBtnState(btn, isPlaying) {
-    if (!btn) return;
-    btn.classList.toggle("playing", isPlaying);
-    btn.textContent = isPlaying ? "❚❚" : "▶";
-    btn.setAttribute("aria-label", isPlaying ? "일시정지" : "재생");
-}
-
-/**
- * ✅ audio 경로 정규화 ("storage/..." -> "/storage/...")
- * - 전역 player-hls에 의존하지 않기 위해 페이지에서 최소한만 처리
- */
-function normalizeAudioUrl(audioPath) {
-    if (!audioPath) return null;
-    const s = String(audioPath);
-    if (s.startsWith("http://") || s.startsWith("https://")) return s;
-    if (s.startsWith("/")) return s;
-    return `/${s}`;
-}
-
 /* =========================
-   전역 플레이어 이벤트로 버튼 상태 싱크
+   전역 오디오 이벤트 싱크
 ========================= */
 function wireGlobalAudioSync() {
     const globalAudio = getGlobalAudioEl();
@@ -97,11 +85,10 @@ function wireGlobalAudioSync() {
 
         const url = currentPlayBtn?.dataset?.audioUrl;
         const same = url ? isSameTrackPlaying(globalAudio, url) : false;
-
         const isPlaying = same && !globalAudio.paused;
+
         setPlayBtnState(currentPlayBtn, isPlaying);
 
-        // 다른 곡이 전역에서 재생되면 현재 버튼 상태 해제
         if (!same) {
             currentPlayingSongId = null;
             currentPlayBtn = null;
@@ -118,17 +105,40 @@ function wireGlobalAudioSync() {
 }
 
 /* =========================
-   Song audio 가져오기
+   ✅ /play 호출 (streamingUrl)
+   - 플레이어는 playSongFromPage에서 /play 재호출 금지
+   - 페이지에서 "트랙 전환 시"에만 /play 호출
 ========================= */
-async function getSongAudioUrl(song) {
-    // 1) album API songList에 audio가 포함되어 있으면 바로 사용
-    if (song.audio) return song.audio;
+async function fetchStreamingUrl(songId) {
+    const url = `/api/songs/${songId}/play`;
 
-    // 2) 없으면 단건조회로 audio 가져오기
-    const res = await fetch(`/api/songs/${song.songId}`);
-    const payload = await res.json();
-    if (!payload?.success) return null;
-    return payload.data?.audio ?? null;
+    const res = getToken()
+        ? await authFetch(url, { method: "GET" })
+        : await fetch(url, { method: "GET" });
+
+    if (!res) return null;
+
+    const payload = await res.json().catch(() => null);
+
+    if (!res.ok || payload?.success === false) {
+        alert(payload?.message || "재생에 실패했습니다.");
+        return null;
+    }
+
+    return resolveAudioUrl(payload?.data?.streamingUrl ?? null);
+}
+
+/* =========================
+   ✅ Album songList -> Player Queue tracks
+========================= */
+function buildAlbumTracks(songList) {
+    const list = Array.isArray(songList) ? songList : [];
+    return list
+        .map((s) => ({
+            songId: Number(s?.songId),
+            title: decodeHtmlEntities(s?.name ?? "Unknown"),
+        }))
+        .filter((t) => Number.isFinite(t.songId));
 }
 
 /* =========================
@@ -176,7 +186,11 @@ async function openPlaylistModalAndAdd(songId) {
     if (!res) return;
 
     let payload = null;
-    try { payload = await res.json(); } catch { payload = null; }
+    try {
+        payload = await res.json();
+    } catch {
+        payload = null;
+    }
 
     if (!res.ok || !payload?.success) {
         listEl.innerHTML = `<div class="pl-empty">플레이리스트 목록 조회 실패</div>`;
@@ -197,17 +211,15 @@ async function openPlaylistModalAndAdd(songId) {
         btn.className = "pl-item";
 
         const imgPath = pl.playlistImage ? resolveImageUrl(pl.playlistImage) : null;
-        const imgHtml = imgPath
-            ? `<img src="${imgPath}" alt="">`
-            : `<div class="pl-thumb-ph">♪</div>`;
+        const imgHtml = imgPath ? `<img src="${imgPath}" alt="">` : `<div class="pl-thumb-ph">♪</div>`;
 
         btn.innerHTML = `
-          <div class="pl-thumb">${imgHtml}</div>
-          <div class="pl-meta">
-            <div class="pl-name">${pl.playlistName ?? "-"}</div>
-            <div class="pl-sub">클릭하면 추가</div>
-          </div>
-        `;
+      <div class="pl-thumb">${imgHtml}</div>
+      <div class="pl-meta">
+        <div class="pl-name">${pl.playlistName ?? "-"}</div>
+        <div class="pl-sub">클릭하면 추가</div>
+      </div>
+    `;
 
         btn.addEventListener("click", async () => {
             await addSongToPlaylist(pl.playlistId, songId);
@@ -229,7 +241,11 @@ async function addSongToPlaylist(playlistId, songId) {
         if (!res) return;
 
         let payload = null;
-        try { payload = await res.json(); } catch { payload = null; }
+        try {
+            payload = await res.json();
+        } catch {
+            payload = null;
+        }
 
         if (!res.ok) {
             const msg = payload?.message;
@@ -249,7 +265,6 @@ async function addSongToPlaylist(playlistId, songId) {
 
         alert("플레이리스트에 추가했습니다.");
         closePlaylistModal();
-
     } catch (e) {
         console.error(e);
         alert("서버 오류가 발생했습니다.");
@@ -268,36 +283,42 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadAlbum() {
     if (!albumId) return;
 
-    const res = await fetch(`/api/albums/${albumId}`);
+    // 🔥 핵심 수정: 로그인 시 authFetch 사용
+    const res = hasToken
+        ? await authFetch(`/api/albums/${albumId}`, { method: "GET" })
+        : await fetch(`/api/albums/${albumId}`);
+
+    if (!res) return;
+
     const payload = await res.json();
     if (!payload?.success) return;
 
     const album = payload.data;
+
+    // ✅ 렌더 시점 토큰 상태(버튼 disabled 클래스용)
+    const tokenNow = !!getToken();
+
 
     // 기본 정보
     document.getElementById("albumImage").src = resolveImageUrl(album.albumImage);
     document.getElementById("albumName").textContent = decodeHtmlEntities(album.albumName ?? "-");
     document.getElementById("albumReleaseDate").textContent = formatDate(album.albumReleaseDate);
 
-    const artistNames = (album.artistList ?? [])
-        .map(a => decodeHtmlEntities(a.artistName))
-        .join(", ");
-
+    const artistNames = (album.artistList ?? []).map((a) => decodeHtmlEntities(a.artistName)).join(", ");
     document.getElementById("albumArtists").textContent = artistNames || "-";
 
-    // ✅ 앨범 좋아요(상단): 숫자 → 하트
+    // ✅ 앨범 좋아요
     const heartBtn = document.getElementById("heartBtn");
     const likeCountEl = document.getElementById("likeCount");
 
-    likeCountEl.classList?.add("like-count");
-
     likeCountEl.textContent = String(album.likeCount ?? 0);
-    heartBtn.classList.toggle("liked", album.isLiked === true);
+    heartBtn.classList.toggle("liked", album.liked === true);
 
     heartBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
 
-        if (!hasToken) {
+        // ✅ 고정 hasToken 대신 매번 현재 토큰 체크
+        if (!getToken()) {
             showLoginPopup();
             return;
         }
@@ -313,7 +334,10 @@ async function loadAlbum() {
         likeCountEl.textContent = String(likeCount ?? 0);
     });
 
-    // 수록곡
+    // ✅ 컨텍스트 큐(수록곡 리스트) 생성
+    const tracks = buildAlbumTracks(album.songList);
+
+    // 수록곡 렌더
     const ul = document.getElementById("songList");
     ul.innerHTML = "";
 
@@ -326,29 +350,29 @@ async function loadAlbum() {
         const songTitle = decodeHtmlEntities(song.name ?? "");
 
         li.innerHTML = `
-          <div class="track-no">${song.position ?? "-"}</div>
+      <div class="track-no">${song.position ?? "-"}</div>
 
-          <button class="track-play" type="button" aria-label="재생">▶</button>
+      <button class="track-play" type="button" aria-label="재생">▶</button>
 
-          <div class="track-name" title="${songTitle}">${songName}</div>
-          <div class="track-duration">${formatDuration(song.duration)}</div>
+      <div class="track-name" title="${songTitle}">${songName}</div>
+      <div class="track-duration">${formatDuration(song.duration)}</div>
 
-          <div class="track-like">
-            <span class="like-group">
-              <span class="mini-like-count">${song.likeCount ?? 0}</span>
-              <button class="mini-heart-btn ${song.liked ? "liked" : ""}"
-                      type="button"
-                      aria-label="음원 좋아요">❤</button>
-            </span>
+      <div class="track-like">
+        <span class="like-group">
+          <span class="mini-like-count">${song.likeCount ?? 0}</span>
+          <button class="mini-heart-btn ${(song.liked ?? song.liked) ? "liked" : ""} ${!tokenNow ? "disabled" : ""}"
+                  type="button"
+                  aria-label="음원 좋아요">❤</button>
+        </span>
 
-            <button class="add-pl-btn ${!hasToken ? "disabled" : ""}"
-                    type="button"
-                    aria-label="플레이리스트에 추가"
-                    data-song-id="${song.songId}">＋</button>
-          </div>
-        `;
+        <button class="add-pl-btn ${!tokenNow ? "disabled" : ""}"
+                type="button"
+                aria-label="플레이리스트에 추가"
+                data-song-id="${song.songId}">＋</button>
+      </div>
+    `;
 
-        // 트랙 클릭 = 음원 상세 이동 (재생/하트/+ 클릭은 이동 방지)
+        // row 클릭 → 상세 이동(버튼 클릭 제외)
         li.addEventListener("click", (e) => {
             if (e.target.closest(".track-play")) return;
             if (e.target.closest(".mini-heart-btn")) return;
@@ -356,32 +380,28 @@ async function loadAlbum() {
             location.href = `/songs/${song.songId}/page`;
         });
 
-        // ✅ 재생 버튼: 전역 플레이어로 재생
+        // ✅ 재생 버튼: setPlayerQueue + /play + playSongFromPage
         const playBtn = li.querySelector(".track-play");
         playBtn.addEventListener("click", async (e) => {
             e.stopPropagation();
 
-            const rawAudio = await getSongAudioUrl(song);
-            const audioUrl = normalizeAudioUrl(rawAudio);
-
-            if (!audioUrl) {
-                alert("재생 가능한 음원 주소가 없습니다.");
+            if (typeof window.setPlayerQueue !== "function" || typeof window.playSongFromPage !== "function") {
+                alert("전역 플레이어가 아직 로드되지 않았습니다.");
                 return;
             }
+
+            window.setPlayerQueue(tracks, song.songId, { loop: true, contextKey: `album:${albumId}` });
+
+            const audioUrl = await fetchStreamingUrl(song.songId);
+            if (!audioUrl) return;
 
             playBtn.dataset.audioUrl = audioUrl;
 
             if (currentPlayBtn && currentPlayBtn !== playBtn) {
                 setPlayBtnState(currentPlayBtn, false);
             }
-
             currentPlayingSongId = song.songId;
             currentPlayBtn = playBtn;
-
-            if (typeof window.playSongFromPage !== "function") {
-                alert("전역 플레이어가 아직 로드되지 않았습니다.");
-                return;
-            }
 
             try {
                 await window.playSongFromPage(audioUrl, songName, song.songId);
@@ -389,7 +409,6 @@ async function loadAlbum() {
                 const globalAudio = getGlobalAudioEl();
                 const same = isSameTrackPlaying(globalAudio, audioUrl);
                 if (!same) setPlayBtnState(playBtn, true);
-
             } catch (err) {
                 console.error(err);
                 alert("재생에 실패했습니다.");
@@ -406,7 +425,8 @@ async function loadAlbum() {
         miniHeartBtn.addEventListener("click", async (e) => {
             e.stopPropagation();
 
-            if (!hasToken) {
+            // ✅ 고정 hasToken 대신 매번 현재 토큰 체크
+            if (!getToken()) {
                 showLoginPopup();
                 return;
             }
@@ -428,7 +448,8 @@ async function loadAlbum() {
         addBtn.addEventListener("click", async (e) => {
             e.stopPropagation();
 
-            if (!hasToken) {
+            // ✅ 고정 hasToken 대신 매번 현재 토큰 체크
+            if (!getToken()) {
                 showLoginPopup();
                 return;
             }

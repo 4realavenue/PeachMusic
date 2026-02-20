@@ -259,7 +259,7 @@
 }
 
 .mini-heart-btn:hover{ transform: scale(1.12); }
-.mini-heart-btn.liked{ color:#ff4d6d; }
+.mini-heart-btn.liked{ color:var(--primary); }
 .mini-heart-btn.disabled{ color:#ddd; cursor:not-allowed; }
 
 /* =========================
