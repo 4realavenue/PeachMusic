@@ -91,7 +91,7 @@ import { authFetch, getToken } from "/js/auth.js";
         <div class="album-meta">
           <span>${formatDate(a.albumReleaseDate)}</span>
           <span class="like-number">${a.likeCount ?? 0}</span>
-          <button class="heart-btn ${a.isLiked ? "liked" : ""} ${!hasToken ? "disabled" : ""}" data-id="${albumId}">❤</button>
+          <button class="heart-btn ${a.liked ? "liked" : ""} ${!hasToken ? "disabled" : ""}" data-id="${albumId}">❤</button>
         </div>
       </div>
     `;
