@@ -42,7 +42,8 @@ public class AlbumService {
     @Transactional(readOnly = true)
     public AlbumGetDetailResponseDto getAlbumDetail(AuthUser authUser, Long albumId) {
 
-        Album foundAlbum = findActiveAlbumOrThrow(albumId);
+        Album foundAlbum = albumRepository.findActiveAlbumWithActiveSong(albumId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 
         boolean isLiked = false;
 
@@ -97,10 +98,5 @@ public class AlbumService {
     @Transactional(readOnly = true)
     public List<AlbumSearchResponseDto> searchAlbumList(String word) {
         return albumRepository.findAlbumListByWord(word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
-    }
-
-    public Album findActiveAlbumOrThrow(Long albumId) {
-        return albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
     }
 }

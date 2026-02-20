@@ -43,7 +43,6 @@ import static com.example.peachmusic.common.constants.UserViewScope.ADMIN_VIEW;
 @RequiredArgsConstructor
 public class SongAdminService {
 
-    private final SongService songService;
     private final SongRepository songRepository;
     private final AlbumRepository albumRepository;
     private final GenreRepository genreRepository;
@@ -134,7 +133,8 @@ public class SongAdminService {
     @Transactional
     public AdminSongUpdateResponseDto updateSong(AdminSongUpdateRequestDto requestDto, Long songId) {
 
-        Song findSong = songService.findActiveSongOrThrow(songId);
+        Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
         Album findAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(requestDto.getAlbumId())
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
@@ -171,7 +171,8 @@ public class SongAdminService {
     @Transactional
     public AdminSongAudioUpdateResponseDto updateAudio(Long songId, MultipartFile audio) {
 
-        Song findSong = songService.findActiveSongOrThrow(songId);
+        Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
         // 기존 파일 경로 백업
         String oldPath = findSong.getAudio();

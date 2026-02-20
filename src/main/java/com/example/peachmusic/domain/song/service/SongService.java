@@ -77,7 +77,8 @@ public class SongService {
     @Transactional(readOnly = true)
     public SongGetDetailResponseDto getSong(Long songId, AuthUser authUser) {
 
-        Song findSong = findActiveSongOrThrow(songId);
+        Song findSong = songRepository.findBySongIdAndIsDeletedFalseAndStreamingStatusTrue(songId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
         boolean liked = false;
 
@@ -90,7 +91,7 @@ public class SongService {
 
         Long findAlbumId = songRepository.findSongs_AlbumIdBySongId(findSong);
 
-        Album findAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(findAlbumId)
+        Album findAlbum = albumRepository.findActiveAlbumWithActiveSong(findAlbumId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 
         List<SongGenre> findSongGenreList = songGenreRepository.findAllBySong(findSong);
@@ -169,10 +170,4 @@ public class SongService {
 
         return SongPlayResponseDto.from(streamingUrl);
     }
-
-    public Song findActiveSongOrThrow(Long songId) {
-        return songRepository.findBySongIdAndIsDeletedFalse(songId)
-                .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
-    }
-
 }

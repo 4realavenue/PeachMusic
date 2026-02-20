@@ -32,7 +32,6 @@ import static com.example.peachmusic.common.constants.UserViewScope.ADMIN_VIEW;
 @RequiredArgsConstructor
 public class AlbumAdminService {
 
-    private final AlbumService albumService;
     private final AlbumRepository albumRepository;
     private final ArtistRepository artistRepository;
     private final ArtistAlbumRepository artistAlbumRepository;
@@ -104,7 +103,8 @@ public class AlbumAdminService {
     @Transactional
     public AlbumUpdateResponseDto updateAlbumInfo(Long albumId, AlbumUpdateRequestDto requestDto) {
 
-        Album foundAlbum = albumService.findActiveAlbumOrThrow(albumId);
+        Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 
         foundAlbum.updateAlbumInfo(requestDto);
 
@@ -127,7 +127,8 @@ public class AlbumAdminService {
     @Transactional
     public ArtistAlbumUpdateResponseDto updateAlbumArtistList(Long albumId, ArtistAlbumUpdateRequestDto requestDto) {
 
-        Album foundAlbum = albumService.findActiveAlbumOrThrow(albumId);
+        Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 
         List<Long> artistIdList = distinctArtistIdList(requestDto.getArtistIdList());
         List<Artist> artistList = getActiveArtistListOrThrow(artistIdList);
@@ -155,7 +156,9 @@ public class AlbumAdminService {
     @Transactional
     public AlbumImageUpdateResponseDto updateAlbumImage(Long albumId, MultipartFile albumImage) {
 
-        Album foundAlbum = albumService.findActiveAlbumOrThrow(albumId);
+        Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
+
         String oldPath = foundAlbum.getAlbumImage();
 
         String newPath = storeAlbumImage(albumImage, foundAlbum.getAlbumId());

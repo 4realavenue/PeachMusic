@@ -26,6 +26,7 @@ import static com.example.peachmusic.domain.album.entity.QAlbum.album;
 import static com.example.peachmusic.domain.albumlike.entity.QAlbumLike.albumLike;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
 import static com.example.peachmusic.domain.artistalbum.entity.QArtistAlbum.artistAlbum;
+import static com.example.peachmusic.domain.song.entity.QSong.song;
 
 public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
 
@@ -162,12 +163,23 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
     /**
      * 검색 조건
      * - 앨범이 삭제된 상태가 아닌 경우
+     * - 음원이 하나라도 활성화 상태인 경우
      */
     private BooleanExpression isActive(boolean isAdmin) {
         if (isAdmin) {
             return null;
         }
-        return album.isDeleted.isFalse();
+        return album.isDeleted.isFalse().and(
+                JPAExpressions
+                        .selectOne()
+                        .from(song)
+                        .where(
+                                song.album.eq(album),
+                                song.isDeleted.isFalse(),
+                                song.streamingStatus.isTrue()
+                        )
+                        .exists()
+        );
     }
 
     /**

@@ -30,7 +30,7 @@ public class AlbumLikeCommand {
 
         Long userId = authUser.getUserId();
 
-        Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
+        Album foundAlbum = albumRepository.findActiveAlbumWithActiveSong(albumId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 
         boolean liked;
