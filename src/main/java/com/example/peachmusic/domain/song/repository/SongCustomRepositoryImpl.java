@@ -25,6 +25,7 @@ import static com.example.peachmusic.domain.album.entity.QAlbum.album;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
 import static com.example.peachmusic.domain.artistsong.entity.QArtistSong.artistSong;
 import static com.example.peachmusic.domain.song.entity.QSong.song;
+import static com.example.peachmusic.domain.songlike.entity.QSongLike.songLike;
 import static com.example.peachmusic.domain.songprogressingstatus.entity.QSongProgressingStatus.songProgressingStatus;
 
 public class SongCustomRepositoryImpl implements SongCustomRepository {
@@ -99,7 +100,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
 
         return baseFrom()
-                .select(Projections.constructor(SongSearchResponseDto.class, song.songId, song.name, artistNames, song.releaseDate, album.albumImage, song.likeCount, isSongLiked(authUser), song.playCount, song.isDeleted, songProgressingStatus.progressingStatus))
+                .select(Projections.constructor(SongSearchResponseDto.class, song.songId, song.name, artistNames, song.album.albumName, song.releaseDate, album.albumImage, song.likeCount, isSongLiked(authUser), song.playCount, song.isDeleted, songProgressingStatus.progressingStatus))
                 .where(searchCondition(word), isActive(isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
                 .groupBy(song.songId) // 아티스트 이름을 문자열로 합치는데 음원 id를 기준으로 함
                 .orderBy(keysetOrder(sortType, isAsc)); // Keyset 조건에 사용되는 커서 순서대로 정렬

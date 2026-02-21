@@ -40,7 +40,6 @@
     gap:10px;
 }
 
-/* ✅ index.css의 nav-btn과 충돌 피하려면 charts 전용으로 유지 */
 .nav-btn{
     height:36px;
     padding:0 16px;
@@ -88,7 +87,6 @@
 
 .chart-item{
     display:grid;
-    /* ✅ 오른쪽 액션(재생+좋아요)을 한 덩어리로 */
     grid-template-columns:70px 64px 1fr auto;
     gap:14px;
     align-items:center;
@@ -135,33 +133,41 @@
 }
 
 /* =========================
-   Song Info
+   Song Info (✅ 음원 전체 톤)
 ========================= */
 .info{ min-width:0; }
 
-.song-title{
-    font-size: var(--font-md);
-    font-weight:800;
+.song-name{
+    font-size: 15px;
+    font-weight: 700;
+    color:#111;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.song-sub{
+    margin-top: 4px;
+    font-size: 13px;
+    color: #777;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
 }
 
 /* =========================
-   Right actions
-   ✅ index.css의 .song-actions와 동일한 간격감
+   Right actions (재생 + 좋아요수 + 하트)
 ========================= */
 .right-actions{
     display:flex;
     align-items:center;
     justify-content:flex-end;
-    gap: 12px; /* ✅ 음원 전체와 동일 */
+    gap: 12px;
     white-space:nowrap;
 }
 
 /* =========================
    Play Button
-   ✅ index.css의 .track-play와 완전 동일
 ========================= */
 .track-play{
     width: 42px;
@@ -179,8 +185,6 @@
     transition: transform .12s ease, background .12s ease, color .12s ease, border-color .12s ease;
 }
 .track-play:hover{ transform: scale(1.06); }
-
-/* ✅ playing도 음원 전체처럼 검정 */
 .track-play.playing{
     background:#111;
     color:#fff;
@@ -189,26 +193,23 @@
 
 /* =========================
    Like group
-   ✅ “너무 떨어져 보임” 원인: min-width 제거
 ========================= */
 .like-group{
     display:flex;
     align-items:center;
     justify-content:flex-end;
-    gap: 12px;     /* ✅ 음원 전체와 동일 */
+    gap: 12px;
 }
 
-/* ✅ index.css의 .like-number 동일 */
 .like-number{
-    font-size: var(--font-md);
-    color: var(--text-sub);
+    font-size: 15px;
+    color: #777;
     font-weight: 800;
     min-width: 22px;
     text-align: right;
     font-variant-numeric: tabular-nums;
 }
 
-/* ✅ index.css의 .heart-btn 동일 */
 .heart-btn{
     border:none;
     background:none;
@@ -235,7 +236,7 @@
 .hidden{ display:none !important; }
 
 /* =========================
-   Login popup (음원 전체 톤)
+   Login popup
 ========================= */
 .login-popup{
     position: fixed;
