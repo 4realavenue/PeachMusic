@@ -72,16 +72,8 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
 
     @Override
     public List<SongSummaryDto> findSongSummaryListByAlbumId(Long albumId, Long userId) {
-
-        Expression<Boolean> isLikedExpr =
-                userId == null ? Expressions.asBoolean(false) : JPAExpressions
-                        .selectOne()
-                        .from(songLike)
-                        .where(songLike.song.eq(song), songLike.user.userId.eq(userId))
-                        .exists();
-
         return queryFactory
-                .select(Projections.constructor(SongSummaryDto.class, song.position, song.songId, song.name, song.duration, song.likeCount, isLikedExpr))
+                .select(Projections.constructor(SongSummaryDto.class, song.position, song.songId, song.name, song.duration, song.likeCount, isSongLiked(userId)))
                 .from(song)
                 .where(song.album.albumId.eq(albumId), song.isDeleted.isFalse(), song.streamingStatus.isTrue())
                 .orderBy(song.position.asc(), song.songId.asc())
@@ -132,9 +124,8 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
                 .leftJoin(songProgressingStatus).on(songProgressingStatus.song.eq(song));
     }
 
-    private Expression<Boolean> isSongLiked(AuthUser authUser) {
-
-        if (authUser == null) {
+    private Expression<Boolean> isSongLiked(Long userId) {
+        if (userId == null) {
             return Expressions.constant(false);
         }
 
@@ -145,9 +136,15 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
                 .from(sub)
                 .where(
                         sub.song.eq(song),
-                        sub.user.userId.eq(authUser.getUserId())
+                        sub.user.userId.eq(userId)
                 )
                 .exists();
+    }
+
+    private Expression<Boolean> isSongLiked(AuthUser authUser) {
+        return isSongLiked(
+                authUser == null ? null : authUser.getUserId()
+        );
     }
 
     /**
