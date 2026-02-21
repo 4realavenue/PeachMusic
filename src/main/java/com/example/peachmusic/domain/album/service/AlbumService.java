@@ -45,16 +45,18 @@ public class AlbumService {
         Album foundAlbum = albumRepository.findActiveAlbumWithActiveSong(albumId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 
-        boolean isLiked = false;
+        Long userId = (authUser != null) ? authUser.getUserId() : null;
 
-        if (authUser != null) {
-            Long userId = authUser.getUserId();
+        boolean isLiked = false;
+        if (userId != null) {
             isLiked = albumLikeService.isAlbumLiked(albumId, userId);
         }
 
-        List<ArtistSummaryDto> artistAlbumList = artistAlbumRepository.findArtistSummaryListByAlbumId(albumId);
+        List<ArtistSummaryDto> artistAlbumList =
+                artistAlbumRepository.findArtistSummaryListByAlbumId(albumId);
 
-        List<SongSummaryDto> songList = songRepository.findSongSummaryListByAlbumId(albumId);
+        List<SongSummaryDto> songList =
+                songRepository.findSongSummaryListByAlbumId(albumId, userId);
 
         return AlbumGetDetailResponseDto.from(foundAlbum, artistAlbumList, songList, isLiked);
     }

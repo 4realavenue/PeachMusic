@@ -25,6 +25,7 @@ import static com.example.peachmusic.domain.album.entity.QAlbum.album;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
 import static com.example.peachmusic.domain.artistsong.entity.QArtistSong.artistSong;
 import static com.example.peachmusic.domain.song.entity.QSong.song;
+import static com.example.peachmusic.domain.songlike.entity.QSongLike.songLike;
 import static com.example.peachmusic.domain.songprogressingstatus.entity.QSongProgressingStatus.songProgressingStatus;
 
 public class SongCustomRepositoryImpl implements SongCustomRepository {
@@ -70,9 +71,9 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
     }
 
     @Override
-    public List<SongSummaryDto> findSongSummaryListByAlbumId(Long albumId) {
+    public List<SongSummaryDto> findSongSummaryListByAlbumId(Long albumId, Long userId) {
         return queryFactory
-                .select(Projections.constructor(SongSummaryDto.class, song.position, song.songId, song.name, song.duration, song.likeCount))
+                .select(Projections.constructor(SongSummaryDto.class, song.position, song.songId, song.name, song.duration, song.likeCount, isSongLiked(userId)))
                 .from(song)
                 .where(song.album.albumId.eq(albumId), song.isDeleted.isFalse(), song.streamingStatus.isTrue())
                 .orderBy(song.position.asc(), song.songId.asc())
@@ -91,7 +92,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
 
         return baseFrom()
-                .select(Projections.constructor(SongSearchResponseDto.class, song.songId, song.name, artistNames, song.releaseDate, album.albumImage, song.likeCount, isSongLiked(authUser), song.playCount, song.isDeleted, songProgressingStatus.progressingStatus))
+                .select(Projections.constructor(SongSearchResponseDto.class, song.songId, song.name, artistNames, song.album.albumName, song.releaseDate, album.albumImage, song.likeCount, isSongLiked(authUser), song.playCount, song.isDeleted, songProgressingStatus.progressingStatus))
                 .where(searchCondition(word), isActive(isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
                 .groupBy(song.songId) // 아티스트 이름을 문자열로 합치는데 음원 id를 기준으로 함
                 .orderBy(keysetOrder(sortType, isAsc)); // Keyset 조건에 사용되는 커서 순서대로 정렬
@@ -123,9 +124,8 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
                 .leftJoin(songProgressingStatus).on(songProgressingStatus.song.eq(song));
     }
 
-    private Expression<Boolean> isSongLiked(AuthUser authUser) {
-
-        if (authUser == null) {
+    private Expression<Boolean> isSongLiked(Long userId) {
+        if (userId == null) {
             return Expressions.constant(false);
         }
 
@@ -136,9 +136,15 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
                 .from(sub)
                 .where(
                         sub.song.eq(song),
-                        sub.user.userId.eq(authUser.getUserId())
+                        sub.user.userId.eq(userId)
                 )
                 .exists();
+    }
+
+    private Expression<Boolean> isSongLiked(AuthUser authUser) {
+        return isSongLiked(
+                authUser == null ? null : authUser.getUserId()
+        );
     }
 
     /**

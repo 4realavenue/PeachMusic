@@ -8,7 +8,7 @@ let dataCache = null;
 const el = {
     albumImage: document.getElementById("albumImage"),
     songName: document.getElementById("songName"),
-    artistName: document.getElementById("artistName"),
+    artistName: document.getElementById("artistName"), // ✅ 컨테이너(span)
     albumLink: document.getElementById("albumLink"),
     position: document.getElementById("position"),
     genreChips: document.getElementById("genreChips"),
@@ -79,7 +79,7 @@ async function readJsonSafe(res) {
  */
 async function authFetchJson(url, options = {}, fallback = "요청 실패") {
     const res = await authFetch(url, options);
-    if (!res) return { ok: false, data: null, res: null }; // authFetch 내부에서 처리했을 수도
+    if (!res) return { ok: false, data: null, res: null };
 
     const data = await readJsonSafe(res);
 
@@ -160,6 +160,48 @@ function findValueCellByLabelText(labelText) {
     return null;
 }
 
+function escapeHtml(s) {
+    return String(s ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+/* =========================
+   ✅ Artist links render (NEW)
+   - 백엔드: artistList: [{artistId, artistName}, ...]
+   - 링크: /artists/{artistId}/page
+========================= */
+function renderArtistLinks(data) {
+    if (!el.artistName) return;
+
+    const list = Array.isArray(data?.artistList) ? data.artistList : [];
+
+    // ✅ 백엔드가 아직 artistList 안주면 기존 artistName으로라도 표시(하위호환)
+    if (!list.length) {
+        el.artistName.textContent = data?.artistName ?? "-";
+        return;
+    }
+
+    el.artistName.innerHTML = list
+        .map((a) => {
+            const id = a?.artistId ?? a?.id ?? a?.artist_id ?? null;
+            const name = a?.artistName ?? a?.name ?? "-";
+            if (id == null) {
+                return `<span>${escapeHtml(name)}</span>`;
+            }
+            return `<a class="link" href="/artists/${encodeURIComponent(String(id))}">${escapeHtml(name)}</a>`;
+        })
+        .join(", ");
+
+    // (필요하면) 클릭이 row 클릭 같은 거에 먹히지 않게 막고 싶을 때
+    el.artistName.querySelectorAll("a").forEach((a) => {
+        a.addEventListener("click", (e) => e.stopPropagation());
+    });
+}
+
 /* =========================
    Global Player Sync
 ========================= */
@@ -213,7 +255,6 @@ function setQueueForThisSong(songId, title) {
 
 /* =========================
    ✅ /play (비로그인 가능)
-   - 토큰 있으면 authFetch, 없으면 fetch
 ========================= */
 async function fetchStreamingUrl(songId) {
     const url = SONG_PLAY_API(songId);
@@ -269,10 +310,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const title = dataCache?.name ?? "Unknown";
 
-        // ✅ 1) 큐 세팅(1곡)
         setQueueForThisSong(songId, title);
 
-        // ✅ 2) /play로 url 받고 재생
         const playUrl = await fetchStreamingUrl(songId);
         if (!playUrl) return;
 
@@ -322,7 +361,9 @@ function render(data) {
 
     if (el.songName) el.songName.textContent = data.name ?? "-";
     if (el.position) el.position.textContent = data.position ?? "-";
-    if (el.artistName) el.artistName.textContent = data.artistName ?? "-";
+
+    // ✅ 핵심 변경: artistList 기반 링크 렌더링
+    renderArtistLinks(data);
 
     if (el.genreChips) {
         el.genreChips.innerHTML = "";

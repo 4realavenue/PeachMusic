@@ -191,6 +191,15 @@
     cursor:pointer;
 }
 
+/* 아티스트 · 앨범 */
+.song-sub{
+    font-size: var(--font-sm);
+    color: var(--text-sub);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
 /* =========================
    Actions
 ========================= */

@@ -80,12 +80,14 @@
     display:flex;
     justify-content:center;
     align-items:center;
-    gap:10px;
+    gap:12px;
 }
 
 .like-count{
     font-size: var(--font-sm);
     color: var(--text-sub);
+    font-weight:800; /* 추가 */
+    font-variant-numeric: tabular-nums;
 }
 
 /* =========================
@@ -105,7 +107,7 @@
 }
 
 .heart-btn.liked{
-    color: var(--primary);;
+    color: var(--primary);
 }
 
 /* =========================

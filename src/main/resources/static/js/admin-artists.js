@@ -6,8 +6,10 @@ const els = {
     word: document.getElementById("wordInput"),
     searchBtn: document.getElementById("searchBtn"),
     listBody: document.getElementById("listBody"),
-    moreBtn: document.getElementById("moreBtn"),
+    moreBtn: document.getElementById("moreBtn"), // 구조는 유지하되 무한스크롤이라 숨김
     emptyBox: document.getElementById("emptyBox"),
+    sentinel: document.getElementById("sentinel"),
+    toTopBtn: document.getElementById("toTopBtn"),
 };
 
 let state = {
@@ -15,12 +17,12 @@ let state = {
     lastId: null,
     loading: false,
     hasNext: true,
+    observer: null,
 };
 
 /* ============================
    Utils
 ============================ */
-
 function escapeHtml(s) {
     return String(s ?? "")
         .replaceAll("&", "&amp;")
@@ -30,28 +32,44 @@ function escapeHtml(s) {
         .replaceAll("'", "&#039;");
 }
 
+/**
+ * ✅ HTML 엔티티 디코딩 (&amp; → &, &quot; → " ...)
+ * 글씨 깨짐(엔티티가 그대로 노출) 방지
+ */
+function decodeHtmlEntities(str) {
+    if (str == null) return "";
+    const txt = document.createElement("textarea");
+    txt.innerHTML = String(str);
+    return txt.value;
+}
+
+function safeText(str) {
+    // ✅ 엔티티를 먼저 풀고, 그 다음 escape 해서 안전 출력
+    return escapeHtml(decodeHtmlEntities(str));
+}
+
+function resolveImageUrl(imagePath) {
+    if (!imagePath) return "/images/default.png";
+    const p = String(imagePath);
+    if (p.startsWith("http://") || p.startsWith("https://")) return p;
+    if (p.startsWith("/")) return p;
+    return `/${p}`;
+}
+
 function setEmpty(isEmpty) {
     if (!els.emptyBox) return;
     els.emptyBox.classList.toggle("hidden", !isEmpty);
 }
 
-function setMoreVisible(visible) {
-    if (!els.moreBtn) return;
-    els.moreBtn.classList.toggle("hidden", !visible);
-}
-
 function setEmptyMessage(word) {
     if (!els.emptyBox) return;
-    const msg = word && word.trim().length > 0
-        ? "검색 결과가 없습니다."
-        : "등록된 데이터가 없습니다.";
+    const msg = word && word.trim().length > 0 ? "검색 결과가 없습니다." : "등록된 데이터가 없습니다.";
     els.emptyBox.textContent = msg;
 }
 
 /* ============================
    Render
 ============================ */
-
 function renderRows(items, append = true) {
     if (!append) els.listBody.innerHTML = "";
 
@@ -63,17 +81,50 @@ function renderRows(items, append = true) {
                 ? `<span class="badge deleted">비활성</span>`
                 : `<span class="badge">활성</span>`;
 
+            const profileImage =
+                a.profileImage ??
+                a.profileImageUrl ??
+                a.profileImagePath ??
+                a.artistProfileImage ??
+                null;
+
+            const artistNameSafe = safeText(a.artistName);
+
+            const firstChar = a.artistName
+                ? escapeHtml(a.artistName.charAt(0).toUpperCase())
+                : "?";
+
+            let profileHtml;
+
+            if (profileImage) {
+                const imgUrl = resolveImageUrl(profileImage);
+                profileHtml = `
+                    <div class="artist-thumb" title="${artistNameSafe}">
+                        <img src="${escapeHtml(imgUrl)}"
+                             alt="${artistNameSafe}"
+                             loading="lazy"
+                             onerror="this.onerror=null;this.parentElement.innerHTML='${firstChar}';" />
+                    </div>
+                `;
+            } else {
+                profileHtml = `
+                    <div class="artist-thumb" title="${artistNameSafe}">
+                        ${firstChar}
+                    </div>
+                `;
+            }
+
             const nameHtml = isDeleted
                 ? `
                     <span class="artist-link disabled"
                           data-disabled-link="true"
                           title="비활성화된 아티스트는 일반 상세로 이동할 수 없습니다.">
-                        ${escapeHtml(a.artistName)}
+                        ${artistNameSafe}
                     </span>
                   `
                 : `
                     <a href="/artists/${a.artistId}" class="artist-link">
-                        ${escapeHtml(a.artistName)}
+                        ${artistNameSafe}
                     </a>
                   `;
 
@@ -82,13 +133,20 @@ function renderRows(items, append = true) {
                 : `<button class="btn danger" data-action="delete" data-id="${a.artistId}">삭제</button>`;
 
             return `
-                <div class="row">
+                <div class="row ${isDeleted ? "is-deleted" : ""}">
                     <div class="col id">${a.artistId}</div>
+
+                    <div class="col profile">
+                        ${profileHtml}
+                    </div>
+
                     <div class="col name">
                         ${nameHtml}
                         ${badge}
                     </div>
+
                     <div class="col like">${a.likeCount ?? 0}</div>
+
                     <div class="col manage">
                         <button class="btn" data-action="edit" data-id="${a.artistId}">수정</button>
                         ${statusButton}
@@ -104,9 +162,10 @@ function renderRows(items, append = true) {
 /* ============================
    Fetch List (Keyset)
 ============================ */
-
 async function fetchList({ reset = false } = {}) {
     if (state.loading) return;
+    if (!state.hasNext && !reset) return;
+
     state.loading = true;
 
     if (reset) {
@@ -114,7 +173,6 @@ async function fetchList({ reset = false } = {}) {
         state.hasNext = true;
         els.listBody.innerHTML = "";
         setEmpty(false);
-        setMoreVisible(false);
     }
 
     try {
@@ -138,7 +196,7 @@ async function fetchList({ reset = false } = {}) {
         if (content.length === 0 && els.listBody.children.length === 0) {
             setEmptyMessage(state.word);
             setEmpty(true);
-            setMoreVisible(false);
+            state.hasNext = false;
             return;
         }
 
@@ -154,8 +212,6 @@ async function fetchList({ reset = false } = {}) {
             nextCursor?.id ??
             last?.artistId ??
             state.lastId;
-
-        setMoreVisible(state.hasNext);
     } catch (e) {
         console.error(e);
         alert("목록 조회 중 오류가 발생했습니다.");
@@ -165,9 +221,100 @@ async function fetchList({ reset = false } = {}) {
 }
 
 /* ============================
+   Infinite Scroll
+============================ */
+function setupInfiniteScroll() {
+    if (!els.sentinel) return;
+
+    if (state.observer) {
+        try { state.observer.disconnect(); } catch (_) {}
+        state.observer = null;
+    }
+
+    state.observer = new IntersectionObserver(
+        (entries) => {
+            const entry = entries[0];
+            if (!entry?.isIntersecting) return;
+            if (state.hasNext && !state.loading) fetchList({ reset: false });
+        },
+        { root: null, rootMargin: "300px", threshold: 0 }
+    );
+
+    state.observer.observe(els.sentinel);
+}
+
+/* ============================
+   To Top Button (index와 동일 노출 기준 + admin 내부 스크롤 대응)
+   - 노출 기준: y > 500
+============================ */
+function getScrollableAncestor(el) {
+    let cur = el;
+    while (cur && cur !== document.body && cur !== document.documentElement) {
+        const style = window.getComputedStyle(cur);
+        const oy = style.overflowY;
+        const canScroll = (oy === "auto" || oy === "scroll") && cur.scrollHeight > cur.clientHeight + 5;
+        if (canScroll) return cur;
+        cur = cur.parentElement;
+    }
+    return null;
+}
+
+function guessScroller() {
+    if (els.listBody) {
+        const anc = getScrollableAncestor(els.listBody);
+        if (anc) return anc;
+    }
+    return document.scrollingElement || document.documentElement;
+}
+
+function setupToTop() {
+    if (!els.toTopBtn) return;
+
+    // 레이아웃 overflow/transform 이슈 회피: body로 이동
+    if (els.toTopBtn.parentElement !== document.body) {
+        document.body.appendChild(els.toTopBtn);
+    }
+
+    const scroller = guessScroller();
+
+    const getTop = () => {
+        if (scroller === document.documentElement || scroller === document.body || scroller === document.scrollingElement) {
+            return window.scrollY || document.documentElement.scrollTop || 0;
+        }
+        return scroller.scrollTop || 0;
+    };
+
+    let ticking = false;
+    const updateTopBtn = () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+            const y = getTop();
+            els.toTopBtn.classList.toggle("hidden", !(y > 500));
+            ticking = false;
+        });
+    };
+
+    window.addEventListener("scroll", updateTopBtn, { passive: true, capture: true });
+
+    if (scroller && scroller !== window) {
+        scroller.addEventListener("scroll", updateTopBtn, { passive: true, capture: true });
+    }
+
+    updateTopBtn();
+
+    els.toTopBtn.addEventListener("click", () => {
+        if (scroller === document.documentElement || scroller === document.body || scroller === document.scrollingElement) {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+            scroller.scrollTo({ top: 0, behavior: "smooth" });
+        }
+    });
+}
+
+/* ============================
    Events
 ============================ */
-
 function bindEvents() {
     // 검색
     els.searchBtn?.addEventListener("click", () => {
@@ -182,11 +329,8 @@ function bindEvents() {
         }
     });
 
-    // 더보기
-    els.moreBtn?.addEventListener("click", () => {
-        if (!state.hasNext) return;
-        fetchList({ reset: false });
-    });
+    // 더보기 버튼은 사용하지 않음
+    els.moreBtn?.classList.add("hidden");
 
     // 비활성 이름 클릭 안내
     els.listBody.addEventListener("click", (e) => {
@@ -252,13 +396,14 @@ function bindEvents() {
 /* ============================
    Init
 ============================ */
-
 document.addEventListener("DOMContentLoaded", () => {
-    if (!els.listBody || !els.moreBtn || !els.emptyBox) {
+    if (!els.listBody || !els.emptyBox) {
         console.error("[admin-artists] required elements not found");
         return;
     }
 
     bindEvents();
+    setupInfiniteScroll();
+    setupToTop();
     fetchList({ reset: true });
 });

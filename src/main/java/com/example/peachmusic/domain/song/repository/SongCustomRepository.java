@@ -16,6 +16,6 @@ public interface SongCustomRepository {
     List<SongArtistDetailResponseDto> findSongList(AuthUser authUser, Long artistId, int size);
     List<SongArtistDetailResponseDto> findSongByArtistKeyset(AuthUser authUser, Long artistId, SortType sortType, SortDirection sortDirection, CursorParam cursor, int size);
 
-    List<SongSummaryDto> findSongSummaryListByAlbumId(Long albumId);
+    List<SongSummaryDto> findSongSummaryListByAlbumId(Long albumId, Long userId);
 }
 
