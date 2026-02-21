@@ -40,13 +40,10 @@
     padding:0 20px;
     border-radius: var(--radius-md);
     border:none;
-
     background: var(--primary);
     color:#fff;
-
     font-size: var(--font-sm);
     font-weight:700;
-
     cursor:pointer;
     transition: transform .12s ease, box-shadow .2s ease;
     box-shadow: var(--shadow-primary);
@@ -94,14 +91,22 @@
 }
 
 /* =========================
-   Image
+   🔥 Image
 ========================= */
 .artist-img{
     width:180px;
     height:180px;
-    background:#f3f4f6;
-    border-radius: var(--radius-lg);
+    border-radius:50%;
     overflow:hidden;
+    background:#e6e6e6;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:56px;
+    font-weight:600;
+    color: var(--text-sub);
 }
 
 .artist-img img{
@@ -126,10 +131,9 @@
     margin-top:6px;
     display:flex;
     align-items:center;
-    gap:12px; /* ✅ 미리보기/음원과 간격 통일 */
+    gap:12px;
 }
 
-/* ✅ 좋아요 숫자 진하게 통일 */
 .like-number{
     font-size: var(--font-md);
     color: var(--text-sub);
@@ -207,7 +211,6 @@
     opacity:1;
 }
 
-/* 공통 */
 .hidden{
     display:none;
 }

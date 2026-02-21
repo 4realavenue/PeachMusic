@@ -167,13 +167,22 @@ function renderArtists(list) {
         card.className = "artist-card";
         card.dataset.artistId = artist.artistId;
 
-        const imgUrl = resolveImageUrl(artist.profileImage);
+        const firstChar = artist.artistName
+            ? artist.artistName.charAt(0).toUpperCase()
+            : "?";
+
+        const hasImage = !!artist.profileImage;
+        const imgUrl = hasImage ? resolveImageUrl(artist.profileImage) : null;
 
         card.innerHTML = `
             <div class="artist-img">
-                <img src="${imgUrl}"
-                     alt="artist"
-                     onerror="this.onerror=null; this.src='/images/default-artist.png';">
+                ${
+            hasImage
+                ? `<img src="${imgUrl}"
+                               alt="artist"
+                               onerror="this.onerror=null; this.parentElement.innerHTML='${firstChar}';">`
+                : firstChar
+        }
             </div>
 
             <div class="artist-name">${artist.artistName}</div>
