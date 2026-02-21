@@ -2,6 +2,8 @@ package com.example.peachmusic.domain.albumlike.controller;
 
 import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.CommonResponse;
+import com.example.peachmusic.domain.albumlike.dto.request.AlbumLikeCheckRequestDto;
+import com.example.peachmusic.domain.albumlike.dto.response.AlbumLikeCheckResponseDto;
 import com.example.peachmusic.domain.albumlike.dto.response.AlbumLikeResponseDto;
 import com.example.peachmusic.domain.albumlike.service.AlbumLikeService;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,16 @@ public class AlbumLikeController {
 
         AlbumLikeResponseDto responseDto = albumLikeService.likeAlbum(authUser, albumId);
 
-        return ResponseEntity.ok(CommonResponse.success("앨범 좋아요 토글 성공", responseDto));
+        return ResponseEntity.ok(CommonResponse.success("앨범 좋아요 토글에 성공했습니다.", responseDto));
+    }
+
+    @PostMapping("/albums/likes/check")
+    public ResponseEntity<CommonResponse<AlbumLikeCheckResponseDto>> checkAlbumLike(
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestBody AlbumLikeCheckRequestDto requestDto
+    ) {
+        AlbumLikeCheckResponseDto responseDto = albumLikeService.checkAlbumLike(authUser, requestDto);
+
+        return ResponseEntity.ok(CommonResponse.success("좋아요한 앨범 목록 조회에 성공했습니다.", responseDto));
     }
 }

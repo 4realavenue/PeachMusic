@@ -65,7 +65,7 @@ public class AlbumService {
      * 아티스트의 앨범 자세히 보기
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<AlbumArtistDetailResponseDto> getArtistAlbums(AuthUser authUser, Long artistId, CursorParam cursor) {
+    public KeysetResponse<AlbumArtistDetailResponseDto> getArtistAlbums(Long artistId, CursorParam cursor) {
 
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
@@ -73,7 +73,7 @@ public class AlbumService {
         SortType sortType = SortType.RELEASE_DATE;
         SortDirection direction = sortType.getDefaultDirection();
 
-        List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(authUser, foundArtist.getArtistId(), sortType, direction, cursor, DETAIL_SIZE);
+        List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(foundArtist.getArtistId(), sortType, direction, cursor, DETAIL_SIZE);
 
         return KeysetResponse.of(content, DETAIL_SIZE, last -> new NextCursor(last.getAlbumId(), last.getAlbumReleaseDate()));
     }
@@ -82,9 +82,9 @@ public class AlbumService {
      * 앨범 검색 - 자세히 보기
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<AlbumSearchResponseDto> searchAlbumPage(AuthUser authUser, SearchConditionParam condition, CursorParam cursor) {
+    public KeysetResponse<AlbumSearchResponseDto> searchAlbumPage(SearchConditionParam condition, CursorParam cursor) {
 
-        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(authUser, condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
+        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
 
         return KeysetResponse.of(content, DETAIL_SIZE, last -> last.toCursor(condition.getSortType()));
     }
@@ -95,7 +95,7 @@ public class AlbumService {
      * @return 앨범 검색 응답 DTO 리스트
      */
     @Transactional(readOnly = true)
-    public List<AlbumSearchResponseDto> searchAlbumList(AuthUser authUser, String word) {
-        return albumRepository.findAlbumListByWord(authUser, word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
+    public List<AlbumSearchResponseDto> searchAlbumList(String word) {
+        return albumRepository.findAlbumListByWord(word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
     }
 }

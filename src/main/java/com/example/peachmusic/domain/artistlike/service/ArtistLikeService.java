@@ -4,6 +4,8 @@ import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.common.model.NextCursor;
 import com.example.peachmusic.common.retry.LockRetryExecutor;
+import com.example.peachmusic.domain.artistlike.dto.request.ArtistLikeCheckRequestDto;
+import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikeCheckResponseDto;
 import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikeResponseDto;
 import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikedItemResponseDto;
 import com.example.peachmusic.domain.artistlike.repository.ArtistLikeRepository;
@@ -11,7 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
 
@@ -40,5 +44,17 @@ public class ArtistLikeService {
     @Transactional(readOnly = true)
     public boolean isArtistLiked(Long artistId, Long userId) {
         return artistLikeRepository.existsByArtist_ArtistIdAndUser_UserId(artistId, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public ArtistLikeCheckResponseDto checkArtistLike(AuthUser authUser, ArtistLikeCheckRequestDto request) {
+
+        if (request.getArtistIdList() == null || request.getArtistIdList().isEmpty()) {
+            return ArtistLikeCheckResponseDto.from(Collections.emptySet());
+        }
+
+        Set<Long> likedArtistIdSet = artistLikeRepository.findLikedArtistIdList(authUser.getUserId(), request.getArtistIdList());
+
+        return ArtistLikeCheckResponseDto.from(likedArtistIdSet);
     }
 }

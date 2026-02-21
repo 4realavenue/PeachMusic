@@ -4,15 +4,17 @@ import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.common.model.NextCursor;
 import com.example.peachmusic.common.retry.LockRetryExecutor;
+import com.example.peachmusic.domain.songlike.dto.request.SongLikeCheckRequestDto;
+import com.example.peachmusic.domain.songlike.dto.response.SongLikeCheckResponseDto;
 import com.example.peachmusic.domain.songlike.dto.response.SongLikeResponseDto;
 import com.example.peachmusic.domain.songlike.dto.response.SongLikedItemResponseDto;
 import com.example.peachmusic.domain.songlike.repository.SongLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.util.Collections;
 import java.util.List;
-
+import java.util.Set;
 import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
 
 @Service
@@ -35,5 +37,17 @@ public class SongLikeService {
         List<SongLikedItemResponseDto> content = songLikeRepository.findMyLikedSongWithCursor(userId, lastLikeId, SIZE);
 
         return KeysetResponse.of(content, SIZE, likedSong -> new NextCursor(likedSong.getSongLikeId(), null));
+    }
+
+    @Transactional(readOnly = true)
+    public SongLikeCheckResponseDto checkSongLike(AuthUser authUser, SongLikeCheckRequestDto request) {
+
+        if (request.getSongIdList() == null || request.getSongIdList().isEmpty()) {
+            return SongLikeCheckResponseDto.from(Collections.emptySet());
+        }
+
+        Set<Long> likedSongIdSet = songLikeRepository.findLikedSongIdList(authUser.getUserId(), request.getSongIdList());
+
+        return SongLikeCheckResponseDto.from(likedSongIdSet);
     }
 }

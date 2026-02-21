@@ -59,9 +59,7 @@ public class PlaylistSongService {
                 .collect(Collectors.groupingBy(artistSong -> artistSong.getSong().getSongId(),
                         Collectors.mapping(artistSong -> artistSong.getArtist().getArtistName(), Collectors.joining(", "))));
 
-        Set<Long> likedSongIdSet = songLikeRepository.findAllByUserIdAndSongIdList(userId, findSongIdList).stream()
-                .map(sl -> sl.getSong().getSongId())
-                .collect(Collectors.toSet());
+        Set<Long> likedSongIdSet = songLikeRepository.findLikedSongIdList(userId, findSongIdList);
 
         List<PlaylistGetSongResponseDto.SongResponseDto> songResponseDtoList = findPlaylistSongList.stream()
                 .map(playlistSong -> {

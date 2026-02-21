@@ -38,11 +38,10 @@ public class AlbumController {
      */
     @GetMapping("/artists/{artistId}/albums")
     public ResponseEntity<CommonResponse<KeysetResponse<AlbumArtistDetailResponseDto>>> getArtistAlbums(
-            @AuthenticationPrincipal AuthUser authUser,
             @PathVariable Long artistId,
             @ModelAttribute CursorParam cursor
     ) {
-        KeysetResponse<AlbumArtistDetailResponseDto> responseDto = albumService.getArtistAlbums(authUser, artistId, cursor);
+        KeysetResponse<AlbumArtistDetailResponseDto> responseDto = albumService.getArtistAlbums(artistId, cursor);
         return ResponseEntity.ok(CommonResponse.success("아티스트의 앨범 전체 조회에 성공했습니다.", responseDto));
     }
 
@@ -55,11 +54,10 @@ public class AlbumController {
      */
     @GetMapping("/search/albums")
     public ResponseEntity<CommonResponse<KeysetResponse<AlbumSearchResponseDto>>> searchAlbum(
-            @AuthenticationPrincipal AuthUser authUser,
             @Valid @ModelAttribute SearchConditionParam condition,
             @ModelAttribute CursorParam cursor
     ) {
-        KeysetResponse<AlbumSearchResponseDto> responseDto = albumService.searchAlbumPage(authUser, condition, cursor);
+        KeysetResponse<AlbumSearchResponseDto> responseDto = albumService.searchAlbumPage(condition, cursor);
 
         return ResponseEntity.ok(CommonResponse.success("앨범 검색이 완료되었습니다.", responseDto));
     }

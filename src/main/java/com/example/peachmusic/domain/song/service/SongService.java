@@ -64,9 +64,9 @@ public class SongService {
      * 음원 전체 조회
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<SongSearchResponseDto> getSongList(AuthUser authUser, SortType sortType, SortDirection direction, CursorParam cursor) {
+    public KeysetResponse<SongSearchResponseDto> getSongList(SortType sortType, SortDirection direction, CursorParam cursor) {
 
-        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(authUser, null, DETAIL_SIZE, PUBLIC_VIEW, sortType, direction, cursor);
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(null, DETAIL_SIZE, PUBLIC_VIEW, sortType, direction, cursor);
 
         return KeysetResponse.of(content, DETAIL_SIZE, last -> last.toCursor(sortType));
     }
@@ -114,7 +114,7 @@ public class SongService {
      * 아티스트의 음원 자세히 보기
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<SongArtistDetailResponseDto> getArtistSongs(AuthUser authUser, Long artistId, CursorParam cursor) {
+    public KeysetResponse<SongArtistDetailResponseDto> getArtistSongs(Long artistId, CursorParam cursor) {
 
         Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
@@ -122,7 +122,7 @@ public class SongService {
         SortType sortType = SortType.RELEASE_DATE;
         SortDirection direction = sortType.getDefaultDirection();
 
-        List<SongArtistDetailResponseDto> content = songRepository.findSongByArtistKeyset(authUser, foundArtist.getArtistId(), sortType, direction, cursor, DETAIL_SIZE);
+        List<SongArtistDetailResponseDto> content = songRepository.findSongByArtistKeyset(foundArtist.getArtistId(), sortType, direction, cursor, DETAIL_SIZE);
 
         return KeysetResponse.of(content, DETAIL_SIZE, last -> new NextCursor(last.getSongId(), last.getAlbumReleaseDate()));
     }
@@ -131,9 +131,9 @@ public class SongService {
      * 음원 검색 - 자세히 보기
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<SongSearchResponseDto> searchSongPage(AuthUser authUser, SearchConditionParam condition, CursorParam cursor) {
+    public KeysetResponse<SongSearchResponseDto> searchSongPage(SearchConditionParam condition, CursorParam cursor) {
 
-        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(authUser, condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
 
         return KeysetResponse.of(content, DETAIL_SIZE, last -> last.toCursor(condition.getSortType()));
     }
@@ -142,8 +142,8 @@ public class SongService {
      * 음원 검색 - 미리보기
      */
     @Transactional(readOnly = true)
-    public List<SongSearchResponseDto> searchSongList(AuthUser authUser, String word) {
-        return songRepository.findSongListByWord(authUser, word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
+    public List<SongSearchResponseDto> searchSongList(String word) {
+        return songRepository.findSongListByWord(word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
     }
 
     /**

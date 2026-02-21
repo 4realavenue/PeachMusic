@@ -38,10 +38,9 @@ public class ArtistController {
      */
     @GetMapping("/artists/{artistId}/preview")
     public ResponseEntity<CommonResponse<ArtistPreviewResponseDto>> getArtistDetailPreview(
-            @AuthenticationPrincipal AuthUser authUser,
             @PathVariable("artistId") Long artistId
     ) {
-        ArtistPreviewResponseDto responseDto = artistService.getArtistDetailPreview(authUser, artistId);
+        ArtistPreviewResponseDto responseDto = artistService.getArtistDetailPreview(artistId);
 
         return ResponseEntity.ok(CommonResponse.success("아티스트의 앨범 및 음원 미리보기가 성공했습니다.", responseDto));
     }
@@ -55,11 +54,10 @@ public class ArtistController {
      */
     @GetMapping("/search/artists")
     public ResponseEntity<CommonResponse<KeysetResponse<ArtistSearchResponseDto>>> searchArtist(
-            @AuthenticationPrincipal AuthUser authUser,
             @Valid @ModelAttribute SearchConditionParam condition,
             @ModelAttribute CursorParam cursor
     ) {
-        KeysetResponse<ArtistSearchResponseDto> responseDto = artistService.searchArtistPage(authUser, condition, cursor);
+        KeysetResponse<ArtistSearchResponseDto> responseDto = artistService.searchArtistPage(condition, cursor);
 
         return ResponseEntity.ok(CommonResponse.success("아티스트 검색이 완료되었습니다.", responseDto));
     }

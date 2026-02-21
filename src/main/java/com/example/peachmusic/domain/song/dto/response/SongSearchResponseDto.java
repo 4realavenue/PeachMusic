@@ -18,7 +18,6 @@ public class SongSearchResponseDto {
     private final LocalDate releaseDate;
     private final String albumImage;
     private final Long likeCount;
-    private final boolean isLiked;
     private final Long playCount;
     private final boolean isDeleted;
     private final ProgressingStatus progressingStatus;

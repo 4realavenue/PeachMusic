@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
 import java.util.List;
 import java.util.Set;
 
@@ -35,11 +34,10 @@ public interface SongLikeRepository extends JpaRepository<SongLike, Long>, SongL
     List<Long> findSongsLikedByUser(Long userId);
 
     @Query("""
-            SELECT sl FROM SongLike sl
-            JOIN fetch sl.song s
+            select sl.song.songId
+            from SongLike sl
             where sl.user.userId = :userId
-            and s.songId in (:songIdList)
-            """)
-    Set<SongLike> findAllByUserIdAndSongIdList(Long userId, List<Long> songIdList);
-
+            and sl.song.songId in :songIdList
+    """)
+    Set<Long> findLikedSongIdList(Long userId, List<Long> songIdList);
 }

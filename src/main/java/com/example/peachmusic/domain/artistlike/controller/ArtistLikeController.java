@@ -2,6 +2,8 @@ package com.example.peachmusic.domain.artistlike.controller;
 
 import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.CommonResponse;
+import com.example.peachmusic.domain.artistlike.dto.request.ArtistLikeCheckRequestDto;
+import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikeCheckResponseDto;
 import com.example.peachmusic.domain.artistlike.dto.response.ArtistLikeResponseDto;
 import com.example.peachmusic.domain.artistlike.service.ArtistLikeService;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,16 @@ public class ArtistLikeController {
 
         ArtistLikeResponseDto responseDto = artistLikeService.likeArtist(authUser, artistId);
 
-        return ResponseEntity.ok(CommonResponse.success("아티스트 좋아요 토글 성공", responseDto));
+        return ResponseEntity.ok(CommonResponse.success("아티스트 좋아요 토글에 성공했습니다.", responseDto));
+    }
+
+    @PostMapping("/artists/likes/check")
+    public ResponseEntity<CommonResponse<ArtistLikeCheckResponseDto>> checkArtistLike(
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestBody ArtistLikeCheckRequestDto requestDto
+    ) {
+        ArtistLikeCheckResponseDto responseDto = artistLikeService.checkArtistLike(authUser, requestDto);
+
+        return ResponseEntity.ok(CommonResponse.success("좋아요한 아티스트 목록 조회에 성공했습니다.", responseDto));
     }
 }

@@ -2,7 +2,6 @@ package com.example.peachmusic.domain.album.dto.response;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import java.time.LocalDate;
 
 @Getter
@@ -16,5 +15,4 @@ public class AlbumArtistDetailResponseDto {
     private final String albumImage;
     private final Long likeCount;
     private final boolean isDeleted;
-    private final boolean isLiked;
 }

@@ -16,7 +16,6 @@ public class SongArtistDetailResponseDto {
     private final Long likeCount;
     private final String albumImage;
     private final ProgressingStatus jobStatus;
-    private final boolean isLiked;
     private final Long albumId;
     private final LocalDate albumReleaseDate;
 }

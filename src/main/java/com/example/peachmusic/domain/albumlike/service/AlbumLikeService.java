@@ -4,14 +4,17 @@ import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.KeysetResponse;
 import com.example.peachmusic.common.model.NextCursor;
 import com.example.peachmusic.common.retry.LockRetryExecutor;
+import com.example.peachmusic.domain.albumlike.dto.request.AlbumLikeCheckRequestDto;
+import com.example.peachmusic.domain.albumlike.dto.response.AlbumLikeCheckResponseDto;
 import com.example.peachmusic.domain.albumlike.dto.response.AlbumLikeResponseDto;
 import com.example.peachmusic.domain.albumlike.dto.response.AlbumLikedItemResponseDto;
 import com.example.peachmusic.domain.albumlike.repository.AlbumLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
 
@@ -42,5 +45,17 @@ public class AlbumLikeService {
     @Transactional(readOnly = true)
     public boolean isAlbumLiked(Long albumId, Long userId) {
         return albumLikeRepository.existsByAlbum_AlbumIdAndUser_UserId(albumId, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public AlbumLikeCheckResponseDto checkAlbumLike(AuthUser authUser, AlbumLikeCheckRequestDto request) {
+
+        if (request.getAlbumIdList() == null || request.getAlbumIdList().isEmpty()) {
+            return AlbumLikeCheckResponseDto.from(Collections.emptySet());
+        }
+
+        Set<Long> likedAlbumIdSet = albumLikeRepository.findLikedAlbumIdList(authUser.getUserId(), request.getAlbumIdList());
+
+        return AlbumLikeCheckResponseDto.from(likedAlbumIdSet);
     }
 }

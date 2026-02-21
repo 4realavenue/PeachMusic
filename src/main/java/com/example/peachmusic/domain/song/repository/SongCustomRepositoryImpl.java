@@ -2,21 +2,17 @@ package com.example.peachmusic.domain.song.repository;
 
 import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
-import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.CursorParam;
 import com.example.peachmusic.common.query.SearchWordCondition;
 import com.example.peachmusic.common.repository.KeysetPolicy;
 import com.example.peachmusic.domain.album.dto.response.SongSummaryDto;
 import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
-import com.example.peachmusic.domain.songlike.entity.QSongLike;
-import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.StringTemplate;
-import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -25,7 +21,6 @@ import static com.example.peachmusic.domain.album.entity.QAlbum.album;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
 import static com.example.peachmusic.domain.artistsong.entity.QArtistSong.artistSong;
 import static com.example.peachmusic.domain.song.entity.QSong.song;
-import static com.example.peachmusic.domain.songlike.entity.QSongLike.songLike;
 import static com.example.peachmusic.domain.songprogressingstatus.entity.QSongProgressingStatus.songProgressingStatus;
 
 public class SongCustomRepositoryImpl implements SongCustomRepository {
@@ -41,8 +36,8 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
      * 검색 - 자세히 보기
      */
     @Override
-    public List<SongSearchResponseDto> findSongKeysetPageByWord(AuthUser authUser, String word, int size, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor) {
-        return baseQuery(authUser, word, isAdmin, sortType, direction, cursor)
+    public List<SongSearchResponseDto> findSongKeysetPageByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor) {
+        return baseQuery(word, isAdmin, sortType, direction, cursor)
                 .limit(size+1).fetch(); // 요청한 사이즈보다 하나 더 많은 데이터를 조회
     }
 
@@ -50,30 +45,30 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
      * 검색 - 미리보기
      */
     @Override
-    public List<SongSearchResponseDto> findSongListByWord(AuthUser authUser, String word, int size, boolean isAdmin, SortType sortType, SortDirection direction) {
-        return baseQuery(authUser, word, isAdmin, sortType, direction, null).limit(size).fetch();
+    public List<SongSearchResponseDto> findSongListByWord(String word, int size, boolean isAdmin, SortType sortType, SortDirection direction) {
+        return baseQuery(word, isAdmin, sortType, direction, null).limit(size).fetch();
     }
 
     /**
      * 음원 - 미리보기
      */
     @Override
-    public List<SongArtistDetailResponseDto> findSongList(AuthUser authUser, Long artistId, int size) {
-        return baseQueryByArtist(authUser, artistId, SortType.RELEASE_DATE, SortDirection.DESC, null).limit(size).fetch();
+    public List<SongArtistDetailResponseDto> findSongList(Long artistId, int size) {
+        return baseQueryByArtist(artistId, SortType.RELEASE_DATE, SortDirection.DESC, null).limit(size).fetch();
     }
 
     /**
      * 음원 - 자세히 보기
      */
     @Override
-    public List<SongArtistDetailResponseDto> findSongByArtistKeyset(AuthUser authUser, Long artistId, SortType sortType, SortDirection sortDirection, CursorParam cursor, int size) {
-        return baseQueryByArtist(authUser, artistId, sortType, sortDirection, cursor).limit(size + 1).fetch();
+    public List<SongArtistDetailResponseDto> findSongByArtistKeyset(Long artistId, SortType sortType, SortDirection sortDirection, CursorParam cursor, int size) {
+        return baseQueryByArtist(artistId, sortType, sortDirection, cursor).limit(size + 1).fetch();
     }
 
     @Override
     public List<SongSummaryDto> findSongSummaryListByAlbumId(Long albumId, Long userId) {
         return queryFactory
-                .select(Projections.constructor(SongSummaryDto.class, song.position, song.songId, song.name, song.duration, song.likeCount, isSongLiked(userId)))
+                .select(Projections.constructor(SongSummaryDto.class, song.position, song.songId, song.name, song.duration, song.likeCount))
                 .from(song)
                 .where(song.album.albumId.eq(albumId), song.isDeleted.isFalse(), song.streamingStatus.isTrue())
                 .orderBy(song.position.asc(), song.songId.asc())
@@ -83,7 +78,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
     /**
      * 기본 쿼리
      */
-    private JPAQuery<SongSearchResponseDto> baseQuery(AuthUser authUser, String word, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor) {
+    private JPAQuery<SongSearchResponseDto> baseQuery(String word, boolean isAdmin, SortType sortType, SortDirection direction, CursorParam cursor) {
 
         keysetPolicy.validateCursor(sortType, cursor); // 커서 검증
         boolean isAsc = keysetPolicy.isAscending(sortType, direction);
@@ -92,7 +87,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
 
         return baseFrom()
-                .select(Projections.constructor(SongSearchResponseDto.class, song.songId, song.name, artistNames, song.album.albumName, song.releaseDate, album.albumImage, song.likeCount, isSongLiked(authUser), song.playCount, song.isDeleted, songProgressingStatus.progressingStatus))
+                .select(Projections.constructor(SongSearchResponseDto.class, song.songId, song.name, artistNames, song.album.albumName, song.releaseDate, album.albumImage, song.likeCount, song.playCount, song.isDeleted, songProgressingStatus.progressingStatus))
                 .where(searchCondition(word), isActive(isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
                 .groupBy(song.songId) // 아티스트 이름을 문자열로 합치는데 음원 id를 기준으로 함
                 .orderBy(keysetOrder(sortType, isAsc)); // Keyset 조건에 사용되는 커서 순서대로 정렬
@@ -101,7 +96,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
     /**
      * 아티스트 상세 전용 공통 쿼리
      */
-    private JPAQuery<SongArtistDetailResponseDto> baseQueryByArtist(AuthUser authUser, Long artistId, SortType sortType, SortDirection direction, CursorParam cursor) {
+    private JPAQuery<SongArtistDetailResponseDto> baseQueryByArtist(Long artistId, SortType sortType, SortDirection direction, CursorParam cursor) {
 
         keysetPolicy.validateCursor(sortType, cursor);
         boolean isAsc = direction == SortDirection.ASC;
@@ -109,7 +104,7 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
 
         return baseFrom()
-                .select(Projections.constructor(SongArtistDetailResponseDto.class, song.songId, song.name, artistNames, song.likeCount, album.albumImage, songProgressingStatus.progressingStatus, isSongLiked(authUser), album.albumId, song.releaseDate))
+                .select(Projections.constructor(SongArtistDetailResponseDto.class, song.songId, song.name, artistNames, song.likeCount, album.albumImage, songProgressingStatus.progressingStatus, album.albumId, song.releaseDate))
                 .where(artist.artistId.eq(artistId), isActive(false), keysetCondition(sortType, isAsc, cursor))
                 .groupBy(song.songId)
                 .orderBy(keysetOrder(sortType, isAsc));
@@ -122,29 +117,6 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
                 .join(artist).on(artistSong.artist.eq(artist))
                 .join(song.album, album)
                 .leftJoin(songProgressingStatus).on(songProgressingStatus.song.eq(song));
-    }
-
-    private Expression<Boolean> isSongLiked(Long userId) {
-        if (userId == null) {
-            return Expressions.constant(false);
-        }
-
-        QSongLike sub = new QSongLike("subSongLike");
-
-        return JPAExpressions
-                .selectOne()
-                .from(sub)
-                .where(
-                        sub.song.eq(song),
-                        sub.user.userId.eq(userId)
-                )
-                .exists();
-    }
-
-    private Expression<Boolean> isSongLiked(AuthUser authUser) {
-        return isSongLiked(
-                authUser == null ? null : authUser.getUserId()
-        );
     }
 
     /**

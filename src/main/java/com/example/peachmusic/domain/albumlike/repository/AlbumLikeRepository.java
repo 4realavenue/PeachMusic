@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import java.util.List;
+import java.util.Set;
 
 public interface AlbumLikeRepository extends JpaRepository<AlbumLike, Long>, AlbumLikeCustomRepository {
 
@@ -21,4 +23,12 @@ public interface AlbumLikeRepository extends JpaRepository<AlbumLike, Long>, Alb
     @Modifying
     @Query(value = "INSERT IGNORE INTO album_likes (user_id, album_id) VALUES (:userId, :albumId)", nativeQuery = true)
     int insertIgnore(@Param("userId") Long userId, @Param("albumId") Long albumId);
+
+    @Query("""
+            select al.album.albumId
+            from AlbumLike al
+            where al.user.userId = :userId
+            and al.album.albumId in :albumIdList
+    """)
+    Set<Long> findLikedAlbumIdList(Long userId, List<Long> albumIdList);
 }
