@@ -73,6 +73,39 @@ function formatDate(iso) {
     return String(iso).replaceAll("-", ".");
 }
 
+function renderArtistLinks(artistList, containerEl) {
+    if (!containerEl) return;
+    containerEl.innerHTML = "";
+
+    const list = Array.isArray(artistList) ? artistList : [];
+    if (list.length === 0) {
+        containerEl.textContent = "-";
+        return;
+    }
+
+    list.forEach((a, idx) => {
+        const name = decodeHtmlEntities(a?.artistName ?? a?.name ?? "-");
+        const id = a?.artistId ?? a?.id ?? a?.artist_id ?? null;
+
+        if (idx > 0) {
+            containerEl.appendChild(document.createTextNode(", "));
+        }
+
+        if (id != null && String(id).length > 0) {
+            const link = document.createElement("a");
+            link.className = "album-artist-link";
+            link.href = `/artists/${id}`;
+            link.textContent = name;
+            link.addEventListener("click", (e) => e.stopPropagation());
+            containerEl.appendChild(link);
+        } else {
+            const span = document.createElement("span");
+            span.textContent = name;
+            containerEl.appendChild(span);
+        }
+    });
+}
+
 /* =========================
    전역 오디오 이벤트 싱크
 ========================= */
@@ -298,14 +331,13 @@ async function loadAlbum() {
     // ✅ 렌더 시점 토큰 상태(버튼 disabled 클래스용)
     const tokenNow = !!getToken();
 
-
     // 기본 정보
     document.getElementById("albumImage").src = resolveImageUrl(album.albumImage);
     document.getElementById("albumName").textContent = decodeHtmlEntities(album.albumName ?? "-");
     document.getElementById("albumReleaseDate").textContent = formatDate(album.albumReleaseDate);
 
-    const artistNames = (album.artistList ?? []).map((a) => decodeHtmlEntities(a.artistName)).join(", ");
-    document.getElementById("albumArtists").textContent = artistNames || "-";
+    // ✅ 아티스트 이름 클릭 → 아티스트 상세로
+    renderArtistLinks(album.artistList, document.getElementById("albumArtists"));
 
     // ✅ 앨범 좋아요
     const heartBtn = document.getElementById("heartBtn");

@@ -12,4 +12,5 @@ public class SongSummaryDto {
     private final String name;
     private final Long duration;
     private final Long likeCount;
+    private final boolean isLiked;
 }

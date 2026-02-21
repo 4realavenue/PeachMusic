@@ -11,6 +11,7 @@ public class SongLikedItemResponseDto {
     @JsonIgnore
     private final Long songLikeId;
 
+    private final String albumImage;
     private final Long songId;
     private final String name;
     private final String audio;

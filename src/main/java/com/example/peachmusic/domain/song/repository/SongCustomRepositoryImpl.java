@@ -70,9 +70,17 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
     }
 
     @Override
-    public List<SongSummaryDto> findSongSummaryListByAlbumId(Long albumId) {
+    public List<SongSummaryDto> findSongSummaryListByAlbumId(Long albumId, Long userId) {
+
+        Expression<Boolean> isLikedExpr =
+                userId == null ? Expressions.asBoolean(false) : JPAExpressions
+                        .selectOne()
+                        .from(songLike)
+                        .where(songLike.song.eq(song), songLike.user.userId.eq(userId))
+                        .exists();
+
         return queryFactory
-                .select(Projections.constructor(SongSummaryDto.class, song.position, song.songId, song.name, song.duration, song.likeCount))
+                .select(Projections.constructor(SongSummaryDto.class, song.position, song.songId, song.name, song.duration, song.likeCount, isLikedExpr))
                 .from(song)
                 .where(song.album.albumId.eq(albumId), song.isDeleted.isFalse(), song.streamingStatus.isTrue())
                 .orderBy(song.position.asc(), song.songId.asc())

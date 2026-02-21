@@ -9,6 +9,9 @@ const endMessage = document.getElementById("endMessage");
 const searchBtn = document.getElementById("searchBtn");
 const wordInput = document.getElementById("wordInput");
 
+// ✅ 추가
+const toTopBtn = document.getElementById("toTopBtn");
+
 let lastId = null;
 let hasNext = true;
 let isLoading = false;
@@ -17,6 +20,7 @@ let currentWord = "";
 
 document.addEventListener("DOMContentLoaded", () => {
     bindSearch();
+    setupToTop();   // ✅ 추가
     init();
 });
 
@@ -242,3 +246,70 @@ listBody.addEventListener("change", async (e)=>{
     const json = await res.json();
     alert(json.message);
 });
+
+/* =========================
+   ✅ To Top Button (admin 공통: 내부 스크롤도 대응)
+========================= */
+function getScrollableAncestor(el) {
+    let cur = el;
+    while (cur && cur !== document.body && cur !== document.documentElement) {
+        const style = window.getComputedStyle(cur);
+        const oy = style.overflowY;
+        const canScroll = (oy === "auto" || oy === "scroll") && cur.scrollHeight > cur.clientHeight + 5;
+        if (canScroll) return cur;
+        cur = cur.parentElement;
+    }
+    return null;
+}
+
+function guessScroller() {
+    if (listBody) {
+        const anc = getScrollableAncestor(listBody);
+        if (anc) return anc;
+    }
+    return document.scrollingElement || document.documentElement;
+}
+
+function setupToTop() {
+    if (!toTopBtn) return;
+
+    // overflow/transform 환경에서 fixed가 안 보이는 케이스 방지
+    if (toTopBtn.parentElement !== document.body) {
+        document.body.appendChild(toTopBtn);
+    }
+
+    const scroller = guessScroller();
+
+    const getTop = () => {
+        if (scroller === document.documentElement || scroller === document.body || scroller === document.scrollingElement) {
+            return window.scrollY || document.documentElement.scrollTop || 0;
+        }
+        return scroller.scrollTop || 0;
+    };
+
+    let ticking = false;
+    const update = () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+            const y = getTop();
+            toTopBtn.classList.toggle("hidden", !(y > 500));
+            ticking = false;
+        });
+    };
+
+    window.addEventListener("scroll", update, { passive: true, capture: true });
+    if (scroller && scroller !== window) {
+        scroller.addEventListener("scroll", update, { passive: true, capture: true });
+    }
+
+    update();
+
+    toTopBtn.addEventListener("click", () => {
+        if (scroller === document.documentElement || scroller === document.body || scroller === document.scrollingElement) {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+            scroller.scrollTo({ top: 0, behavior: "smooth" });
+        }
+    });
+}

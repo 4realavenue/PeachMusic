@@ -18,7 +18,6 @@ async function init() {
 }
 
 async function load() {
-
     if (!hasNext || isLoading) return;
 
     isLoading = true;
@@ -48,7 +47,6 @@ async function load() {
             endMessage.classList.remove("hidden");
             observer.disconnect();
         }
-
     } catch (e) {
         console.error(e);
     } finally {
@@ -58,9 +56,7 @@ async function load() {
 }
 
 function render(list) {
-
-    list.forEach(album => {
-
+    list.forEach((album) => {
         const card = document.createElement("div");
         card.className = "album-card";
         card.style.cursor = "pointer";
@@ -96,31 +92,35 @@ function render(list) {
 
 /* 🔥 무한스크롤 */
 function setupInfiniteScroll() {
-
-    observer = new IntersectionObserver(async (entries) => {
-        if (entries[0].isIntersecting) {
-            await load();
+    observer = new IntersectionObserver(
+        async (entries) => {
+            if (entries[0].isIntersecting) {
+                await load();
+            }
+        },
+        {
+            root: null,
+            rootMargin: "300px",
+            threshold: 0,
         }
-    }, {
-        root: null,
-        rootMargin: "300px",
-        threshold: 0
-    });
+    );
 
     observer.observe(sentinel);
 }
 
 /* 🔥 좋아요 토글 */
 albumGrid.addEventListener("click", async (e) => {
-
     const heartBtn = e.target.closest(".heart-btn");
     if (!heartBtn) return;
+
+    // ✅ 카드 이동 클릭 방지
+    e.stopPropagation();
 
     const albumId = heartBtn.dataset.id;
 
     try {
         const res = await authFetch(`/api/albums/${albumId}/likes`, {
-            method: "POST"
+            method: "POST",
         });
 
         const result = await res.json();
@@ -128,6 +128,14 @@ albumGrid.addEventListener("click", async (e) => {
 
         const { liked, likeCount } = result.data;
 
+        // ✅ 취소(좋아요 해제)면 목록에서 즉시 제거
+        if (!liked) {
+            const card = heartBtn.closest(".album-card");
+            card?.remove();
+            return;
+        }
+
+        // ✅ 좋아요 유지(혹시 다시 좋아요로 돌아오는 케이스 대비)
         heartBtn.classList.toggle("liked", liked);
 
         const likeText = heartBtn
@@ -135,7 +143,6 @@ albumGrid.addEventListener("click", async (e) => {
             .querySelector("span");
 
         likeText.textContent = likeCount;
-
     } catch (err) {
         console.error(err);
     }
