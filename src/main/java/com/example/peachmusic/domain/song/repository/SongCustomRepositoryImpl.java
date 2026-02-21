@@ -25,7 +25,6 @@ import static com.example.peachmusic.domain.album.entity.QAlbum.album;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
 import static com.example.peachmusic.domain.artistsong.entity.QArtistSong.artistSong;
 import static com.example.peachmusic.domain.song.entity.QSong.song;
-import static com.example.peachmusic.domain.songlike.entity.QSongLike.songLike;
 import static com.example.peachmusic.domain.songprogressingstatus.entity.QSongProgressingStatus.songProgressingStatus;
 
 public class SongCustomRepositoryImpl implements SongCustomRepository {
