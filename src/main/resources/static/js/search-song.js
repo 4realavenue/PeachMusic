@@ -1,6 +1,6 @@
 import { authFetch, getToken } from "./auth.js";
 
-let lastId = null;
+let cursor = null; // 🔥 수정 (기존 lastId → cursor 객체)
 let hasNext = true;
 let loading = false;
 
@@ -68,7 +68,7 @@ function setupInfiniteScroll() {
 }
 
 function resetAndReload() {
-    lastId = null;
+    cursor = null; // 🔥 수정
     hasNext = true;
     loading = false;
     listContainer.innerHTML = "";
@@ -92,8 +92,30 @@ async function loadSongs() {
         direction: currentDirection
     });
 
-    if (lastId !== null) {
-        params.append("lastId", lastId);
+    // 🔥 수정: lastId + 정렬기준 커서값 함께 전송
+    if (cursor?.lastId != null) {
+        params.append("lastId", cursor.lastId);
+    }
+
+    if (cursor?.lastSortValue != null) {
+
+        switch (currentSort) {
+            case "LIKE":
+                params.append("lastLike", cursor.lastSortValue);
+                break;
+
+            case "PLAY":
+                params.append("lastPlay", cursor.lastSortValue);
+                break;
+
+            case "RELEASE_DATE":
+                params.append("lastDate", cursor.lastSortValue);
+                break;
+
+            case "NAME":
+                params.append("lastName", cursor.lastSortValue);
+                break;
+        }
     }
 
     try {
@@ -114,7 +136,7 @@ async function loadSongs() {
         hasNext = data.hasNext;
 
         if (hasNext && data.nextCursor) {
-            lastId = data.nextCursor.lastId;
+            cursor = data.nextCursor; // 🔥 수정
         } else {
             endMessage.classList.remove("hidden");
             observer?.disconnect();
@@ -177,7 +199,7 @@ function showLoginPopup() {
 }
 
 /* =========================
-   좋아요 토글 (안정화 버전)
+   좋아요 토글
 ========================= */
 listContainer.addEventListener("click", async (e) => {
 
@@ -206,7 +228,6 @@ listContainer.addEventListener("click", async (e) => {
 
         const { liked, likeCount } = result.data;
 
-        /* 🔥ㅁㅍㅁ 즉시 UI 반영 */
         heartBtn.classList.toggle("liked", liked === true);
 
         const likeNumber = heartBtn

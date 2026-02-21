@@ -1,6 +1,6 @@
 import { authFetch, getToken } from "./auth.js";
 
-let lastId = null;
+let cursor = null; // 🔥 통일
 let hasNext = true;
 let loading = false;
 
@@ -19,52 +19,53 @@ const loadingEl = document.getElementById("loading");
 const endMessage = document.getElementById("endMessage");
 const popup = document.getElementById("loginPopup");
 
-const hasToken = !!getToken();
 let observer = null;
 
 /* =========================
    이미지 경로 처리
-   - Open API 아티스트는 이미지 없음(null) → placeholder 시도
-   - placeholder도 막히면 onerror로 로컬 기본이미지로 대체
 ========================= */
 function resolveImageUrl(imagePath) {
-    // ✅ 외부 placeholder (placeholder.com은 막히는 경우가 있어 placehold.co 추천)
     if (!imagePath) return "https://placehold.co/300x300?text=artist";
-
-    // ✅ 외부 URL이면 그대로 사용
     if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
-
-    // ✅ 이미 / 로 시작하면 그대로
     if (imagePath.startsWith("/")) return imagePath;
-
-    // ✅ 내부 경로(uploads 등)라면 / 붙여서 사용
     return `/${imagePath}`;
 }
 
+/* =========================
+   초기 실행
+========================= */
 document.addEventListener("DOMContentLoaded", () => {
+
     if (!initialWord || initialWord.trim() === "") return;
 
     title.textContent = `"${initialWord}"와 관련된 아티스트`;
+    searchInput.value = initialWord;
 
     loadArtists();
     setupInfiniteScroll();
 
-    searchBtn.addEventListener("click", () => {
-        const word = searchInput.value.trim();
-        if (!word) return;
-        location.href = `/search/artists?word=${encodeURIComponent(word)}`;
+    searchBtn?.addEventListener("click", handleSearch);
+    searchInput?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") handleSearch();
     });
 
-    sortSelect.addEventListener("change", () => {
+    sortSelect?.addEventListener("change", () => {
         currentSort = sortSelect.value;
         resetAndReload();
     });
 
-    directionSelect.addEventListener("change", () => {
+    directionSelect?.addEventListener("change", () => {
         currentDirection = directionSelect.value;
         resetAndReload();
     });
 });
+
+/* ========================= */
+function handleSearch() {
+    const word = searchInput.value.trim();
+    if (!word) return;
+    location.href = `/search/artists?word=${encodeURIComponent(word)}`;
+}
 
 function setupInfiniteScroll() {
     observer = new IntersectionObserver(async (entries) => {
@@ -81,14 +82,19 @@ function setupInfiniteScroll() {
 }
 
 function resetAndReload() {
-    lastId = null;
+    cursor = null; // 🔥 통일
     hasNext = true;
+    loading = false;
     grid.innerHTML = "";
     endMessage.classList.add("hidden");
     loadArtists();
 }
 
+/* =========================
+   데이터 로드
+========================= */
 async function loadArtists() {
+
     if (!hasNext || loading) return;
 
     loading = true;
@@ -100,12 +106,32 @@ async function loadArtists() {
         direction: currentDirection
     });
 
-    if (lastId !== null) {
-        params.append("lastId", lastId);
+    // 🔥 통일된 cursor 구조
+    if (cursor?.lastId != null) {
+
+        params.append("lastId", cursor.lastId);
+
+        if (cursor.lastSortValue != null) {
+            switch (currentSort) {
+                case "LIKE":
+                    params.append("lastLike", cursor.lastSortValue);
+                    break;
+
+                case "NAME":
+                    params.append("lastName", cursor.lastSortValue);
+                    break;
+            }
+        }
     }
 
     try {
-        const res = await fetch(`/api/search/artists?${params}`);
+
+        const res = getToken()
+            ? await authFetch(`/api/search/artists?${params}`)
+            : await fetch(`/api/search/artists?${params}`);
+
+        if (!res) return;
+
         const response = await res.json();
         if (!response.success) return;
 
@@ -116,11 +142,12 @@ async function loadArtists() {
         hasNext = data.hasNext;
 
         if (hasNext && data.cursor) {
-            lastId = data.cursor.lastId;
+            cursor = data.cursor; // 🔥 통일
         } else {
             endMessage.classList.remove("hidden");
             observer?.disconnect();
         }
+
     } catch (e) {
         console.error(e);
     }
@@ -129,8 +156,13 @@ async function loadArtists() {
     loading = false;
 }
 
+/* =========================
+   렌더
+========================= */
 function renderArtists(list) {
+
     list.forEach(artist => {
+
         const card = document.createElement("div");
         card.className = "artist-card";
         card.dataset.artistId = artist.artistId;
@@ -139,11 +171,9 @@ function renderArtists(list) {
 
         card.innerHTML = `
             <div class="artist-img">
-                <img
-                    src="${imgUrl}"
-                    alt="artist"
-                    onerror="this.onerror=null; this.src='/images/default-artist.png';"
-                >
+                <img src="${imgUrl}"
+                     alt="artist"
+                     onerror="this.onerror=null; this.src='/images/default-artist.png';">
             </div>
 
             <div class="artist-name">${artist.artistName}</div>
@@ -151,9 +181,7 @@ function renderArtists(list) {
             <div class="artist-bottom">
                 <span class="like-number">${artist.likeCount ?? 0}</span>
 
-                <button class="heart-btn
-                        ${artist.liked ? "liked" : ""}
-                        ${!hasToken ? "disabled" : ""}"
+                <button class="heart-btn ${artist.liked ? "liked" : ""}"
                         data-id="${artist.artistId}">
                     ❤
                 </button>
@@ -164,6 +192,9 @@ function renderArtists(list) {
     });
 }
 
+/* =========================
+   로그인 팝업
+========================= */
 function showLoginPopup() {
     popup.classList.remove("hidden");
     popup.classList.add("show");
@@ -174,14 +205,18 @@ function showLoginPopup() {
     }, 2000);
 }
 
+/* =========================
+   클릭 처리
+========================= */
 grid.addEventListener("click", async (e) => {
 
-    // 1) 하트 클릭이면: 좋아요 토글
     const heartBtn = e.target.closest(".heart-btn");
+
     if (heartBtn) {
+
         e.stopPropagation();
 
-        if (!hasToken) {
+        if (!getToken()) {
             showLoginPopup();
             return;
         }
@@ -189,7 +224,11 @@ grid.addEventListener("click", async (e) => {
         const artistId = heartBtn.dataset.id;
 
         try {
-            const res = await authFetch(`/api/artists/${artistId}/likes`, { method: "POST" });
+
+            const res = await authFetch(`/api/artists/${artistId}/likes`, {
+                method: "POST"
+            });
+
             if (!res) return;
 
             const result = await res.json();
@@ -197,27 +236,23 @@ grid.addEventListener("click", async (e) => {
 
             const { liked, likeCount } = result.data;
 
-            heartBtn.classList.toggle("liked", liked);
+            heartBtn.classList.toggle("liked", liked === true);
 
             const likeNumber = heartBtn
                 .closest(".artist-bottom")
                 .querySelector(".like-number");
 
-            likeNumber.textContent = likeCount;
+            likeNumber.textContent = likeCount ?? 0;
 
         } catch (err) {
             console.error(err);
         }
 
-        return; // ✅ 하트 처리 끝나면 상세이동 막기
+        return;
     }
 
-    // 2) 그 외(카드 클릭)이면: artist-detail로 이동
     const card = e.target.closest(".artist-card");
     if (!card) return;
 
-    const artistId = card.dataset.artistId;
-    if (!artistId) return;
-
-    window.location.href = `/artists/${artistId}`;
+    window.location.href = `/artists/${card.dataset.artistId}`;
 });

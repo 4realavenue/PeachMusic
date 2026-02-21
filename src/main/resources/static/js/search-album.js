@@ -1,7 +1,6 @@
 import { authFetch, getToken } from "/js/auth.js";
 
-let lastId = null;
-let lastSortValue = null;
+let cursor = null; // 🔥 통일
 let hasNext = true;
 let loading = false;
 
@@ -54,13 +53,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     observer.observe(sentinel);
 
-    /* 🔎 검색 */
     searchBtn?.addEventListener("click", handleSearch);
     searchInput?.addEventListener("keydown", e => {
         if (e.key === "Enter") handleSearch();
     });
 
-    /* 🔥 정렬 */
     sortSelect?.addEventListener("change", () => {
         currentSort = sortSelect.value;
         resetAndReload();
@@ -78,7 +75,6 @@ document.addEventListener("DOMContentLoaded", () => {
 function handleSearch() {
     const word = searchInput.value.trim();
     if (!word) return;
-
     location.href = `/search/albums?word=${encodeURIComponent(word)}`;
 }
 
@@ -86,8 +82,7 @@ function handleSearch() {
    정렬 변경 시 초기화
 ========================= */
 function resetAndReload() {
-    lastId = null;
-    lastSortValue = null;
+    cursor = null; // 🔥 통일
     hasNext = true;
     loading = false;
     grid.innerHTML = "";
@@ -111,9 +106,27 @@ async function loadAlbums() {
         direction: currentDirection
     });
 
-    if (lastId !== null) {
-        params.append("lastId", lastId);
-        params.append("lastLike", lastSortValue);
+    // 🔥 통일된 cursor 구조
+    if (cursor?.lastId != null) {
+
+        params.append("lastId", cursor.lastId);
+
+        if (cursor.lastSortValue != null) {
+            switch (currentSort) {
+                case "LIKE":
+                    params.append("lastLike", cursor.lastSortValue);
+                    break;
+                case "PLAY":
+                    params.append("lastPlay", cursor.lastSortValue);
+                    break;
+                case "RELEASE_DATE":
+                    params.append("lastDate", cursor.lastSortValue);
+                    break;
+                case "NAME":
+                    params.append("lastName", cursor.lastSortValue);
+                    break;
+            }
+        }
     }
 
     try {
@@ -134,8 +147,7 @@ async function loadAlbums() {
         hasNext = data.hasNext;
 
         if (hasNext && data.cursor) {
-            lastId = data.cursor.lastId;
-            lastSortValue = data.cursor.lastSortValue;
+            cursor = data.cursor; // 🔥 통일
         } else {
             endMessageEl.classList.remove("hidden");
         }
