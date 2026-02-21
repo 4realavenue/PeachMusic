@@ -13,27 +13,18 @@ let isLoading = false;
 const SONG_PLAY_API = (id) => `/api/songs/${id}/play`;
 
 /* =========================
-   Auth/UI helpers
+   ✅ Login redirect (팝업 X)
 ========================= */
-function showLoginPopup() {
-    const popup = document.getElementById("loginPopup");
-    if (!popup) return;
-    popup.classList.remove("hidden");
-    popup.classList.add("show");
-    setTimeout(() => {
-        popup.classList.remove("show");
-        popup.classList.add("hidden");
-    }, 2000);
+function redirectToLogin() {
+    location.href = "/login";
 }
 
-/**
- * ✅ 토큰 만료/로그아웃 방어 포함 request
- * - 토큰 있으면 authFetch 사용 (authFetch가 401 처리 후 null 리턴할 수 있음)
- * - 토큰 없으면 null 반환 + 팝업
- */
+/* =========================
+   ✅ Auth request helper
+========================= */
 async function authedRequest(url, options = {}) {
     if (!getToken()) {
-        showLoginPopup();
+        redirectToLogin();
         return null;
     }
     const res = await authFetch(url, options);
@@ -77,14 +68,15 @@ let currentPlayBtn = null;
 
 /* =========================
    ✅ "현재 DOM(지금 렌더된 목록)" 기준 큐 생성/등록
+   (이전/다음 버튼용: 기존 로직 유지)
 ========================= */
 function buildQueueFromDom() {
     const rows = Array.from(document.querySelectorAll(".liked-row[data-id]"));
     return rows
         .map((row) => {
             const songId = Number(row.dataset.id);
-            const title = row.querySelector(".song-text")?.textContent?.trim()
-                || row.querySelector(".col.title")?.textContent?.trim()
+            const title = row.querySelector(".song-title")?.textContent?.trim()
+                || row.querySelector(".song-text")?.textContent?.trim()
                 || "Unknown";
             if (!Number.isFinite(songId)) return null;
             return { songId, title };
@@ -149,9 +141,6 @@ function decodeHtmlEntities(str) {
     return txt.value;
 }
 
-/**
- * ✅ /play 호출 (토큰 만료 방어 포함)
- */
 async function getStreamingUrl(songId) {
     const res = await authedRequest(SONG_PLAY_API(songId), { method: "GET" });
     if (!res) return null;
@@ -172,6 +161,12 @@ async function getStreamingUrl(songId) {
 init();
 
 async function init() {
+    // ✅ 페이지 진입 자체를 비로그인 차단 (다른 좋아요 페이지 UX)
+    if (!getToken()) {
+        redirectToLogin();
+        return;
+    }
+
     wireGlobalAudioSync();
     await load();
     setupInfiniteScroll();
@@ -184,7 +179,7 @@ async function load() {
     if (!hasNext || isLoading) return;
 
     if (!getToken()) {
-        showLoginPopup();
+        redirectToLogin();
         hasNext = false;
         return;
     }
@@ -227,7 +222,7 @@ async function load() {
 
 /* =========================
    Render
-   (요청 반영: albumImage 표시 + 하트 항상 ❤)
+   ✅ 2줄 구조: 제목 / 아티스트명 · 앨범명
 ========================= */
 function render(list) {
     (list || []).forEach((song) => {
@@ -236,35 +231,41 @@ function render(list) {
         row.dataset.id = String(song.songId);
 
         const title = decodeHtmlEntities(song.name ?? "-");
-
-        // ✅ DTO: private final String albumImage;
-        // API에서 song.albumImage로 내려오는 값 사용
         const coverUrl = resolveImageUrl(song.albumImage);
 
-        row.innerHTML = `
-      <div class="col play">
-        <button class="play-btn"
-                type="button"
-                aria-label="재생"
-                data-id="${song.songId}">▶</button>
-      </div>
+        // ✅ 응답 DTO 필드명에 맞춰 사용 (없으면 안전 처리)
+        const artistName =
+            decodeHtmlEntities(song.artistName ?? song.artist ?? song?.artistList?.[0]?.artistName ?? "-");
+        const albumName =
+            decodeHtmlEntities(song.albumName ?? song.album ?? song?.albumName ?? "-");
 
+        const meta = `${artistName} · ${albumName}`;
+
+        row.innerHTML = `
       <div class="col title">
         <div class="song-main">
           <img class="album-thumb" src="${coverUrl}" alt="">
-          <span class="song-text">${title}</span>
+          <div class="song-text">
+            <div class="song-title">${title}</div>
+            <div class="song-meta">${meta}</div>
+          </div>
         </div>
       </div>
 
-      <div class="col like-count">
-        <span class="like-number">${song.likeCount ?? 0}</span>
-      </div>
+      <div class="col actions">
+        <div class="action-group">
+          <button class="play-btn"
+                  type="button"
+                  aria-label="재생"
+                  data-id="${song.songId}">▶</button>
 
-      <div class="col heart">
-        <button class="heart-btn liked"
-                type="button"
-                aria-label="좋아요"
-                data-id="${song.songId}">❤</button>
+          <span class="like-number">${song.likeCount ?? 0}</span>
+
+          <button class="heart-btn liked"
+                  type="button"
+                  aria-label="좋아요"
+                  data-id="${song.songId}">❤</button>
+        </div>
       </div>
     `;
 
@@ -312,9 +313,6 @@ function setupInfiniteScroll() {
 
 /* =========================
    Click Delegation
-   1) 재생(전역)
-   2) 하트 토글
-   3) row 클릭 → 상세
 ========================= */
 songList.addEventListener("click", async (e) => {
     /* 1) 재생 버튼 */
@@ -323,7 +321,7 @@ songList.addEventListener("click", async (e) => {
         e.stopPropagation();
 
         if (!getToken()) {
-            showLoginPopup();
+            redirectToLogin();
             return;
         }
 
@@ -334,8 +332,10 @@ songList.addEventListener("click", async (e) => {
 
         const songId = Number(playBtn.dataset.id);
         const row = playBtn.closest(".liked-row");
-        const title = row?.querySelector(".song-text")?.textContent?.trim()
-            || row?.querySelector(".col.title")?.textContent?.trim()
+
+        const title =
+            row?.querySelector(".song-title")?.textContent?.trim()
+            || row?.querySelector(".song-text")?.textContent?.trim()
             || "Unknown";
 
         const url = await getStreamingUrl(songId);
@@ -343,6 +343,7 @@ songList.addEventListener("click", async (e) => {
 
         playBtn.dataset.audioUrl = url;
 
+        // ✅ 이전/다음 버튼용 큐 등록 (기존 로직 유지)
         setGlobalQueueFromThisPage(songId);
 
         if (currentPlayBtn && currentPlayBtn !== playBtn) {
@@ -372,7 +373,7 @@ songList.addEventListener("click", async (e) => {
         e.stopPropagation();
 
         if (!getToken()) {
-            showLoginPopup();
+            redirectToLogin();
             return;
         }
 
@@ -399,6 +400,11 @@ songList.addEventListener("click", async (e) => {
     /* 3) row 클릭 → 상세 */
     const row = e.target.closest(".liked-row");
     if (!row) return;
+
+    if (!getToken()) {
+        redirectToLogin();
+        return;
+    }
 
     const songId = row.dataset.id;
     if (!songId) return;
