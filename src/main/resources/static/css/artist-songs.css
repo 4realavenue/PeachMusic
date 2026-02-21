@@ -136,7 +136,7 @@
 
 .heart-btn:hover { transform: scale(1.08); }
 
-.heart-btn.liked { color: var(--primary); }
+.song-row .heart-btn.liked { color: var(--primary) !important; }
 
 .heart-btn.disabled {
     color: #ddd;

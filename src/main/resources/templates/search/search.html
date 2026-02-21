@@ -23,7 +23,7 @@
                    id="searchInput"
                    placeholder="Search"
                    th:value="${word}">
-            <button id="searchBtn">검색</button>
+            <button id="searchBtn" type="button">검색</button>
         </div>
 
         <!-- 인기 검색어 -->
@@ -34,11 +34,12 @@
 
         <!-- 검색 결과 -->
         <div id="searchResult" class="search-result hidden">
+
             <!-- 곡 -->
             <div class="result-section">
                 <div class="section-header">
                     <h3 id="songTitle"></h3>
-                    <button id="songMoreBtn" class="more-btn hidden">더보기</button>
+                    <button id="songMoreBtn" class="more-btn hidden" type="button">더보기</button>
                 </div>
                 <div id="songList" class="result-list"></div>
             </div>
@@ -47,7 +48,7 @@
             <div class="result-section">
                 <div class="section-header">
                     <h3 id="albumTitle"></h3>
-                    <button id="albumMoreBtn" class="more-btn hidden">더보기</button>
+                    <button id="albumMoreBtn" class="more-btn hidden" type="button">더보기</button>
                 </div>
                 <div id="albumList" class="result-grid"></div>
             </div>
@@ -56,16 +57,18 @@
             <div class="result-section">
                 <div class="section-header">
                     <h3 id="artistTitle"></h3>
-                    <button id="artistMoreBtn" class="more-btn hidden">더보기</button>
+                    <button id="artistMoreBtn" class="more-btn hidden" type="button">더보기</button>
                 </div>
                 <div id="artistList" class="result-grid"></div>
             </div>
-
 
         </div>
 
         <!-- 결과 없음 -->
         <div id="emptyResult" class="hidden"></div>
+
+        <!-- ✅ 로그인 토스트(없으면 JS가 새로 만들어도 되지만, HTML에 두는 게 깔끔) -->
+        <div id="loginPopup" class="login-popup hidden">로그인이 필요합니다.</div>
 
     </section>
 

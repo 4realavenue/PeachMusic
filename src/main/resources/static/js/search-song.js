@@ -73,6 +73,8 @@ function resetAndReload() {
     loading = false;
     listContainer.innerHTML = "";
     endMessage.classList.add("hidden");
+    observer?.disconnect();
+    setupInfiniteScroll();
     loadSongs();
 }
 
@@ -151,7 +153,7 @@ async function loadSongs() {
 }
 
 /* =========================
-   렌더
+   렌더 (✅ 2줄: 제목 / 아티스트·앨범)
 ========================= */
 function renderSongs(list) {
 
@@ -159,18 +161,30 @@ function renderSongs(list) {
 
         const row = document.createElement("div");
         row.className = "song-row";
+        row.dataset.id = song.songId;
+
+        const img = (song.albumImage || "/images/default.png");
+        const name = (song.name ?? "-");
+        const artist = (song.artistName ?? "-");
+        const album = (song.albumName ?? "-"); // ✅ 응답에 있음(없으면 '-' 처리)
+        const likeCount = (song.likeCount ?? 0);
 
         row.innerHTML = `
-            <img src="${song.albumImage || '/images/default.png'}">
-            <div class="song-name">${song.name}</div>
-            <div>${song.artistName}</div>
+            <img src="${img}" alt=""
+                 onerror="this.onerror=null; this.src='/images/default.png';">
+
+            <div class="song-info">
+                <div class="song-name">${escapeHtml(name)}</div>
+                <div class="song-sub">${escapeHtml(artist)} · ${escapeHtml(album)}</div>
+            </div>
 
             <div class="like-area">
-                <span class="like-number">${song.likeCount ?? 0}</span>
+                <span class="like-number">${likeCount}</span>
 
-                <button class="heart-btn 
-                        ${song.liked ? 'liked' : ''}"
-                        data-id="${song.songId}">
+                <button class="heart-btn ${song.liked ? "liked" : ""}"
+                        data-id="${song.songId}"
+                        type="button"
+                        aria-label="좋아요">
                     ❤
                 </button>
             </div>
@@ -183,6 +197,15 @@ function renderSongs(list) {
             location.href = `/songs/${song.songId}/page`;
         });
     });
+}
+
+function escapeHtml(str) {
+    return String(str ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 }
 
 /* =========================

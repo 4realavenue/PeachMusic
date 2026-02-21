@@ -22,9 +22,11 @@
         <div class="artist-hero">
             <div class="artist-hero-left">
                 <div class="artist-hero-avatar"
+                     th:classappend="${artistImageUrl != null} ? ' has-image' : ''"
                      th:style="${artistImageUrl != null} ?
-                        'background-image: url(' + ${artistImageUrl} + '); background-size:cover; background-position:center;' :
-                        'background:none;'">
+                        'background-image: url(' + ${artistImageUrl} + ');' :
+                        ''">
+                    artist
                 </div>
             </div>
 
@@ -53,8 +55,9 @@
                     </p>
                 </div>
 
+                <!-- ✅ 좋아요: 라벨(국가/유형/데뷔) 시작선에 딱 붙게 -->
                 <div class="artist-hero-meta">
-                    <span id="artistLikeCount" th:text="${likeCount}">0</span>
+                    <span id="artistLikeCount" class="like-count" th:text="${likeCount}">0</span>
 
                     <button id="artistLikeBtn"
                             class="heart-btn"

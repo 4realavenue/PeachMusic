@@ -80,36 +80,52 @@
     border-right:1px solid var(--border);
 }
 
+/* ✅ 원형 프로필 미리보기 */
 .preview{
-    height:320px;
-    border-radius: var(--radius-md);
+    width:260px;
+    height:260px;
+    margin:0 auto;
+
+    border-radius:50%;
     border:1px solid var(--border);
+
     background:#f2f2f2;
     position:relative;
     overflow:hidden;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    /* JS에서 backgroundImage를 넣기 때문에 커버 유지 */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .preview-badge{
     position:absolute;
-    top:14px;
-    left:14px;
-    padding:8px 12px;
+    top:22px;          /* 🔥 살짝 더 안쪽 */
+    left:50%;
+    transform:translateX(-50%);  /* 가운데 정렬 */
+
+    padding:8px 16px;
     border-radius:999px;
     background:#fff;
     border:1px solid var(--border);
+
     font-weight:900;
     font-size: var(--font-xs);
+
+    z-index:2;
 }
 
 .preview-empty{
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%, -50%);
     color: var(--text-sub);
     font-weight:800;
     font-size: var(--font-sm);
     text-align:center;
+    padding:0 18px; /* 긴 문구도 가운데 안정 */
 }
 
 .preview-img{
@@ -120,16 +136,20 @@
     object-fit:cover;
 }
 
+/* ✅ 버튼 영역 가운데 정렬 */
 .image-actions{
     margin-top:18px;
     display:flex;
     gap:10px;
+    justify-content:center;
 }
 
+/* ✅ 안내 문구 가운데 정렬 */
 .hint{
     margin-top:10px;
     color: var(--text-sub);
     font-size: var(--font-xs);
+    text-align:center;
 }
 
 /* =========================

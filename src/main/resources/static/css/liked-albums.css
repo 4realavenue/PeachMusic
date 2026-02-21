@@ -62,15 +62,24 @@
     text-overflow:ellipsis;
 }
 
+/* ✅ 좋아요 영역: 숫자+하트를 한 묶음으로 붙임 */
 .album-bottom{
     display:flex;
-    justify-content:space-between;
+    justify-content:flex-end;
     align-items:center;
+}
+
+.like-group{
+    display:flex;
+    align-items:center;
+    gap:12px;
 }
 
 .like-count{
     font-size: var(--font-sm);
     color: var(--text-sub);
+    font-weight:800;
+    font-variant-numeric: tabular-nums;
 }
 
 /* =========================
@@ -83,6 +92,8 @@
     cursor:pointer;
     color:#bbb;
     transition:transform .1s ease, color .15s ease;
+    line-height:1;
+    padding:0;
 }
 
 .heart-btn:hover{
@@ -90,7 +101,7 @@
 }
 
 .heart-btn.liked{
-    color: var(--primary);
+    color: #ff4d6d;
 }
 
 /* =========================

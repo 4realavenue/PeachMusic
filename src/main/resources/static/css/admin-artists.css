@@ -128,17 +128,18 @@
 }
 
 /* =========================
-   Grid Layout
+   Grid Layout (앨범 톤 동일)
+   - ID / profile / name / like / manage
 ========================= */
 .table-head,
 .row{
     display:grid;
-    grid-template-columns: 110px 92px minmax(260px, 520px) 120px 170px;
+    grid-template-columns: 110px 92px minmax(260px, 520px) 140px 170px;
     align-items:center;
 }
 
 /* =========================
-   Header
+   Header (✅ admin-albums 톤 그대로)
 ========================= */
 .table-head{
     padding:18px 26px;
@@ -155,6 +156,11 @@
 }
 
 .table-head .col.profile{
+    text-align:center;
+    justify-self:center;
+}
+
+.table-head .col.like{
     text-align:center;
     justify-self:center;
 }
@@ -184,15 +190,28 @@
     justify-self:center;
 }
 
+/* ✅ 원형 프로필 + 첫 글자 placeholder */
 .artist-thumb{
     width:52px;
     height:52px;
-    border-radius:16px;
+    border-radius:50%;
     overflow:hidden;
-    background:#f2f2f2;
+
+    background:#e6e6e6;
     border:1px solid #eee;
     box-shadow: 0 10px 20px rgba(0,0,0,0.06);
+
     flex:0 0 auto;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-weight:700;
+    font-size:18px;
+    color: var(--text-sub);
+    text-transform:uppercase;
+    user-select:none;
 }
 .artist-thumb img{
     width:100%;
@@ -201,35 +220,45 @@
     display:block;
 }
 
+/* 삭제 상태(있으면 적용됨) */
 .row.is-deleted .artist-thumb{
     opacity:0.55;
     filter: grayscale(0.15);
 }
 
-/* ✅ 핵심 수정: 이름/배지 레이아웃 안정화 */
+/* ✅ 길어도 배지/정렬 안 깨지게 (앨범 name 패턴과 동일) */
 .col.name{
     font-weight:900;
     display:flex;
     align-items:center;
     justify-content:space-between;
     gap:12px;
-    min-width:0; /* ✅ ellipsis 동작 필수 */
+    min-width:0;
 }
 
-/* ✅ 길어도 배지 밀지 않도록: 텍스트 영역을 유연하게, 배지는 고정 */
-.col.name .artist-link,
-.col.name .artist-link.disabled{
-    flex: 1 1 auto;        /* ✅ 텍스트가 남는 공간만 사용 */
-    min-width: 0;          /* ✅ ellipsis 동작 */
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;   /* ✅ 한 줄 고정 */
+.artist-link{
+    font-weight:800;
+    color:inherit;
+    text-decoration:none;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+.artist-link:hover{
+    text-decoration:underline;
+}
+.artist-link.disabled{
+    opacity:0.5;
+    cursor:not-allowed;
+    text-decoration:none;
 }
 
-/* ✅ 배지는 항상 제 자리 (밀림/줄바꿈/찌그러짐 방지) */
+/* 배지는 고정 */
 .col.name .badge{
-    flex: 0 0 auto;
-    white-space: nowrap;
+    flex:0 0 auto;
+    white-space:nowrap;
 }
 
 .col.like{
@@ -237,6 +266,7 @@
     color: var(--text-sub);
     text-align:center;
     justify-self:center;
+    font-variant-numeric: tabular-nums;
 }
 
 .row .col.manage{
@@ -247,7 +277,7 @@
 }
 
 /* =========================
-   Badge
+   Badge (앨범과 동일)
 ========================= */
 .badge{
     font-size: var(--font-xs);
@@ -346,12 +376,12 @@
 @media (max-width:900px){
     .table-head,
     .row{
-        grid-template-columns: 90px 86px minmax(200px, 1fr) 90px 160px;
+        grid-template-columns: 90px 86px minmax(200px, 1fr) 120px 160px;
     }
     .artist-thumb{
         width:48px;
         height:48px;
-        border-radius:14px;
+        font-size:17px;
     }
 }
 
@@ -376,23 +406,6 @@
 }
 
 /* =========================
-   Artist Link
-========================= */
-.artist-link {
-    font-weight:800;
-    color:inherit;
-    text-decoration:none;
-}
-.artist-link:hover {
-    text-decoration:underline;
-}
-.artist-link.disabled {
-    opacity:0.5;
-    cursor:not-allowed;
-    text-decoration:none;
-}
-
-/* =========================
    Infinite Scroll Sentinel
 ========================= */
 .sentinel{
@@ -401,7 +414,7 @@
 }
 
 /* =========================
-   To Top Button (index와 동일)
+   To Top Button (앨범과 동일)
 ========================= */
 :root{
     --player-safe-bottom: 96px;

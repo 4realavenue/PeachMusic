@@ -85,17 +85,25 @@ import { authFetch, getToken } from "/js/auth.js";
         card.dataset.albumId = albumId;
 
         card.innerHTML = `
-      <div class="albums-album-cover" style="background-image:url('${coverUrl}')"></div>
-      <div class="album-info">
-        <div class="album-name">${escapeHtml(albumName)}</div>
-        <div class="album-meta">
-          <span>${formatDate(a.albumReleaseDate)}</span>
-          <span class="like-number">${a.likeCount ?? 0}</span>
-          <button class="heart-btn ${a.liked ? "liked" : ""} ${!hasToken ? "disabled" : ""}" data-id="${albumId}">❤</button>
-        </div>
-      </div>
-    `;
-        return card;
+            <div class="albums-album-cover" style="background-image:url('${coverUrl}')"></div>
+            <div class="album-info">
+                <div class="album-name">${escapeHtml(albumName)}</div>
+
+                <div class="album-meta">
+                  <span>${formatDate(a.albumReleaseDate)}</span>
+
+                    <div class="album-like-area">
+                      <span class="like-number">${a.likeCount ?? 0}</span>
+                      <button class="heart-btn ${a.liked ? "liked" : ""} ${!hasToken ? "disabled" : ""}" data-id="${albumId}">
+                        ❤
+                      </button>
+                    </div>
+
+                </div>
+              </div>
+            `;
+
+            return card;
     }
 
     async function request(url) {

@@ -77,11 +77,11 @@
 }
 
 /* =========================
-   Song Row
+   Song Row (✅ 2줄 구조)
 ========================= */
 .song-row{
     display:grid;
-    grid-template-columns:60px 2fr 1fr 120px;
+    grid-template-columns:60px 1fr 140px; /* ✅ artist 컬럼 제거 */
     align-items:center;
 
     padding:16px 10px;
@@ -107,24 +107,52 @@
 }
 
 /* =========================
-   Text
+   Text (✅ 제목/서브 2줄)
 ========================= */
+.song-info{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    min-width:0;
+}
+
 .song-name{
     font-weight:700;
     font-size: var(--font-md);
     color: var(--text-main);
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
 
+.song-sub{
+    font-size: var(--font-sm);
+    color: var(--text-sub);
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+/* =========================
+   Like Area (✅ 미리보기 톤)
+========================= */
 .like-area{
     display:flex;
     align-items:center;
-    gap:10px;
+    gap:12px;
     justify-content:flex-end;
+    white-space:nowrap;
 }
 
 .like-number{
-    font-size: var(--font-sm);
+    font-size: var(--font-md);     /* ✅ 더 크게 */
     color: var(--text-sub);
+    font-weight:800;               /* ✅ 더 진하게 */
+    min-width:22px;
+    text-align:right;
+    font-variant-numeric: tabular-nums;
 }
 
 /* =========================
@@ -137,6 +165,8 @@
     cursor:pointer;
     color:#bbb;
     transition: transform .1s ease, color .15s ease;
+    line-height:1;
+    padding:0;
 }
 
 .heart-btn.liked{
