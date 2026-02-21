@@ -7,8 +7,6 @@ import com.example.peachmusic.common.model.CursorParam;
 import com.example.peachmusic.common.query.SearchWordCondition;
 import com.example.peachmusic.common.repository.KeysetPolicy;
 import com.example.peachmusic.domain.album.dto.response.SongSummaryDto;
-import com.example.peachmusic.domain.artist.entity.QArtist;
-import com.example.peachmusic.domain.artistsong.entity.QArtistSong;
 import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.example.peachmusic.domain.songlike.entity.QSongLike;
@@ -155,7 +153,9 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
         BooleanExpression condition = null;
 
         for (String w : word.split("\\s+")) { // 검색 단어가 여러개인 경우 하나씩 조건에 넣어서 and로 묶음
-            condition = addCondition(condition, SearchWordCondition.wordMatch(song.name, w).or(artistNameExists(w)));
+            BooleanExpression albumMatch = SearchWordCondition.wordMatch(song.name, w);
+            BooleanExpression artistMatch = SearchWordCondition.wordMatch(artist.artistName, w);
+            condition = addCondition(condition, albumMatch.or(artistMatch));
         }
         return condition;
     }
@@ -165,25 +165,6 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
      */
     private BooleanExpression addCondition(BooleanExpression condition1, BooleanExpression condition2) {
         return condition1 == null ? condition2 : condition1.and(condition2);
-    }
-
-    /**
-     * 검색 조건
-     * - `검색어가 이름에 포함된 아티스트`가 한명이라도 존재하는 경우
-     */
-    private BooleanExpression artistNameExists(String word) {
-        QArtist subArtist = new QArtist("subArtist");
-        QArtistSong subArtistSong = new QArtistSong("subArtistSong");
-
-        return JPAExpressions // EXISTS 상관 서브쿼리: 존재 여부만 중요함
-                .selectOne()
-                .from(subArtistSong)
-                .join(subArtistSong.artist, subArtist)
-                .where(
-                        subArtistSong.song.eq(song), // 메인 쿼리의 song과 연결
-                        SearchWordCondition.wordMatch(subArtist.artistName, word) // 검색어가 아티스트 이름에 포함된 경우
-                )
-                .exists();
     }
 
     /**
