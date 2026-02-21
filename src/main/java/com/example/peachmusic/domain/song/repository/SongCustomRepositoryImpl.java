@@ -11,6 +11,7 @@ import com.example.peachmusic.domain.artist.entity.QArtist;
 import com.example.peachmusic.domain.artistsong.entity.QArtistSong;
 import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
+import com.example.peachmusic.domain.songlike.entity.QSongLike;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
@@ -26,7 +27,6 @@ import static com.example.peachmusic.domain.album.entity.QAlbum.album;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
 import static com.example.peachmusic.domain.artistsong.entity.QArtistSong.artistSong;
 import static com.example.peachmusic.domain.song.entity.QSong.song;
-import static com.example.peachmusic.domain.songlike.entity.QSongLike.songLike;
 import static com.example.peachmusic.domain.songprogressingstatus.entity.QSongProgressingStatus.songProgressingStatus;
 
 public class SongCustomRepositoryImpl implements SongCustomRepository {
@@ -91,12 +91,9 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
 
         // 아티스트 이름을 문자열로 합치기
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
-        Expression<Boolean> isLikedExpression = authUser == null ? Expressions.constant(false) : songLike.songLikeId.max().isNotNull();
 
-        JPAQuery<?> query = baseFrom(authUser);
-
-        return query
-                .select(Projections.constructor(SongSearchResponseDto.class, song.songId, song.name, artistNames, song.releaseDate, album.albumImage, song.likeCount, isLikedExpression, song.playCount, song.isDeleted, songProgressingStatus.progressingStatus))
+        return baseFrom()
+                .select(Projections.constructor(SongSearchResponseDto.class, song.songId, song.name, artistNames, song.releaseDate, album.albumImage, song.likeCount, isSongLiked(authUser), song.playCount, song.isDeleted, songProgressingStatus.progressingStatus))
                 .where(searchCondition(word), isActive(isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
                 .groupBy(song.songId) // 아티스트 이름을 문자열로 합치는데 음원 id를 기준으로 함
                 .orderBy(keysetOrder(sortType, isAsc)); // Keyset 조건에 사용되는 커서 순서대로 정렬
@@ -111,29 +108,39 @@ public class SongCustomRepositoryImpl implements SongCustomRepository {
         boolean isAsc = direction == SortDirection.ASC;
 
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
-        Expression<Boolean> isLikedExpression = authUser == null ? Expressions.constant(false) : songLike.songLikeId.max().isNotNull();
 
-        JPAQuery<?> query = baseFrom(authUser);
-
-        return query
-                .select(Projections.constructor(SongArtistDetailResponseDto.class, song.songId, song.name, artistNames, song.likeCount, album.albumImage, songProgressingStatus.progressingStatus, isLikedExpression, album.albumId, song.releaseDate))
+        return baseFrom()
+                .select(Projections.constructor(SongArtistDetailResponseDto.class, song.songId, song.name, artistNames, song.likeCount, album.albumImage, songProgressingStatus.progressingStatus, isSongLiked(authUser), album.albumId, song.releaseDate))
                 .where(artist.artistId.eq(artistId), isActive(false), keysetCondition(sortType, isAsc, cursor))
                 .groupBy(song.songId)
                 .orderBy(keysetOrder(sortType, isAsc));
     }
 
-    private JPAQuery<?> baseFrom(AuthUser authUser) {
-        JPAQuery<?> query = queryFactory
+    private JPAQuery<?> baseFrom() {
+        return queryFactory
                 .from(song)
                 .join(artistSong).on(artistSong.song.eq(song))
                 .join(artist).on(artistSong.artist.eq(artist))
                 .join(song.album, album)
-                .join(songProgressingStatus).on(songProgressingStatus.song.eq(song));
+                .leftJoin(songProgressingStatus).on(songProgressingStatus.song.eq(song));
+    }
 
-        if (authUser != null) {
-            query.leftJoin(songLike).on(songLike.song.eq(song).and(songLike.user.userId.eq(authUser.getUserId())));
+    private Expression<Boolean> isSongLiked(AuthUser authUser) {
+
+        if (authUser == null) {
+            return Expressions.constant(false);
         }
-        return query;
+
+        QSongLike sub = new QSongLike("subSongLike");
+
+        return JPAExpressions
+                .selectOne()
+                .from(sub)
+                .where(
+                        sub.song.eq(song),
+                        sub.user.userId.eq(authUser.getUserId())
+                )
+                .exists();
     }
 
     /**
