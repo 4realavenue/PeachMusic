@@ -115,7 +115,7 @@
     line-height: 1;
     padding: 0;
 }
-.heart-btn.liked { color: #ff4d6d; }
+.heart-btn.liked { color: var(--primary); }
 .heart-btn:hover { transform: scale(1.15); }
 .heart-btn:active { transform: scale(1.25); }
 .heart-btn.disabled { color: #ddd; cursor: not-allowed; }
@@ -294,7 +294,7 @@
     transition: transform 0.1s ease, color 0.15s ease;
 }
 .mini-heart-btn:hover{ transform: scale(1.12); }
-.mini-heart-btn.liked{ color: #ff4d6d; }
+.mini-heart-btn.liked{ color: var(--primary); }
 .mini-heart-btn.disabled{ color: #ddd; cursor: not-allowed; }
 
 .song-right .mini-like-count{
