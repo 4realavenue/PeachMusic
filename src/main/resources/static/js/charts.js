@@ -109,6 +109,13 @@ function decodeHtmlEntities(str) {
     return txt.value;
 }
 
+function resolveImageUrl(imagePath) {
+    if (!imagePath) return "/images/default.png";
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
+    if (imagePath.startsWith("/")) return imagePath;
+    return `/${imagePath}`;
+}
+
 async function request(url) {
     if (getToken()) return authFetch(url, { method: "GET" });
     return fetch(url, { method: "GET" });
@@ -127,6 +134,19 @@ function showLoginPopup() {
         loginPopup.classList.remove("show");
         loginPopup.classList.add("hidden");
     }, 2000);
+}
+
+/* =========================
+   ✅ Detail에서 아티스트명 추출 (artistName or artistList[0])
+========================= */
+function pickArtistName(detail) {
+    const a1 = detail?.artistName;
+    if (a1) return a1;
+
+    const a2 = detail?.artistList?.[0]?.artistName;
+    if (a2) return a2;
+
+    return "-";
 }
 
 /* =========================
@@ -200,6 +220,8 @@ function render() {
         li.className = "chart-item";
         li.dataset.songId = String(songId);
 
+        // ✅ “음원 전체” 톤: 제목 + "아티스트 · 앨범"
+        // Top100에는 메타가 없어서 placeholder 후 hydrate로 채움
         li.innerHTML = `
           <div class="rank-pill">${rank}</div>
 
@@ -209,7 +231,8 @@ function render() {
           </div>
 
           <div class="info">
-            <div class="song-title">${escapeHtml(title)}</div>
+            <div class="song-name">${escapeHtml(title)}</div>
+            <div class="song-sub" data-meta="1">- · -</div>
           </div>
 
           <div class="right-actions">
@@ -236,7 +259,7 @@ function render() {
             await playViaGlobalPlayer(songId, title, playBtn);
         });
 
-        // 좋아요 토글 (✅ 음원 전체 방식: ❤ 고정 + liked 클래스 토글)
+        // 좋아요 토글
         const heartBtn = li.querySelector(".heart-btn");
         const likeNumEl = li.querySelector(".like-number");
 
@@ -368,25 +391,37 @@ function syncPlayButtons() {
 }
 
 /* =========================
-   Detail hydration (albumImage + like)
+   Detail hydration (albumImage + meta + like)
 ========================= */
 async function hydrateRowWithDetail(li, songId, hasToken) {
     const detail = await fetchSongDetail(songId);
     if (!detail) return;
 
+    // 썸네일
     const img = li.querySelector(".thumb img");
-    img.src = detail.albumImage || "/images/default.png";
+    if (img) img.src = resolveImageUrl(detail.albumImage) || "/images/default.png";
 
+    // ✅ 메타: 아티스트명 · 앨범명 (artistList 대응)
+    const metaEl = li.querySelector('[data-meta="1"]');
+    if (metaEl) {
+        const artistRaw = pickArtistName(detail);
+        const albumRaw = detail?.albumName ?? "-";
+
+        const artist = escapeHtml(decodeHtmlEntities(artistRaw));
+        const album = escapeHtml(decodeHtmlEntities(albumRaw));
+
+        metaEl.textContent = `${artist} · ${album}`;
+    }
+
+    // 좋아요
     const likeNumEl = li.querySelector(".like-number");
     const heartBtn = li.querySelector(".heart-btn");
 
     if (likeNumEl) likeNumEl.textContent = String(detail.likeCount ?? 0);
 
     if (heartBtn) {
-        // 비로그인: disabled 고정
         heartBtn.classList.toggle("disabled", !hasToken);
 
-        // 로그인: liked 반영
         if (hasToken) {
             heartBtn.classList.toggle("liked", !!detail.liked);
         } else {

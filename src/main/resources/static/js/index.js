@@ -38,7 +38,7 @@ function showLoading(on) {
 }
 function showError(msg) {
     if (!errorBox) return;
-    errorBox.classList.remove("hidden")
+    errorBox.classList.remove("hidden");
     errorBox.textContent = msg;
 }
 function hideError() {
@@ -233,7 +233,9 @@ function appendRows(items) {
         const imgSrc = resolveImageUrl(s.albumImage);
 
         const safeName = escapeHtml(decodeEntities(s.name ?? "-"));
+
         const safeArtist = escapeHtml(decodeEntities(s.artistName ?? "-"));
+        const safeAlbum = escapeHtml(decodeEntities(s.albumName ?? "-"));
 
         row.innerHTML = `
       <div class="thumb">
@@ -243,7 +245,7 @@ function appendRows(items) {
 
       <div class="song-main">
         <div class="song-name">${safeName}</div>
-        <div class="song-sub">${formatDate(s.releaseDate)} · ${safeArtist}</div>
+        <div class="song-sub">${safeArtist} · ${safeAlbum}</div>
       </div>
 
       <div class="song-actions">

@@ -9,17 +9,18 @@ import com.example.peachmusic.common.model.CursorParam;
 import com.example.peachmusic.common.query.SearchWordCondition;
 import com.example.peachmusic.common.repository.KeysetPolicy;
 import com.example.peachmusic.domain.artist.dto.response.ArtistSearchResponseDto;
+import com.example.peachmusic.domain.artistlike.entity.QArtistLike;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
-import static com.example.peachmusic.domain.artistlike.entity.QArtistLike.artistLike;
 
 public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
 
@@ -55,19 +56,30 @@ public class ArtistCustomRepositoryImpl implements ArtistCustomRepository {
         keysetPolicy.validateCursor(sortType, cursor); // 커서 검증
         boolean isAsc = keysetPolicy.isAscending(sortType, direction);
 
-        Expression<Boolean> isLikedExpression = authUser == null ? Expressions.constant(false) : artistLike.artistLikeId.max().isNotNull();
-
-        JPAQuery<?> query = queryFactory.from(artist);
-
-        if (authUser != null) {
-            query.leftJoin(artistLike).on(artistLike.artist.eq(artist).and(artistLike.user.userId.eq(authUser.getUserId())));
-        }
-
-        return query
-                .select(Projections.constructor(ArtistSearchResponseDto.class, artist.artistId, artist.artistName, artist.profileImage, artist.likeCount, isLikedExpression, artist.isDeleted))
+        return queryFactory
+                .from(artist)
+                .select(Projections.constructor(ArtistSearchResponseDto.class, artist.artistId, artist.artistName, artist.profileImage, artist.likeCount, isArtistLiked(authUser), artist.isDeleted))
                 .from(artist)
                 .where(searchCondition(word), isActive(isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
                 .orderBy(keysetOrder(sortType, isAsc)); // Keyset 조건에 사용되는 커서 순서대로 정렬
+    }
+
+    private Expression<Boolean> isArtistLiked(AuthUser authUser) {
+
+        if (authUser == null) {
+            return Expressions.constant(false);
+        }
+
+        QArtistLike sub = new QArtistLike("subArtistLike");
+
+        return JPAExpressions
+                .selectOne()
+                .from(sub)
+                .where(
+                        sub.artist.eq(artist),
+                        sub.user.userId.eq(authUser.getUserId())
+                )
+                .exists();
     }
 
     /**
