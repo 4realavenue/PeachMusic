@@ -68,14 +68,10 @@ function render(list) {
                 <div class="album-name">${album.albumName}</div>
 
                 <div class="album-bottom">
-                    <div class="like-count">
-                        좋아요 <span>${album.likeCount ?? 0}</span>
+                    <div class="like-group">
+                        <span class="like-count">${album.likeCount ?? 0}</span>
+                        <button class="heart-btn liked" data-id="${album.albumId}">❤</button>
                     </div>
-
-                    <button class="heart-btn liked"
-                            data-id="${album.albumId}">
-                        ❤
-                    </button>
                 </div>
             </div>
         `;
@@ -138,11 +134,10 @@ albumGrid.addEventListener("click", async (e) => {
         // ✅ 좋아요 유지(혹시 다시 좋아요로 돌아오는 케이스 대비)
         heartBtn.classList.toggle("liked", liked);
 
-        const likeText = heartBtn
-            .closest(".album-bottom")
-            .querySelector("span");
+        // ✅ 숫자 업데이트 (이제 span 말고 .like-count 자체)
+        const likeEl = heartBtn.closest(".like-group")?.querySelector(".like-count");
+        if (likeEl) likeEl.textContent = likeCount;
 
-        likeText.textContent = likeCount;
     } catch (err) {
         console.error(err);
     }

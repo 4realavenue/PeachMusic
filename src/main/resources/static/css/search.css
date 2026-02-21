@@ -39,13 +39,10 @@
     padding:0 20px;
     border-radius: var(--radius-md);
     border:none;
-
     background: var(--primary);
     color:#fff;
-
     font-size: var(--font-sm);
     font-weight:700;
-
     cursor:pointer;
     transition: transform .12s ease, box-shadow .2s ease;
     box-shadow: var(--shadow-primary);
@@ -84,11 +81,9 @@
     display:grid;
     grid-template-columns:50px 1fr;
     align-items:center;
-
     padding:12px 14px;
     border-radius: var(--radius-md);
     cursor:pointer;
-
     background:#f7f7f7;
     font-size: var(--font-sm);
     transition:background .15s ease;
@@ -106,6 +101,8 @@
 /* =========================
    Result Section
 ========================= */
+.search-result{ margin-bottom: 60px; }
+
 .result-section{
     margin-bottom:60px;
 }
@@ -140,9 +137,8 @@
 ========================= */
 .result-list .item{
     display:grid;
-    grid-template-columns:80px 2fr 2fr 120px;
+    grid-template-columns:80px 1fr 140px;
     align-items:center;
-
     padding:16px 10px;
     border-bottom:1px solid var(--border);
     cursor:pointer;
@@ -160,6 +156,65 @@
     border-radius: var(--radius-md);
 }
 
+.song-info{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    min-width:0;
+}
+
+.song-title{
+    font-weight:700;
+    font-size: var(--font-md);
+    color: var(--text-main);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.song-sub{
+    font-size: var(--font-sm);
+    color: var(--text-sub);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+/* 좋아요 영역 */
+.like-area{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:12px;
+    white-space:nowrap;
+}
+
+.like-number{
+    font-size: var(--font-sm);
+    color: var(--text-sub);
+    font-weight:800;
+    font-variant-numeric: tabular-nums;
+    min-width:22px;
+    text-align:right;
+}
+
+/* 하트 */
+.heart-btn{
+    border:none;
+    background:none;
+    font-size:22px;
+    cursor:pointer;
+    color:#bbb;
+    transition: transform .1s ease, color .15s ease;
+    line-height:1;
+    padding:0;
+}
+
+.heart-btn:hover{ transform:scale(1.15); }
+.heart-btn:active{ transform:scale(1.25); }
+.heart-btn.liked{ color: var(--primary); }
+.heart-btn.disabled{ color:#ddd; cursor:not-allowed; }
+
 /* =========================
    Album / Artist Grid
 ========================= */
@@ -175,6 +230,9 @@
     border-radius: var(--radius-lg);
     transition:transform .15s ease, box-shadow .15s ease;
     cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
 }
 
 .result-grid .card:hover{
@@ -182,61 +240,119 @@
     box-shadow: var(--shadow-hover);
 }
 
+/* 앨범 카드 이미지 */
 .result-grid .card img{
     width:100%;
     height:160px;
     object-fit:cover;
     border-radius: var(--radius-md);
-    margin-bottom:10px;
+    margin-bottom:6px;
 }
 
-/* =========================
-   Dropdown (통일 스타일)
-========================= */
-.search-bar select{
-    height: var(--input-height);
-    padding:0 14px;
-    border-radius: var(--radius-md);
-    border:1px solid var(--border);
+/* 카드 텍스트 */
+.card-title{
+    font-weight:800;
+    font-size: var(--font-md);
+    color: var(--text-main);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.card-sub{
     font-size: var(--font-sm);
-    background:#fff;
-    cursor:pointer;
-    outline:none;
+    color: var(--text-sub);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
 
-.search-bar select:hover{
-    border-color:#aaa;
-}
-
-.search-bar select:focus{
-    border-color: var(--primary);
-    box-shadow:0 0 0 3px rgba(248,140,174,0.15);
-}
-
-/* 커스텀 화살표 */
-.search-bar select{
-    appearance:none;
-    -webkit-appearance:none;
-    -moz-appearance:none;
-
-    background-image:url("data:image/svg+xml;utf8,<svg fill='%23666' height='20' viewBox='0 0 20 20' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M5.25 7.5l4.75 5 4.75-5z'/></svg>");
-    background-repeat:no-repeat;
-    background-position:right 12px center;
-    background-size:14px;
-    padding-right:36px;
+/* 카드 하단 좋아요 */
+.card-bottom{
+    margin-top:auto;
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:12px;
 }
 
 /* =========================
-   Status
+   ✅ Artist: 원형 프로필 + 가운데 정렬 통일
 ========================= */
-.loading,
-.empty{
+.artist-card{
+    align-items:center; /* 카드 전체 가운데 정렬 */
+}
+
+.artist-card .artist-profile{
+    width:150px;
+    height:150px;
+    border-radius:50%;
+    background:#e6e6e6;
+    margin:0 auto 6px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+}
+
+.artist-card .artist-profile-img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    border-radius:50%;
+}
+
+.artist-card .artist-profile.placeholder{
+    font-size:48px;
+    font-weight:600;
+    color: var(--text-sub);
+    user-select:none;
+}
+
+/* ✅ 아티스트 이름 가운데 */
+.artist-card .card-title{
+    text-align:center;
+    width:100%;
+}
+
+/* ✅ 아티스트 좋아요 영역 가운데 */
+.artist-card .card-bottom{
+    justify-content:center;
+}
+
+/* 기본 img 규칙 무효화 */
+.artist-card img{
+    display:none;
+}
+
+/* =========================
+   Empty / Hidden
+========================= */
+#emptyResult{
     margin-top:60px;
     text-align:center;
     color: var(--text-sub);
     font-size: var(--font-sm);
 }
 
-.hidden{
-    display:none;
+.hidden{ display:none; }
+
+/* =========================
+   Login Toast
+========================= */
+.login-popup{
+    position:fixed;
+    top:20px;
+    left:50%;
+    transform:translateX(-50%);
+    background:#111;
+    color:#fff;
+    padding:12px 20px;
+    border-radius: var(--radius-md);
+    font-size: var(--font-sm);
+    z-index:9999;
+    opacity:0;
+    transition:opacity .25s ease;
 }
+.login-popup.show{ opacity:1; }

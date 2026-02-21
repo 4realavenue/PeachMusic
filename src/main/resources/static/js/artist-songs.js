@@ -98,6 +98,13 @@ import { resolveAudioUrl } from "/js/player-hls.js";
         return fetch(url, { method: "GET" });
     }
 
+    /* =========================
+       ✅ 핵심: liked 필드명 통합 처리
+    ========================= */
+    function toLikedFlag(obj) {
+        return !!(obj?.liked ?? obj?.isLiked);
+    }
+
     function renderSongRow(s) {
         const songId = s.songId;
         const name = s.name ?? "음원";
@@ -105,6 +112,8 @@ import { resolveAudioUrl } from "/js/player-hls.js";
         const row = document.createElement("div");
         row.className = "song-row";
         row.dataset.songId = String(songId);
+
+        const liked = toLikedFlag(s);
 
         row.innerHTML = `
       <div class="song-left">
@@ -117,7 +126,7 @@ import { resolveAudioUrl } from "/js/player-hls.js";
 
         <span class="like-group">
           <span class="like-number">${s.likeCount ?? 0}</span>
-          <button class="heart-btn ${s.isLiked ? "liked" : ""} ${!hasToken ? "disabled" : ""}"
+          <button class="heart-btn ${liked ? "liked" : ""} ${!hasToken ? "disabled" : ""}"
                   type="button"
                   aria-label="음원 좋아요"
                   data-id="${songId}">❤</button>
@@ -268,9 +277,11 @@ import { resolveAudioUrl } from "/js/player-hls.js";
             const result = await res.json();
             if (!result?.success) return;
 
-            const { liked, likeCount } = result.data;
+            // ✅ 토글 응답도 liked / isLiked 둘 다 대응
+            const liked = toLikedFlag(result.data);
+            const likeCount = result.data?.likeCount;
 
-            heartBtn.classList.toggle("liked", !!liked);
+            heartBtn.classList.toggle("liked", liked);
 
             const row = heartBtn.closest(".song-row");
             const likeNumberEl = row?.querySelector(".like-number");

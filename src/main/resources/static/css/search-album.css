@@ -40,13 +40,10 @@
     padding:0 20px;
     border-radius: var(--radius-md);
     border:none;
-
     background: var(--primary);
     color:#fff;
-
     font-size: var(--font-sm);
     font-weight:700;
-
     cursor:pointer;
     transition: transform .12s ease, box-shadow .2s ease;
     box-shadow: var(--shadow-primary);
@@ -112,43 +109,52 @@
     color: var(--text-sub);
 }
 
+/* =========================
+   ✅ Like Area (미리보기와 동일)
+========================= */
 .album-bottom{
-    margin-top:8px;
+    margin-top:10px;
     display:flex;
     align-items:center;
-    justify-content:space-between;
+    justify-content:flex-end;   /* 🔥 양끝 분리 제거 */
+    gap:12px;                   /* 숫자-하트 간격 통일 */
 }
 
-.like-number{
-    font-size: var(--font-sm);
+/* 숫자 더 진하게 */
+.album-bottom .like-number{
+    font-size: var(--font-md);  /* 🔥 기존 sm → md */
+    font-weight:800;            /* 🔥 진하게 */
     color: var(--text-sub);
+    min-width:22px;
+    text-align:right;
+    font-variant-numeric: tabular-nums;
 }
 
-/* =========================
-   Heart
-========================= */
-.heart-btn{
+/* 하트 */
+.album-bottom .heart-btn{
     border:none;
     background:none;
     font-size:22px;
     cursor:pointer;
     color:#bbb;
     transition: transform .1s ease, color .15s ease;
+    line-height:1;
+    padding:0;
 }
 
-.heart-btn.liked{
+.album-bottom .heart-btn.liked{
     color: var(--primary);
 }
 
-.heart-btn:hover{
-    transform:scale(1.2);
+.album-bottom .heart-btn:hover{
+    transform:scale(1.15);
 }
 
-.heart-btn:active{
+.album-bottom .heart-btn:active{
     transform:scale(1.3);
 }
 
-.heart-btn.disabled{
+.album-bottom .heart-btn.disabled{
     color:#ddd;
     cursor:not-allowed;
 }
