@@ -42,15 +42,19 @@ public class SearchService {
         searchHistoryService.recordSearchRank(word); // 검색어 랭킹 기록
 
         String key = SEARCH_RESULT_KEY + word;
+
+        // 로그인 안 한 경우에만 캐시 조회
         SearchPreviewResponseDto cachedResult = getCachedResult(key);
-        if (cachedResult != null) {
+        if (authUser == null && cachedResult != null) {
             return cachedResult;
         }
 
+
         SearchPreviewResponseDto result = createSearchResult(authUser, word); // DB 조회
 
+        // 비로그인일 때만 캐시 저장
         boolean isPopular = searchHistoryService.isPopularKeyword(word);
-        if (isPopular) { // 검색어가 인기검색어인 경우에 Redis에 저장
+        if (authUser == null && isPopular) {
             saveCacheResult(key, result);
         }
 
