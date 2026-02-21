@@ -10,6 +10,7 @@ import com.example.peachmusic.common.query.SearchWordCondition;
 import com.example.peachmusic.common.repository.KeysetPolicy;
 import com.example.peachmusic.domain.album.dto.response.AlbumArtistDetailResponseDto;
 import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
+import com.example.peachmusic.domain.albumlike.entity.QAlbumLike;
 import com.example.peachmusic.domain.artist.entity.QArtist;
 import com.example.peachmusic.domain.artistalbum.entity.QArtistAlbum;
 import com.querydsl.core.types.Expression;
@@ -24,7 +25,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import static com.example.peachmusic.domain.album.entity.QAlbum.album;
-import static com.example.peachmusic.domain.albumlike.entity.QAlbumLike.albumLike;
 import static com.example.peachmusic.domain.artist.entity.QArtist.artist;
 import static com.example.peachmusic.domain.artistalbum.entity.QArtistAlbum.artistAlbum;
 import static com.example.peachmusic.domain.song.entity.QSong.song;
@@ -81,12 +81,9 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
 
         // 아티스트 이름을 문자열로 합치기
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
-        Expression<Boolean> isLikedExpression = authUser == null ? Expressions.constant(false) : albumLike.albumLikeId.max().isNotNull();
 
-        JPAQuery<?> query = baseFrom(authUser);
-
-        return query
-                .select(Projections.constructor(AlbumSearchResponseDto.class, album.albumId, album.albumName, artistNames, album.albumReleaseDate, album.albumImage, album.likeCount, isLikedExpression, album.isDeleted))
+        return baseFrom()
+                .select(Projections.constructor(AlbumSearchResponseDto.class, album.albumId, album.albumName, artistNames, album.albumReleaseDate, album.albumImage, album.likeCount, isAlbumLiked(authUser), album.isDeleted))
                 .where(searchCondition(word), isActive(isAdmin), keysetCondition(sortType, isAsc, cursor)) // 검색어 조건, Keyset 조건
                 .groupBy(album.albumId) // 아티스트 이름을 문자열로 합치는데 앨범 id를 기준으로 함
                 .orderBy(keysetOrder(sortType, isAsc)); // Keyset 조건에 사용되는 커서 순서대로 정렬
@@ -101,27 +98,37 @@ public class AlbumCustomRepositoryImpl implements AlbumCustomRepository {
         boolean isAsc = direction == SortDirection.ASC;
 
         StringTemplate artistNames = Expressions.stringTemplate("GROUP_CONCAT({0})", artist.artistName);
-        Expression<Boolean> isLikedExpression = authUser == null ? Expressions.constant(false) : albumLike.albumLikeId.max().isNotNull();
 
-        JPAQuery<?> query = baseFrom(authUser);
-
-        return query
-                .select(Projections.constructor(AlbumArtistDetailResponseDto.class, album.albumId, album.albumName, artistNames, album.albumReleaseDate, album.albumImage, album.likeCount, album.isDeleted, isLikedExpression))
+        return baseFrom()
+                .select(Projections.constructor(AlbumArtistDetailResponseDto.class, album.albumId, album.albumName, artistNames, album.albumReleaseDate, album.albumImage, album.likeCount, album.isDeleted, isAlbumLiked(authUser)))
                 .where(artist.artistId.eq(artistId), isActive(false), keysetCondition(sortType, isAsc, cursor))
                 .groupBy(album.albumId)
                 .orderBy(keysetOrder(sortType, isAsc));
     }
 
-    private JPAQuery<?> baseFrom(AuthUser authUser) {
-        JPAQuery<?> query = queryFactory
+    private JPAQuery<?> baseFrom() {
+        return queryFactory
                 .from(album)
                 .join(artistAlbum).on(artistAlbum.album.eq(album))
                 .join(artist).on(artistAlbum.artist.eq(artist));
+    }
 
-        if (authUser != null) {
-            query.leftJoin(albumLike).on(albumLike.album.eq(album).and(albumLike.user.userId.eq(authUser.getUserId())));
+    private Expression<Boolean> isAlbumLiked(AuthUser authUser) {
+
+        if (authUser == null) {
+            return Expressions.constant(false);
         }
-        return query;
+
+        QAlbumLike sub = new QAlbumLike("subAlbumLike");
+
+        return JPAExpressions
+                .selectOne()
+                .from(sub)
+                .where(
+                        sub.album.eq(album),
+                        sub.user.userId.eq(authUser.getUserId())
+                )
+                .exists();
     }
 
     /**
