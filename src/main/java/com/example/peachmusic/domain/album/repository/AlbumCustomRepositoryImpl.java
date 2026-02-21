@@ -13,6 +13,7 @@ import com.example.peachmusic.domain.album.dto.response.AlbumSearchResponseDto;
 import com.example.peachmusic.domain.albumlike.entity.QAlbumLike;
 import com.example.peachmusic.domain.artist.entity.QArtist;
 import com.example.peachmusic.domain.artistalbum.entity.QArtistAlbum;
+import com.example.peachmusic.domain.artistlike.entity.QArtistLike;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
