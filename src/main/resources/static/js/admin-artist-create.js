@@ -140,7 +140,7 @@ profileInput?.addEventListener("change", () => {
     // ✅ "이미지 미리보기" 글씨 숨김
     hideEmptyText();
 
-    // ✅ 미리보기 표시: 배경 방식 유지 (현재 CSS 구조 그대로)
+    // ✅ 미리보기 표시: 배경 방식 유지 (원형 CSS도 그대로 적용됨)
     if (preview) preview.style.backgroundImage = `url("${previewObjectUrl}")`;
 
     // (옵션) img 태그도 같이 쓰고 싶으면 아래로 바꾸면 됨:

@@ -88,10 +88,31 @@ function renderRows(items, append = true) {
                 a.artistProfileImage ??
                 null;
 
-            const imgUrl = resolveImageUrl(profileImage);
-
-            // ✅ 글씨 깨짐 방지: 엔티티 디코딩 후 안전 출력
             const artistNameSafe = safeText(a.artistName);
+
+            const firstChar = a.artistName
+                ? escapeHtml(a.artistName.charAt(0).toUpperCase())
+                : "?";
+
+            let profileHtml;
+
+            if (profileImage) {
+                const imgUrl = resolveImageUrl(profileImage);
+                profileHtml = `
+                    <div class="artist-thumb" title="${artistNameSafe}">
+                        <img src="${escapeHtml(imgUrl)}"
+                             alt="${artistNameSafe}"
+                             loading="lazy"
+                             onerror="this.onerror=null;this.parentElement.innerHTML='${firstChar}';" />
+                    </div>
+                `;
+            } else {
+                profileHtml = `
+                    <div class="artist-thumb" title="${artistNameSafe}">
+                        ${firstChar}
+                    </div>
+                `;
+            }
 
             const nameHtml = isDeleted
                 ? `
@@ -116,12 +137,7 @@ function renderRows(items, append = true) {
                     <div class="col id">${a.artistId}</div>
 
                     <div class="col profile">
-                        <div class="artist-thumb" title="${artistNameSafe}">
-                            <img src="${escapeHtml(imgUrl)}"
-                                 alt="${artistNameSafe}"
-                                 loading="lazy"
-                                 onerror="this.onerror=null;this.src='/images/default.png';" />
-                        </div>
+                        ${profileHtml}
                     </div>
 
                     <div class="col name">

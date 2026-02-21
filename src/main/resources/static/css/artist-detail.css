@@ -11,13 +11,33 @@
     align-items: center;
 }
 
+/* ✅ 원형 아바타 + 첫 글자 플레이스홀더 통일 */
 .artist-hero-avatar {
     width: 160px;
     height: 160px;
-    border-radius: 20px;
-    background: #efefef;
+    border-radius: 50%; /* 🔥 원형 */
+    background: #e6e6e6;
     box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #9a9a9a;
+    font-weight: 600;
+    font-size: 52px;
+    letter-spacing: 0.5px;
+    user-select: none;
+
+    overflow: hidden;
+
+    /* background-image 방식 유지 */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
+
+.artist-hero-avatar.has-image { color: transparent; }
 
 .artist-hero-name {
     font-size: 28px;
@@ -62,17 +82,29 @@
 }
 
 /* =========================
-   좋아요 (아티스트)
+   ✅ 좋아요(상단): 라벨 시작선(국가/유형/데뷔)와 정렬
 ========================= */
 .artist-hero-meta {
+    /* 🔥 여기서 절대 밀지 않음 (라벨 시작선에 그대로 붙임) */
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;        /* ✅ 미리보기와 동일 */
     color: #666;
     font-size: 14px;
-    display: flex;
-    gap: 10px;
-    align-items: center;
+    margin-top: 2px;  /* 데뷔 줄과 살짝 숨만 쉬게(원치 않으면 0으로) */
 }
 
-/* 회색하트 버튼(아티스트 좋아요) */
+/* ✅ 아티스트 좋아요 수: 진하기만 통일 (정렬/폭 고정 안함) */
+.artist-hero-meta #artistLikeCount,
+.artist-hero-meta .like-count {
+    font-size: 15px;
+    color: #666;
+    font-weight: 800 !important;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+/* 하트 버튼 */
 .heart-btn {
     border: none;
     background: none;
@@ -80,10 +112,12 @@
     cursor: pointer;
     color: #bbb;
     transition: transform 0.1s ease, color 0.15s ease;
+    line-height: 1;
+    padding: 0;
 }
-.heart-btn.liked { color: var(--primary); }
-.heart-btn:hover { transform: scale(1.2); }
-.heart-btn:active { transform: scale(1.3); }
+.heart-btn.liked { color: #ff4d6d; }
+.heart-btn:hover { transform: scale(1.15); }
+.heart-btn:active { transform: scale(1.25); }
 .heart-btn.disabled { color: #ddd; cursor: not-allowed; }
 
 /* =========================
@@ -146,6 +180,8 @@
     border-radius: 14px;
     padding: 10px;
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
 }
 
 .preview-album-cover {
@@ -161,18 +197,40 @@
     font-weight: 900;
     line-height: 1.2;
     margin-bottom: 2px;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: calc(1.2em * 2);
 }
 
-.album-meta {
+.album-meta-row {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     font-size: 12px;
     color: #666;
 }
 
-.album-liked-badge {
-    margin-top: 6px;
-    font-size: 11px;
-    color: var(--primary);;
+.album-date { white-space: nowrap; }
+
+.album-meta-row .like-group {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    white-space: nowrap;
+}
+
+.album-meta-row .mini-like-count {
+    font-size: 14px;
     font-weight: 800;
+    color: #666;
+    min-width: 22px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
 }
 
 /* =========================
@@ -185,7 +243,7 @@
 
 .song-item {
     display: grid;
-    grid-template-columns: 1fr 160px; /* left / right */
+    grid-template-columns: 1fr 120px;
     gap: 12px;
     align-items: center;
     background: #fafafa;
@@ -214,25 +272,17 @@
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 16px;
+    gap: 10px;
 }
 
-/* ✅ 좋아요 묶음 */
-.like-group{
-    display: inline-flex;
+.song-right .like-group{
+    display: flex;
     align-items: center;
-    gap: 4px;
+    justify-content: flex-end;
+    gap: 12px;
+    white-space: nowrap;
 }
 
-/* 숫자 */
-.mini-like-count{
-    font-size: 13px;
-    color: #777;
-    min-width: 14px;
-    text-align: right;
-}
-
-/* 하트 */
 .mini-heart-btn{
     border: none;
     background: none;
@@ -244,10 +294,18 @@
     transition: transform 0.1s ease, color 0.15s ease;
 }
 .mini-heart-btn:hover{ transform: scale(1.12); }
-.mini-heart-btn.liked{ color: var(--primary); }
+.mini-heart-btn.liked{ color: #ff4d6d; }
 .mini-heart-btn.disabled{ color: #ddd; cursor: not-allowed; }
 
-/* 원형 재생 버튼 */
+.song-right .mini-like-count{
+    font-size: 14px;
+    font-weight: 800;
+    color: #666;
+    min-width: 22px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
 .track-play{
     width: 36px;
     height: 36px;
@@ -288,17 +346,10 @@
 .login-popup.show { opacity: 1; }
 .hidden { display: none !important; }
 
-/* =========================
-   반응형
-========================= */
 @media (max-width: 1000px) {
     .preview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-
 @media (max-width: 640px) {
     .artist-hero { grid-template-columns: 1fr; }
     .preview-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); }
-
-    .song-item { grid-template-columns: 1fr; }
-    .song-right { justify-content: flex-start; }
 }
