@@ -6,10 +6,12 @@ const errorBox = document.getElementById("errorBox");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
 const pageInfo = document.getElementById("pageInfo");
+const loginPopup = document.getElementById("loginPopup");
 
 const TOP100_API = "/api/songs/ranking/Top100";
 const SONG_DETAIL_API = (songId) => `/api/songs/${songId}`;
 const SONG_PLAY_API = (songId) => `/api/songs/${songId}/play`;
+const SONG_LIKE_API = (songId) => `/api/songs/${songId}/likes`;
 const SONG_PAGE_URL = (songId) => `/songs/${songId}/page`;
 
 const PAGE_SIZE = 10;
@@ -17,7 +19,6 @@ const PAGE_SIZE = 10;
 let top = [];
 let page = 0;
 
-// ✅ 차트에서 “현재 선택된 곡” 표시용
 let currentSongId = null;
 let currentPlayBtn = null;
 
@@ -62,7 +63,6 @@ function wireGlobalAudioSync() {
     if (!globalAudio) return;
 
     const sync = () => {
-        // 현재 페이지에 보이는 버튼들만 상태 반영
         document.querySelectorAll(".chart-item").forEach((li) => {
             const btn = li.querySelector(".track-play");
             if (!btn) return;
@@ -74,7 +74,6 @@ function wireGlobalAudioSync() {
             setPlayBtnState(btn, isPlaying);
         });
 
-        // currentPlayBtn 정리(다른 곡으로 넘어간 경우)
         if (currentPlayBtn) {
             const url = currentPlayBtn.dataset.audioUrl || null;
             const same = url ? isSameTrack(globalAudio, url) : false;
@@ -89,7 +88,6 @@ function wireGlobalAudioSync() {
     globalAudio.addEventListener("pause", sync);
     globalAudio.addEventListener("ended", sync);
 
-    // ✅ 최초 1회 싱크
     sync();
 }
 
@@ -97,7 +95,7 @@ function wireGlobalAudioSync() {
    Utils
 ========================= */
 function escapeHtml(str) {
-    return String(str)
+    return String(str ?? "")
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
@@ -107,13 +105,48 @@ function escapeHtml(str) {
 
 function decodeHtmlEntities(str) {
     const txt = document.createElement("textarea");
-    txt.innerHTML = String(str);
+    txt.innerHTML = String(str ?? "");
     return txt.value;
+}
+
+function resolveImageUrl(imagePath) {
+    if (!imagePath) return "/images/default.png";
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
+    if (imagePath.startsWith("/")) return imagePath;
+    return `/${imagePath}`;
 }
 
 async function request(url) {
     if (getToken()) return authFetch(url, { method: "GET" });
     return fetch(url, { method: "GET" });
+}
+
+/* =========================
+   Login popup
+========================= */
+function showLoginPopup() {
+    if (!loginPopup) return;
+
+    loginPopup.classList.remove("hidden");
+    loginPopup.classList.add("show");
+
+    setTimeout(() => {
+        loginPopup.classList.remove("show");
+        loginPopup.classList.add("hidden");
+    }, 2000);
+}
+
+/* =========================
+   ✅ Detail에서 아티스트명 추출 (artistName or artistList[0])
+========================= */
+function pickArtistName(detail) {
+    const a1 = detail?.artistName;
+    if (a1) return a1;
+
+    const a2 = detail?.artistList?.[0]?.artistName;
+    if (a2) return a2;
+
+    return "-";
 }
 
 /* =========================
@@ -168,6 +201,8 @@ async function loadTop100() {
 function render() {
     listEl.innerHTML = "";
 
+    const hasToken = !!getToken();
+
     const start = page * PAGE_SIZE;
     const items = top.slice(start, start + PAGE_SIZE);
 
@@ -178,48 +213,84 @@ function render() {
     items.forEach((row, idx) => {
         const rank = start + idx + 1;
 
-        const songId = row.id; // Top100 응답이 id
+        const songId = row.id;
         const title = decodeHtmlEntities(row.title ?? "-");
 
         const li = document.createElement("li");
         li.className = "chart-item";
         li.dataset.songId = String(songId);
 
+        // ✅ “음원 전체” 톤: 제목 + "아티스트 · 앨범"
+        // Top100에는 메타가 없어서 placeholder 후 hydrate로 채움
         li.innerHTML = `
-      <div class="rank-pill">${rank}</div>
+          <div class="rank-pill">${rank}</div>
 
-      <div class="thumb">
-        <img src="/images/default.png" alt="album"
-             onerror="this.src='/images/default.png'">
-      </div>
+          <div class="thumb">
+            <img src="/images/default.png" alt="album"
+                 onerror="this.src='/images/default.png'">
+          </div>
 
-      <div class="info">
-        <div class="song-title">${escapeHtml(title)}</div>
-      </div>
+          <div class="info">
+            <div class="song-name">${escapeHtml(title)}</div>
+            <div class="song-sub" data-meta="1">- · -</div>
+          </div>
 
-      <button class="track-play" type="button" aria-label="재생">▶</button>
-    `;
+          <div class="right-actions">
+            <button class="track-play" type="button" aria-label="재생">▶</button>
+
+            <div class="like-group">
+              <span class="like-number">0</span>
+              <button class="heart-btn ${!hasToken ? "disabled" : ""}" type="button" aria-label="좋아요">❤</button>
+            </div>
+          </div>
+        `;
 
         // 행 클릭 -> 단건조회 (/page)
         li.addEventListener("click", (e) => {
             if (e.target.closest(".track-play")) return;
+            if (e.target.closest(".heart-btn")) return;
             location.href = SONG_PAGE_URL(songId);
         });
 
-        // 재생/일시정지 (전역 플레이어)
+        // 재생
         const playBtn = li.querySelector(".track-play");
         playBtn.addEventListener("click", async (e) => {
             e.stopPropagation();
             await playViaGlobalPlayer(songId, title, playBtn);
         });
 
+        // 좋아요 토글
+        const heartBtn = li.querySelector(".heart-btn");
+        const likeNumEl = li.querySelector(".like-number");
+
+        heartBtn.addEventListener("click", async (e) => {
+            e.stopPropagation();
+
+            if (!getToken()) {
+                showLoginPopup();
+                return;
+            }
+
+            try {
+                const res = await authFetch(SONG_LIKE_API(songId), { method: "POST" });
+                if (!res) return;
+
+                const payload = await res.json();
+                if (!payload?.success) return;
+
+                const { liked, likeCount } = payload.data ?? {};
+                heartBtn.classList.toggle("liked", liked === true);
+                if (typeof likeCount === "number") likeNumEl.textContent = String(likeCount);
+            } catch (err) {
+                console.error("좋아요 토글 실패:", err);
+            }
+        });
+
         listEl.appendChild(li);
 
-        // 상세로 앨범 이미지 보강
-        hydrateRowWithDetail(li, songId);
+        hydrateRowWithDetail(li, songId, hasToken);
     });
 
-    // 렌더 후 상태 반영
     syncPlayButtons();
 }
 
@@ -232,21 +303,17 @@ async function playViaGlobalPlayer(songId, title, playBtn) {
         return;
     }
 
-    // ✅ /play에서 streamingUrl 받아오기 (재생수도 같이 증가)
     const audioUrl = await fetchStreamingUrl(songId);
     if (!audioUrl) return;
 
-    // ✅ 현재 페이지(10곡)를 큐로 전달 (무한 반복)
     const tracks = buildChartTracksForCurrentPage();
     window.setPlayerQueue(tracks, songId, { loop: true, contextKey: `chart:top100:p${page}` });
 
-    // 버튼에 audioUrl 저장(전역 오디오와 같은 곡인지 비교용)
     playBtn.dataset.audioUrl = audioUrl;
 
     const globalAudio = getGlobalAudioEl();
     const same = isSameTrack(globalAudio, audioUrl);
 
-    // 현재 선택 곡 갱신
     if (currentPlayBtn && currentPlayBtn !== playBtn) {
         setPlayBtnState(currentPlayBtn, false);
     }
@@ -254,10 +321,7 @@ async function playViaGlobalPlayer(songId, title, playBtn) {
     currentPlayBtn = playBtn;
 
     try {
-        // ✅ 통일: 3 args만
         await window.playSongFromPage(audioUrl, title, songId);
-
-        // 호출 후 버튼 표시(전역 이벤트에서도 싱크됨)
         if (!same) setPlayBtnState(playBtn, true);
         else syncPlayButtons();
     } catch (e) {
@@ -287,9 +351,8 @@ async function fetchStreamingUrl(songId) {
         }
 
         const raw = payload?.data?.streamingUrl ?? null;
-
-        // ✅ R2 도메인 + trim + 슬래시 정규화
         const url = resolveAudioUrl(raw);
+
         if (!url) {
             alert("재생 가능한 음원 주소가 없습니다.");
             return null;
@@ -315,7 +378,6 @@ function syncPlayButtons() {
 
         const url = btn.dataset.audioUrl || null;
 
-        // url 없으면(아직 클릭 안한 버튼) 기본 ▶
         if (!url || !globalAudio) {
             setPlayBtnState(btn, false);
             return;
@@ -329,14 +391,43 @@ function syncPlayButtons() {
 }
 
 /* =========================
-   Detail hydration (albumImage)
+   Detail hydration (albumImage + meta + like)
 ========================= */
-async function hydrateRowWithDetail(li, songId) {
+async function hydrateRowWithDetail(li, songId, hasToken) {
     const detail = await fetchSongDetail(songId);
     if (!detail) return;
 
+    // 썸네일
     const img = li.querySelector(".thumb img");
-    img.src = detail.albumImage || "/images/default.png";
+    if (img) img.src = resolveImageUrl(detail.albumImage) || "/images/default.png";
+
+    // ✅ 메타: 아티스트명 · 앨범명 (artistList 대응)
+    const metaEl = li.querySelector('[data-meta="1"]');
+    if (metaEl) {
+        const artistRaw = pickArtistName(detail);
+        const albumRaw = detail?.albumName ?? "-";
+
+        const artist = escapeHtml(decodeHtmlEntities(artistRaw));
+        const album = escapeHtml(decodeHtmlEntities(albumRaw));
+
+        metaEl.textContent = `${artist} · ${album}`;
+    }
+
+    // 좋아요
+    const likeNumEl = li.querySelector(".like-number");
+    const heartBtn = li.querySelector(".heart-btn");
+
+    if (likeNumEl) likeNumEl.textContent = String(detail.likeCount ?? 0);
+
+    if (heartBtn) {
+        heartBtn.classList.toggle("disabled", !hasToken);
+
+        if (hasToken) {
+            heartBtn.classList.toggle("liked", !!detail.liked);
+        } else {
+            heartBtn.classList.remove("liked");
+        }
+    }
 }
 
 async function fetchSongDetail(songId) {

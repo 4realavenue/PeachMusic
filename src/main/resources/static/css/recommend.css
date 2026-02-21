@@ -89,13 +89,17 @@
 ========================= */
 .bottom-row{
     display:flex;
-    justify-content:space-between;
+    justify-content:flex-end;
     align-items:center;
+
+    gap:8px;
 }
 
 .like-text{
     font-size: var(--font-sm);
     color: var(--text-sub);
+    font-weight:800;
+    font-variant-numeric: tabular-nums;
 }
 
 /* =========================
@@ -109,6 +113,8 @@
 
     color:#bbb;
     transition: transform .12s ease, color .15s ease;
+    line-height:1;
+    padding:0;
 }
 
 .heart-btn:hover{

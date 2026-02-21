@@ -1,6 +1,6 @@
 import { authFetch, getToken } from "./auth.js";
 
-let lastId = null;
+let cursor = null; // 🔥 수정 (기존 lastId → cursor 객체)
 let hasNext = true;
 let loading = false;
 
@@ -19,7 +19,6 @@ const loadingEl = document.getElementById("loading");
 const endMessage = document.getElementById("endMessage");
 const popup = document.getElementById("loginPopup");
 
-const hasToken = !!getToken();
 let observer = null;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -50,7 +49,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+/* =========================
+   무한스크롤
+========================= */
 function setupInfiniteScroll() {
+
     observer = new IntersectionObserver(async (entries) => {
         if (entries[0].isIntersecting) {
             await loadSongs();
@@ -65,17 +68,23 @@ function setupInfiniteScroll() {
 }
 
 function resetAndReload() {
-    lastId = null;
+    cursor = null; // 🔥 수정
     hasNext = true;
     loading = false;
     listContainer.innerHTML = "";
     endMessage.classList.add("hidden");
+    observer?.disconnect();
+    setupInfiniteScroll();
     loadSongs();
 }
 
+/* =========================
+   데이터 로드
+========================= */
 async function loadSongs() {
 
     if (!hasNext || loading) return;
+
     loading = true;
     loadingEl.classList.remove("hidden");
 
@@ -85,12 +94,40 @@ async function loadSongs() {
         direction: currentDirection
     });
 
-    if (lastId !== null) {
-        params.append("lastId", lastId);
+    // 🔥 수정: lastId + 정렬기준 커서값 함께 전송
+    if (cursor?.lastId != null) {
+        params.append("lastId", cursor.lastId);
+    }
+
+    if (cursor?.lastSortValue != null) {
+
+        switch (currentSort) {
+            case "LIKE":
+                params.append("lastLike", cursor.lastSortValue);
+                break;
+
+            case "PLAY":
+                params.append("lastPlay", cursor.lastSortValue);
+                break;
+
+            case "RELEASE_DATE":
+                params.append("lastDate", cursor.lastSortValue);
+                break;
+
+            case "NAME":
+                params.append("lastName", cursor.lastSortValue);
+                break;
+        }
     }
 
     try {
-        const res = await fetch(`/api/search/songs?${params}`);
+
+        const res = getToken()
+            ? await authFetch(`/api/search/songs?${params}`)
+            : await fetch(`/api/search/songs?${params}`);
+
+        if (!res) return;
+
         const response = await res.json();
         if (!response.success) return;
 
@@ -100,8 +137,8 @@ async function loadSongs() {
 
         hasNext = data.hasNext;
 
-        if (hasNext && data.cursor) {
-            lastId = data.cursor.lastId;
+        if (hasNext && data.nextCursor) {
+            cursor = data.nextCursor; // 🔥 수정
         } else {
             endMessage.classList.remove("hidden");
             observer?.disconnect();
@@ -115,27 +152,39 @@ async function loadSongs() {
     loading = false;
 }
 
+/* =========================
+   렌더 (✅ 2줄: 제목 / 아티스트·앨범)
+========================= */
 function renderSongs(list) {
 
     list.forEach(song => {
 
-        const songId = song.songId ?? song.id;
-
         const row = document.createElement("div");
         row.className = "song-row";
+        row.dataset.id = song.songId;
+
+        const img = (song.albumImage || "/images/default.png");
+        const name = (song.name ?? "-");
+        const artist = (song.artistName ?? "-");
+        const album = (song.albumName ?? "-"); // ✅ 응답에 있음(없으면 '-' 처리)
+        const likeCount = (song.likeCount ?? 0);
 
         row.innerHTML = `
-            <img src="${song.albumImage || '/images/default.png'}">
-            <div class="song-name">${song.name}</div>
-            <div>${song.artistName}</div>
+            <img src="${img}" alt=""
+                 onerror="this.onerror=null; this.src='/images/default.png';">
+
+            <div class="song-info">
+                <div class="song-name">${escapeHtml(name)}</div>
+                <div class="song-sub">${escapeHtml(artist)} · ${escapeHtml(album)}</div>
+            </div>
 
             <div class="like-area">
-                <span class="like-number">${song.likeCount ?? 0}</span>
+                <span class="like-number">${likeCount}</span>
 
-                <button class="heart-btn 
-                        ${song.liked ? 'liked' : ''} 
-                        ${!hasToken ? 'disabled' : ''}"
-                        data-id="${songId}">
+                <button class="heart-btn ${song.liked ? "liked" : ""}"
+                        data-id="${song.songId}"
+                        type="button"
+                        aria-label="좋아요">
                     ❤
                 </button>
             </div>
@@ -145,11 +194,23 @@ function renderSongs(list) {
 
         row.addEventListener("click", (e) => {
             if (e.target.closest(".heart-btn")) return;
-            location.href = `/songs/${songId}/page`;
+            location.href = `/songs/${song.songId}/page`;
         });
     });
 }
 
+function escapeHtml(str) {
+    return String(str ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+/* =========================
+   로그인 팝업
+========================= */
 function showLoginPopup() {
     popup.classList.remove("hidden");
     popup.classList.add("show");
@@ -160,6 +221,9 @@ function showLoginPopup() {
     }, 2000);
 }
 
+/* =========================
+   좋아요 토글
+========================= */
 listContainer.addEventListener("click", async (e) => {
 
     const heartBtn = e.target.closest(".heart-btn");
@@ -167,7 +231,7 @@ listContainer.addEventListener("click", async (e) => {
 
     e.stopPropagation();
 
-    if (!hasToken) {
+    if (!getToken()) {
         showLoginPopup();
         return;
     }
@@ -175,22 +239,25 @@ listContainer.addEventListener("click", async (e) => {
     const songId = heartBtn.dataset.id;
 
     try {
+
         const res = await authFetch(`/api/songs/${songId}/likes`, {
             method: "POST"
         });
+
+        if (!res) return;
 
         const result = await res.json();
         if (!result.success) return;
 
         const { liked, likeCount } = result.data;
 
-        heartBtn.classList.toggle("liked", liked);
+        heartBtn.classList.toggle("liked", liked === true);
 
         const likeNumber = heartBtn
             .closest(".song-row")
             .querySelector(".like-number");
 
-        likeNumber.textContent = likeCount;
+        likeNumber.textContent = likeCount ?? 0;
 
     } catch (err) {
         console.error(err);

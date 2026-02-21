@@ -1,143 +1,144 @@
-/* ================================
-   Page Wrapper
-================================ */
+/* =============================
+   Page
+============================= */
 .liked-page{
     width:100%;
     max-width: var(--page-max-width);
-    margin: 30px auto 80px;
-    padding: 0 28px;
+    margin:30px auto 80px;
+    padding:0 28px;
 }
 
-/* ================================
-   Title
-================================ */
 .page-title{
     font-size: var(--font-title);
     font-weight:900;
-    margin-bottom:32px;
+    margin:0 0 28px;
     color: var(--text-main);
 }
 
-/* ================================
-   Table Layout
-================================ */
-.liked-table{
-    display:flex;
-    flex-direction:column;
-    width:100%;
-}
-
-/* ================================
-   Row Layout
-================================ */
+/* =============================
+   List Row
+============================= */
 .liked-row{
-    display:grid;
-    grid-template-columns: 70px 8fr 1fr 70px;
+    display:flex;
     align-items:center;
+    justify-content:space-between;
+    gap:18px;
 
-    padding:18px 10px;
+    padding:16px 18px;
     border-bottom:1px solid var(--border);
-    transition:background .15s ease;
-
     cursor:pointer;
-}
-
-.liked-row:last-child{
-    border-bottom:none;
+    transition: background .15s ease;
 }
 
 .liked-row:hover{
     background:#fafafa;
 }
 
-/* ================================
-   Header
-================================ */
-.liked-row.header{
-    font-weight:800;
-    background:#fafafa;
-    border-bottom:2px solid var(--border);
-    color: var(--text-sub);
+.song-main{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    min-width:0;
 }
 
-/* ================================
-   Columns
-================================ */
-.col.title{
-    font-weight:600;
+.album-thumb{
+    width:48px;
+    height:48px;
+    border-radius:12px;
+    object-fit:cover;
+    background:#eee;
+    border:1px solid var(--border);
+    flex-shrink:0;
+}
+
+.song-text{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+}
+
+.song-title{
     font-size: var(--font-md);
+    font-weight:900;
+    color: var(--text-main);
 
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
 }
 
-.col.like-count{
-    text-align:center;
-    color: var(--text-sub);
+.song-meta{
     font-size: var(--font-sm);
+    color: var(--text-sub);
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
 
-/* ================================
-   Play Button
-================================ */
-.play-btn{
-    width:44px;
-    height:44px;
-    border-radius:50%;
+/* =============================
+   Right actions
+============================= */
+.action-group{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-shrink:0;
+}
 
-    border:1px solid var(--border);
+/* play */
+.play-btn{
+    width:42px;
+    height:42px;
+    border-radius:999px;
+    border:1px solid #e6e6e6;
     background:#fff;
-    color: var(--text-main);
 
     display:inline-flex;
     align-items:center;
     justify-content:center;
 
+    font-size:14px;
     cursor:pointer;
-    font-size:16px;
-
-    transition:transform .1s ease, background .15s ease, border-color .15s ease;
+    transition: transform .12s ease, background .12s ease, color .12s ease, border-color .12s ease;
 }
-
-.play-btn:hover{
-    transform:scale(1.05);
-    background:#f7f7f7;
-}
-
+.play-btn:hover{ transform:scale(1.06); }
 .play-btn.playing{
-    background: var(--primary);
+    background:#111;
     color:#fff;
-    border-color: var(--primary);
+    border-color:#111;
 }
 
-/* ================================
-   Heart Button
-================================ */
+/* like number */
+.like-number{
+    font-size:15px;
+    color: var(--text-sub);
+    font-weight:800;
+    min-width:22px;
+    text-align:right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* heart */
 .heart-btn{
     border:none;
     background:none;
     font-size:22px;
     cursor:pointer;
     color:#bbb;
-    transition:transform .1s ease, color .15s ease;
+    transition: transform .1s ease, color .15s ease;
+    line-height:1;
+    padding:0;
 }
+.heart-btn.liked{ color: var(--primary); }
+.heart-btn:hover{ transform:scale(1.2); }
+.heart-btn:active{ transform:scale(1.3); }
+.heart-btn.disabled{ color:#ddd; cursor:not-allowed; }
 
-.heart-btn:hover{
-    transform:scale(1.2);
-}
-
-.heart-btn:active{
-    transform:scale(1.3);
-}
-
-.heart-btn.liked{
-    color: var(--primary);
-}
-
-/* ================================
-   Loading / End
-================================ */
+/* =============================
+   Loading / End / Sentinel
+============================= */
 .loading,
 .end{
     text-align:center;
@@ -145,3 +146,7 @@
     color: var(--text-sub);
     font-size: var(--font-sm);
 }
+
+#sentinel{ height:1px; }
+
+.hidden{ display:none; }

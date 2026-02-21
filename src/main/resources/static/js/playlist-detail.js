@@ -332,7 +332,6 @@ function setupImageEdit() {
 
 /* =========================
    ✅ setPlayerQueue용: DOM 기준 큐 생성
-   - 현재 화면의 플레이리스트 곡 순서 그대로
 ========================= */
 function buildTracksFromDom() {
     const rows = Array.from(document.querySelectorAll(".song-row[data-id]"));
@@ -355,6 +354,31 @@ function registerQueue(startSongId) {
         loop: true,
         contextKey: "playlist:detail",
     });
+}
+
+/* =========================
+   ✅ 메타 추출: 아티스트/앨범 (응답 형태 차이 대응)
+========================= */
+function pickArtistName(song) {
+    // 1) song.artistName
+    if (song?.artistName) return song.artistName;
+
+    // 2) song.artistList[0].artistName
+    const a2 = song?.artistList?.[0]?.artistName;
+    if (a2) return a2;
+
+    // 3) song.artist?.artistName (혹시)
+    const a3 = song?.artist?.artistName;
+    if (a3) return a3;
+
+    return "-";
+}
+
+function pickAlbumName(song) {
+    if (song?.albumName) return song.albumName;
+    const a2 = song?.album?.albumName || song?.album?.name;
+    if (a2) return a2;
+    return "-";
 }
 
 /* ================================
@@ -393,6 +417,10 @@ function renderSongs(songListData) {
         const coverUrl = resolveImageUrl(song.albumImage);
         const title = escapeHtml(song.name ?? "-");
 
+        // ✅ 추가: 아티스트 · 앨범
+        const artist = escapeHtml(pickArtistName(song));
+        const album = escapeHtml(pickAlbumName(song));
+
         row.innerHTML = `
       <div>
         <input type="checkbox" class="song-check" value="${song.songId}">
@@ -402,6 +430,7 @@ function renderSongs(songListData) {
 
       <div class="song-info">
         <div class="song-title">${title}</div>
+        <div class="song-sub">${artist} · ${album}</div>
       </div>
 
       <div class="song-actions">
@@ -456,9 +485,6 @@ function renderSongs(songListData) {
 
 /* ================================
    ✅ 재생(통일 버전)
-   1) /play로 url 받기
-   2) setPlayerQueue로 큐 등록
-   3) playSongFromPage(url,title,songId) 호출
 ================================ */
 async function playViaGlobalPlayer(songId, title, playBtn) {
     if (typeof window.playSongFromPage !== "function") {
@@ -473,7 +499,6 @@ async function playViaGlobalPlayer(songId, title, playBtn) {
     const audioUrl = await fetchStreamingUrl(songId);
     if (!audioUrl) return;
 
-    // 싱크용 url 저장
     playBtn.dataset.audioUrl = audioUrl;
 
     // ✅ 큐 등록(플레이리스트 DOM 기준)
@@ -482,7 +507,6 @@ async function playViaGlobalPlayer(songId, title, playBtn) {
     const globalAudio = getGlobalAudioEl();
     const same = isSameTrack(globalAudio, audioUrl);
 
-    // 다른 버튼 눌렀으면 이전 버튼 원복
     if (currentPlayBtn && currentPlayBtn !== playBtn) {
         setPlayBtnState(currentPlayBtn, false);
     }

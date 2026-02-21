@@ -68,12 +68,14 @@
 .like-box{
     display:flex;
     align-items:center;
-    gap:10px;
+    gap:12px;
 }
 
 .like-count{
     font-size: var(--font-sm);
     color: var(--text-sub);
+    font-weight:800;
+    font-variant-numeric: tabular-nums;
 }
 
 .heart-btn{

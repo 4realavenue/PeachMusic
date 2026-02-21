@@ -38,7 +38,7 @@ function showLoading(on) {
 }
 function showError(msg) {
     if (!errorBox) return;
-    errorBox.classList.remove("hidden")
+    errorBox.classList.remove("hidden");
     errorBox.textContent = msg;
 }
 function hideError() {
@@ -233,7 +233,9 @@ function appendRows(items) {
         const imgSrc = resolveImageUrl(s.albumImage);
 
         const safeName = escapeHtml(decodeEntities(s.name ?? "-"));
+
         const safeArtist = escapeHtml(decodeEntities(s.artistName ?? "-"));
+        const safeAlbum = escapeHtml(decodeEntities(s.albumName ?? "-"));
 
         row.innerHTML = `
       <div class="thumb">
@@ -243,13 +245,13 @@ function appendRows(items) {
 
       <div class="song-main">
         <div class="song-name">${safeName}</div>
-        <div class="song-sub">${formatDate(s.releaseDate)} · ${safeArtist}</div>
+        <div class="song-sub">${safeArtist} · ${safeAlbum}</div>
       </div>
 
       <div class="song-actions">
         <button class="track-play" type="button" aria-label="재생" data-id="${s.songId}">▶</button>
         <span class="like-number">${s.likeCount ?? 0}</span>
-        <button class="heart-btn ${s.isLiked ? "liked" : ""} ${!hasToken ? "disabled" : ""}"
+        <button class="heart-btn ${s.liked ? "liked" : ""} ${!hasToken ? "disabled" : ""}"
                 type="button"
                 aria-label="좋아요"
                 data-id="${s.songId}">❤</button>
@@ -484,6 +486,9 @@ listEl.addEventListener("click", async (e) => {
     if (!heartBtn) return;
 
     e.stopPropagation();
+
+    // 🔥 수정: disabled 버튼은 완전 차단
+    if (heartBtn.hasAttribute("disabled")) return;
 
     if (!getToken()) {
         showLoginPopup();

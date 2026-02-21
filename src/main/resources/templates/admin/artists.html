@@ -38,6 +38,8 @@
         <div class="table-card">
             <div class="table-head">
                 <div class="col id">ID</div>
+                <!-- ✅ 컬럼 제목 제거: 이미지만 옆에 두기 -->
+                <div class="col profile" aria-hidden="true"></div>
                 <div class="col name">아티스트명</div>
                 <div class="col like">좋아요 수</div>
                 <div class="col manage">관리</div>
@@ -47,10 +49,19 @@
 
             <div id="emptyBox" class="empty hidden"></div>
 
+            <!-- ✅ 무한 스크롤 감지용 센티널 -->
+            <div id="sentinel" class="sentinel" aria-hidden="true"></div>
+
+            <!-- ✅ 더보기 버튼은 남겨두되(다른 구조 건드리지 않기), 항상 숨김 -->
             <div class="table-foot">
                 <button id="moreBtn" class="more-btn hidden" type="button">더보기</button>
             </div>
         </div>
+
+        <!-- ✅ 맨 위로 버튼 -->
+        <button id="toTopBtn" class="to-top hidden" type="button" aria-label="맨 위로">
+            ↑
+        </button>
 
     </section>
 </div>
