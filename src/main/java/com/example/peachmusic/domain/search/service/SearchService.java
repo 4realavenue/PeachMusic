@@ -42,16 +42,13 @@ public class SearchService {
 
         String key = SEARCH_RESULT_KEY + word;
 
-        // 로그인 안 한 경우에만 캐시 조회
         SearchPreviewResponseDto cachedResult = getCachedResult(key);
         if (cachedResult != null) {
             return cachedResult;
         }
 
-
         SearchPreviewResponseDto result = createSearchResult(word); // DB 조회
 
-        // 비로그인일 때만 캐시 저장
         boolean isPopular = searchHistoryService.isPopularKeyword(word);
         if (isPopular) {
             saveCacheResult(key, result);
