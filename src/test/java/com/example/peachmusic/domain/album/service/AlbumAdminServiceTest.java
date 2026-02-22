@@ -23,14 +23,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -44,7 +42,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(properties = "spring.main.allow-bean-definition-overriding=true")
 @ActiveProfiles("test")
 @Transactional
-@Import(AlbumAdminServiceTest.TestConfig.class)
 class AlbumAdminServiceTest {
 
     @Autowired
@@ -60,46 +57,13 @@ class AlbumAdminServiceTest {
     private ArtistAlbumRepository artistAlbumRepository;
 
     @Autowired
-    RecordingFileStorageService fileStorageService;
-
-    @Autowired
     private SongRepository songRepository;
 
     @Autowired
     ObjectMapper objectMapper;
 
-    @TestConfiguration
-    static class TestConfig {
-
-        @Bean(name="fileStorageService")
-        @Primary
-        RecordingFileStorageService fileStorageService() {
-            return new RecordingFileStorageService() {
-                @Override
-                public String storeFile(MultipartFile file, FileType type, String baseName) {
-                    return "albums/test/album.png";
-                }
-            };
-        }
-    }
-
-    static class RecordingFileStorageService extends FileStorageService {
-        String lastDeletedPath;
-        int deleteCount;
-
-        @Override
-        public String storeFile(MultipartFile file, FileType type, String baseName) {
-            return "albums/" + baseName + "/new.png";
-        }
-
-        @Override
-        public void deleteFileByPath(String path) {
-            deleteCount++;
-            lastDeletedPath = path;
-        }
-
-        void reset() { deleteCount = 0; lastDeletedPath = null; }
-    }
+    @MockitoBean
+    private FileStorageService fileStorageService;
 
     private Artist savedArtist(String name) {
         return artistRepository.save(new Artist(
@@ -113,11 +77,11 @@ class AlbumAdminServiceTest {
     }
 
     private Album savedAlbum(String name, LocalDate date) {
-        return albumRepository.save(new Album(name, date, "https://image.test/" + UUID.randomUUID()));
-    }
+        Album album = new Album(name, date);
 
-    private Album savedAlbum(String name, LocalDate date, String imagePath) {
-        return albumRepository.save(new Album(name, date, imagePath));
+        album.updateAlbumImage("https://img.peachmusics.com/storage/image/default-image-" + UUID.randomUUID() + ".jpg");
+
+        return albumRepository.save(album);
     }
 
     private Song savedSong(Album album, String name) {
@@ -172,8 +136,12 @@ class AlbumAdminServiceTest {
     }
 
     @BeforeEach
-    void resetSpy() {
-        fileStorageService.reset();
+    void setupStorageMock() {
+        Mockito.when(fileStorageService.storeFile(
+                Mockito.any(MultipartFile.class),
+                Mockito.any(FileType.class),
+                Mockito.anyString()
+        )).thenReturn("albums/test/album.png");
     }
 
     @Test
@@ -219,7 +187,7 @@ class AlbumAdminServiceTest {
 
         String albumName = "테스트 앨범-" + UUID.randomUUID();
 
-        albumRepository.save(new Album(albumName, LocalDate.of(2024, 1, 1), "https://image.test/" + UUID.randomUUID()));
+        albumRepository.save(new Album(albumName, LocalDate.of(2024, 1, 1)));
 
         java.util.List<Long> artistIdList = java.util.List.of(artist.getArtistId());
 
@@ -242,7 +210,7 @@ class AlbumAdminServiceTest {
 
         String albumName = "테스트 앨범-" + UUID.randomUUID();
 
-        Album deletedAlbum = albumRepository.save(new Album(albumName, LocalDate.of(2024, 1, 1), "https://image.test/" + UUID.randomUUID()));
+        Album deletedAlbum = albumRepository.save(new Album(albumName, LocalDate.of(2024, 1, 1)));
 
         deletedAlbum.delete();
 
@@ -394,24 +362,24 @@ class AlbumAdminServiceTest {
     void updateAlbumImage_deleteOldManagedFile() {
         // given
         String albumName = "앨범-" + UUID.randomUUID();
-
         String oldPath = "albums/" + albumName + "/old.png";
 
-        Album album = savedAlbum(albumName, LocalDate.of(2024, 1, 1), oldPath);
+        Album album = savedAlbum(albumName, LocalDate.of(2024, 1, 1));
         mapArtistToAlbum(savedArtist("아티스트1"), album);
+
+        album.updateAlbumImage(oldPath);
+        albumRepository.flush();
 
         MockMultipartFile newImage = new MockMultipartFile("albumImage", "new.png", "image/png", "dummy".getBytes());
 
         // when
         albumAdminService.updateAlbumImage(album.getAlbumId(), newImage);
 
-        // then - album image path 변경 확인
+        // then
         Album updated = albumRepository.findById(album.getAlbumId()).orElseThrow();
         assertThat(updated.getAlbumImage()).isEqualTo("albums/test/album.png");
 
-        // then - 삭제 호출 확인
-        assertThat(fileStorageService.deleteCount).isEqualTo(1);
-        assertThat(fileStorageService.lastDeletedPath).isEqualTo(oldPath);
+        Mockito.verify(fileStorageService, Mockito.times(1)).deleteFileByPath(oldPath);
     }
 
     @Test
@@ -419,8 +387,7 @@ class AlbumAdminServiceTest {
     void updateAlbumImage_oldPathExternal_noDelete() {
         // given
         String albumName = "앨범-" + UUID.randomUUID();
-        String oldExternal = "https://image.test/" + UUID.randomUUID();
-        Album album = savedAlbum(albumName, LocalDate.of(2024, 1, 1), oldExternal);
+        Album album = savedAlbum(albumName, LocalDate.of(2024, 1, 1));
 
         MockMultipartFile newImage = new MockMultipartFile("albumImage","new.png","image/png","dummy".getBytes());
 
@@ -428,7 +395,7 @@ class AlbumAdminServiceTest {
         albumAdminService.updateAlbumImage(album.getAlbumId(), newImage);
 
         // then
-        assertThat(fileStorageService.deleteCount).isEqualTo(0);
+        Mockito.verify(fileStorageService, Mockito.never()).deleteFileByPath(Mockito.anyString());
     }
 
     @Test
@@ -463,7 +430,7 @@ class AlbumAdminServiceTest {
         CustomException exception = assertThrows(CustomException.class, () -> albumAdminService.deleteAlbum(album.getAlbumId()));
 
         // then
-        assertEquals(ErrorCode.ALBUM_NOT_FOUND, exception.getErrorCode());
+        assertEquals(ErrorCode.ALREADY_IN_REQUESTED_STATE, exception.getErrorCode());
     }
 
     @Test
@@ -501,6 +468,6 @@ class AlbumAdminServiceTest {
         CustomException exception = assertThrows(CustomException.class, () -> albumAdminService.restoreAlbum(album.getAlbumId()));
 
         // then
-        assertEquals(ErrorCode.ALBUM_NOT_FOUND, exception.getErrorCode());
+        assertEquals(ErrorCode.ALREADY_IN_REQUESTED_STATE, exception.getErrorCode());
     }
 }

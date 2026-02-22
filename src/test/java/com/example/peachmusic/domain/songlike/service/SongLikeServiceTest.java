@@ -112,8 +112,7 @@ class SongLikeServiceTest {
         Long albumId = tx.execute(status -> {
             Album album = albumRepository.save(new Album(
                     "테스트 앨범",
-                    LocalDate.of(2024, 1, 1),
-                    "https://image.test/" + UUID.randomUUID()
+                    LocalDate.of(2024, 1, 1)
             ));
             albumRepository.flush();
             return album.getAlbumId();
@@ -210,8 +209,7 @@ class SongLikeServiceTest {
         Long albumId = tx.execute(status -> {
             Album album = albumRepository.save(new Album(
                     "테스트 앨범",
-                    LocalDate.of(2024, 1, 1),
-                    "https://image.test/" + UUID.randomUUID()
+                    LocalDate.of(2024, 1, 1)
             ));
             albumRepository.flush();
             return album.getAlbumId();

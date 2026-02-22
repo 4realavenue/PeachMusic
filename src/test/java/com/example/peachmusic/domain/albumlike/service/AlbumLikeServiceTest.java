@@ -31,7 +31,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -114,8 +113,7 @@ class AlbumLikeServiceTest {
         Long albumId = tx.execute(status -> {
             Album album = albumRepository.save(new Album(
                     "테스트 앨범",
-                    LocalDate.of(2024, 1, 1),
-                    "https://image.test/" + UUID.randomUUID()
+                    LocalDate.of(2024, 1, 1)
             ));
             albumRepository.flush();
             return album.getAlbumId();
@@ -195,8 +193,7 @@ class AlbumLikeServiceTest {
         Long albumId = tx.execute(status -> {
             Album album = albumRepository.save(new Album(
                     "테스트 앨범",
-                    LocalDate.of(2024, 1, 1),
-                    "https://image.test/" + UUID.randomUUID()
+                    LocalDate.of(2024, 1, 1)
             ));
             albumRepository.flush();
             return album.getAlbumId();
