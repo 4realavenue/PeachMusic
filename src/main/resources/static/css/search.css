@@ -133,11 +133,11 @@
 }
 
 /* =========================
-   Song List
+   Song List (✅ 좋아요 영역 제거에 맞춰 2컬럼으로)
 ========================= */
 .result-list .item{
     display:grid;
-    grid-template-columns:80px 1fr 140px;
+    grid-template-columns:80px 1fr; /* ✅ (이미지 / 정보)만 */
     align-items:center;
     padding:16px 10px;
     border-bottom:1px solid var(--border);
@@ -179,41 +179,6 @@
     overflow:hidden;
     text-overflow:ellipsis;
 }
-
-/* 좋아요 영역 */
-.like-area{
-    display:flex;
-    align-items:center;
-    justify-content:flex-end;
-    gap:12px;
-    white-space:nowrap;
-}
-
-.like-number{
-    font-size: var(--font-sm);
-    color: var(--text-sub);
-    font-weight:800;
-    font-variant-numeric: tabular-nums;
-    min-width:22px;
-    text-align:right;
-}
-
-/* 하트 */
-.heart-btn{
-    border:none;
-    background:none;
-    font-size:22px;
-    cursor:pointer;
-    color:#bbb;
-    transition: transform .1s ease, color .15s ease;
-    line-height:1;
-    padding:0;
-}
-
-.heart-btn:hover{ transform:scale(1.15); }
-.heart-btn:active{ transform:scale(1.25); }
-.heart-btn.liked{ color: var(--primary); }
-.heart-btn.disabled{ color:#ddd; cursor:not-allowed; }
 
 /* =========================
    Album / Artist Grid
@@ -267,15 +232,6 @@
     text-overflow:ellipsis;
 }
 
-/* 카드 하단 좋아요 */
-.card-bottom{
-    margin-top:auto;
-    display:flex;
-    align-items:center;
-    justify-content:flex-end;
-    gap:12px;
-}
-
 /* =========================
    ✅ Artist: 원형 프로필 + 가운데 정렬 통일
 ========================= */
@@ -314,11 +270,6 @@
 .artist-card .card-title{
     text-align:center;
     width:100%;
-}
-
-/* ✅ 아티스트 좋아요 영역 가운데 */
-.artist-card .card-bottom{
-    justify-content:center;
 }
 
 /* 기본 img 규칙 무효화 */

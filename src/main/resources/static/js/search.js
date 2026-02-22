@@ -1,5 +1,3 @@
-import { authFetch } from "/js/auth.js";
-
 document.addEventListener("DOMContentLoaded", () => {
     const $ = (id) => document.getElementById(id);
 
@@ -24,7 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const albumMoreBtn = $("albumMoreBtn");
     const artistMoreBtn = $("artistMoreBtn");
 
-    // ✅ HTML에 필수 요소가 없으면 JS가 죽으니까 방어
     const required = [
         input, button,
         popularSection, popularList,
@@ -34,61 +31,8 @@ document.addEventListener("DOMContentLoaded", () => {
         songMoreBtn, albumMoreBtn, artistMoreBtn,
     ];
     if (required.some((el) => !el)) {
-        console.error("[search] 필수 DOM id 누락. search.html 구조를 확인하세요.");
+        console.error("[search] 필수 DOM id 누락.");
         return;
-    }
-
-    /* =========================
-       Token
-    ========================= */
-    const hasToken = () => !!localStorage.getItem("accessToken");
-    const authHeaderValue = () => localStorage.getItem("accessToken") || "";
-
-    /* =========================
-       Login toast
-    ========================= */
-    function showLoginToast() {
-        let el = $("loginPopup");
-        if (!el) {
-            el = document.createElement("div");
-            el.id = "loginPopup";
-            el.className = "login-popup hidden";
-            el.textContent = "로그인이 필요합니다.";
-            document.body.appendChild(el);
-        }
-
-        el.classList.remove("hidden");
-        el.classList.add("show");
-        setTimeout(() => {
-            el.classList.remove("show");
-            el.classList.add("hidden");
-        }, 2000);
-    }
-
-    /* =========================
-       Utils
-    ========================= */
-    function escapeHtml(str) {
-        return String(str ?? "")
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#039;");
-    }
-
-    function resolveImageUrl(path, fallback = "/images/default.png") {
-        if (!path) return fallback;
-        if (path.startsWith("http://") || path.startsWith("https://")) return path;
-        if (path.startsWith("/")) return path;
-        return `/${path}`;
-    }
-
-    function resolveArtistProfileUrl(imagePath) {
-        if (!imagePath) return "";
-        if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
-        if (imagePath.startsWith("/")) return imagePath;
-        return `/${imagePath}`;
     }
 
     /* =========================
@@ -107,9 +51,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    /* =========================
-       Popular
-    ========================= */
     loadPopular();
 
     if (typeof initialWord !== "undefined" && initialWord && String(initialWord).trim() !== "") {
@@ -118,46 +59,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* =========================
-       Like toggle
-    ========================= */
-    async function likeToggle(url) {
-        if (!hasToken()) {
-            showLoginToast();
-            return null;
-        }
-        try {
-            const res = await authFetch(url, { method: "POST" });
-            if (!res) return null;
-            const json = await res.json();
-            if (!json?.success) return null;
-            return json.data; // { liked, likeCount }
-        } catch (e) {
-            console.error("like toggle fail:", e);
-            return null;
-        }
-    }
-
-    /* =========================
-       Search (토큰 있으면 Authorization 붙임)
+       Search
     ========================= */
     async function search(word) {
         resultWrapper.classList.add("hidden");
         emptyBox.classList.add("hidden");
-        emptyBox.textContent = "";
 
         try {
             const url = `/api/search?word=${encodeURIComponent(word)}`;
-
-            let res;
-            if (hasToken()) {
-                res = await fetch(url, {
-                    method: "GET",
-                    headers: { Authorization: authHeaderValue() },
-                });
-            } else {
-                res = await fetch(url, { method: "GET" });
-            }
-
+            const res = await fetch(url);
             const response = await res.json();
 
             if (!response?.success) {
@@ -211,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* ===============================
-       Songs
+       Songs (좋아요 제거)
     =============================== */
     function renderSongs(list) {
         songList.innerHTML = "";
@@ -219,54 +129,21 @@ document.addEventListener("DOMContentLoaded", () => {
         list.slice(0, 5).forEach((song) => {
             const div = document.createElement("div");
             div.className = "item";
-            div.dataset.songId = song.songId;
-
-            const imgSrc = resolveImageUrl(song.albumImage);
-            const title = escapeHtml(song.name ?? "-");
-            const artist = escapeHtml(song.artistName ?? "-");
-            const album = escapeHtml(song.albumName ?? "-");
-            const likeCount = song.likeCount ?? 0;
-
-            const disabled = !hasToken();
 
             div.innerHTML = `
-                <img src="${escapeHtml(imgSrc)}" alt="" loading="lazy"
-                     onerror="this.onerror=null; this.src='/images/default.png';">
+                <img src="${song.albumImage ?? "/images/default.png"}"
+                     alt=""
+                     loading="lazy">
 
                 <div class="song-info">
-                    <div class="song-title">${title}</div>
-                    <div class="song-sub">${artist} · ${album}</div>
-                </div>
-
-                <div class="like-area">
-                    <span class="like-number">${likeCount}</span>
-                    <button class="heart-btn ${song.liked ? "liked" : ""} ${disabled ? "disabled" : ""}"
-                            type="button" aria-label="좋아요">❤</button>
+                    <div class="song-title">${song.name ?? "-"}</div>
+                    <div class="song-sub">
+                        ${song.artistName ?? "-"} · ${song.albumName ?? "-"}
+                    </div>
                 </div>
             `;
 
-            const heartBtn = div.querySelector(".heart-btn");
-            const likeNumEl = div.querySelector(".like-number");
-
-            heartBtn.addEventListener("click", async (e) => {
-                e.stopPropagation();
-                if (!hasToken()) {
-                    showLoginToast();
-                    return;
-                }
-
-                const result = await likeToggle(`/api/songs/${song.songId}/likes`);
-                if (!result) return;
-
-                const likedNow = !!result.liked;
-                const countNow = result.likeCount ?? 0;
-
-                heartBtn.classList.toggle("liked", likedNow);
-                likeNumEl.textContent = String(countNow);
-            });
-
             div.addEventListener("click", () => {
-                if (!song.songId) return;
                 location.href = `/songs/${song.songId}/page`;
             });
 
@@ -275,7 +152,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* ===============================
-       Albums
+       Albums (좋아요 제거)
     =============================== */
     function renderAlbums(list) {
         albumList.innerHTML = "";
@@ -283,51 +160,17 @@ document.addEventListener("DOMContentLoaded", () => {
         list.slice(0, 5).forEach((album) => {
             const card = document.createElement("div");
             card.className = "card";
-            card.dataset.albumId = album.albumId;
-
-            const imgSrc = resolveImageUrl(album.albumImage);
-            const name = escapeHtml(album.albumName ?? "-");
-            const artist = escapeHtml(album.artistName ?? "-");
-            const likeCount = album.likeCount ?? 0;
-
-            const disabled = !hasToken();
 
             card.innerHTML = `
-                <img src="${escapeHtml(imgSrc)}" alt="" loading="lazy"
-                     onerror="this.onerror=null; this.src='/images/default.png';">
+                <img src="${album.albumImage ?? "/images/default.png"}"
+                     alt=""
+                     loading="lazy">
 
-                <div class="card-title">${name}</div>
-                <div class="card-sub">${artist}</div>
-
-                <div class="card-bottom">
-                    <span class="like-number">${likeCount}</span>
-                    <button class="heart-btn ${album.liked ? "liked" : ""} ${disabled ? "disabled" : ""}"
-                            type="button" aria-label="좋아요">❤</button>
-                </div>
+                <div class="card-title">${album.albumName ?? "-"}</div>
+                <div class="card-sub">${album.artistName ?? "-"}</div>
             `;
 
-            const heartBtn = card.querySelector(".heart-btn");
-            const likeNumEl = card.querySelector(".like-number");
-
-            heartBtn.addEventListener("click", async (e) => {
-                e.stopPropagation();
-                if (!hasToken()) {
-                    showLoginToast();
-                    return;
-                }
-
-                const result = await likeToggle(`/api/albums/${album.albumId}/likes`);
-                if (!result) return;
-
-                const likedNow = !!result.liked;
-                const countNow = result.likeCount ?? 0;
-
-                heartBtn.classList.toggle("liked", likedNow);
-                likeNumEl.textContent = String(countNow);
-            });
-
             card.addEventListener("click", () => {
-                if (!album.albumId) return;
                 location.href = `/albums/${album.albumId}/page`;
             });
 
@@ -336,7 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* ===============================
-       ✅ Artists (원형 + 첫글자 placeholder 통일)
+       Artists (좋아요 제거)
     =============================== */
     function renderArtists(list) {
         artistList.innerHTML = "";
@@ -344,89 +187,37 @@ document.addEventListener("DOMContentLoaded", () => {
         list.slice(0, 5).forEach((artist) => {
             const card = document.createElement("div");
             card.className = "card artist-card";
-            card.dataset.artistId = artist.artistId;
 
-            const nameRaw = artist.artistName ?? "-";
-            const likeCount = artist.likeCount ?? 0;
+            const name = artist.artistName ?? "-";
 
-            const disabled = !hasToken();
-
-            // 프로필 영역(원형)
             const profileWrap = document.createElement("div");
             profileWrap.className = "artist-profile";
 
-            const profileUrl = resolveArtistProfileUrl(artist.profileImage);
-
-            if (profileUrl) {
+            if (artist.profileImage) {
                 const img = document.createElement("img");
+                img.src = artist.profileImage;
                 img.className = "artist-profile-img";
-                img.src = profileUrl;
-                img.alt = "artist";
-                img.loading = "lazy";
-                img.onerror = () => img.replaceWith(createArtistPlaceholder(nameRaw));
                 profileWrap.appendChild(img);
             } else {
-                profileWrap.appendChild(createArtistPlaceholder(nameRaw));
+                const placeholder = document.createElement("div");
+                placeholder.className = "artist-profile placeholder";
+                placeholder.textContent = name.charAt(0).toUpperCase();
+                profileWrap.appendChild(placeholder);
             }
 
-            // 텍스트
-            const titleEl = document.createElement("div");
-            titleEl.className = "card-title";
-            titleEl.textContent = nameRaw;
-
-            // 하단 좋아요
-            const bottom = document.createElement("div");
-            bottom.className = "card-bottom";
-
-            const likeNum = document.createElement("span");
-            likeNum.className = "like-number";
-            likeNum.textContent = String(likeCount);
-
-            const heartBtn = document.createElement("button");
-            heartBtn.className = `heart-btn ${artist.liked ? "liked" : ""} ${disabled ? "disabled" : ""}`;
-            heartBtn.type = "button";
-            heartBtn.setAttribute("aria-label", "좋아요");
-            heartBtn.textContent = "❤";
-
-            bottom.appendChild(likeNum);
-            bottom.appendChild(heartBtn);
+            const title = document.createElement("div");
+            title.className = "card-title";
+            title.textContent = name;
 
             card.appendChild(profileWrap);
-            card.appendChild(titleEl);
-            card.appendChild(bottom);
-
-            heartBtn.addEventListener("click", async (e) => {
-                e.stopPropagation();
-                if (!hasToken()) {
-                    showLoginToast();
-                    return;
-                }
-
-                const result = await likeToggle(`/api/artists/${artist.artistId}/likes`);
-                if (!result) return;
-
-                const likedNow = !!result.liked;
-                const countNow = result.likeCount ?? 0;
-
-                heartBtn.classList.toggle("liked", likedNow);
-                likeNum.textContent = String(countNow);
-            });
+            card.appendChild(title);
 
             card.addEventListener("click", () => {
-                if (!artist.artistId) return;
                 location.href = `/artists/${artist.artistId}`;
             });
 
             artistList.appendChild(card);
         });
-    }
-
-    function createArtistPlaceholder(name) {
-        const div = document.createElement("div");
-        div.className = "artist-profile placeholder";
-        const firstChar = name ? String(name).charAt(0).toUpperCase() : "?";
-        div.textContent = firstChar;
-        return div;
     }
 
     function showEmpty(message) {
@@ -444,31 +235,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const data = Array.isArray(response.data) ? response.data : [];
 
-            // ✅ keyword 정규화: null/undefined/빈문자/공백/"null" => "-"
-            const normalizeKeyword = (kw) => {
-                if (kw === null || kw === undefined) return "-";
-                const s = String(kw).trim();
-                if (!s) return "-";
-                if (s.toLowerCase() === "null") return "-";
-                return s;
-            };
-
-            // ✅ 1~10까지 무조건 출력
             for (let i = 0; i < 10; i++) {
-                const item = data[i] ?? null;
-
-                const keyword = normalizeKeyword(item?.keyword);
-                const rank = i + 1;
+                const keyword = data[i]?.keyword ?? "-";
 
                 const row = document.createElement("div");
                 row.className = "popular-row";
-
                 row.innerHTML = `
-                <span class="rank">${rank}.</span>
-                <span>${escapeHtml(keyword)}</span>
-            `;
+                    <span class="rank">${i + 1}.</span>
+                    <span>${keyword}</span>
+                `;
 
-                // ✅ "-" 인 경우 클릭 막기
                 if (keyword !== "-") {
                     row.onclick = () => {
                         location.href = `/search?word=${encodeURIComponent(keyword)}`;
