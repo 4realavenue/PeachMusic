@@ -1,6 +1,5 @@
 package com.example.peachmusic.domain.search.controller;
 
-import com.example.peachmusic.common.model.AuthUser;
 import com.example.peachmusic.common.model.CommonResponse;
 import com.example.peachmusic.domain.search.dto.SearchPopularResponseDto;
 import com.example.peachmusic.domain.search.dto.SearchPreviewResponseDto;
@@ -9,7 +8,6 @@ import com.example.peachmusic.domain.search.service.SearchService;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,10 +29,9 @@ public class SearchController {
      */
     @GetMapping("/search")
     public ResponseEntity<CommonResponse<SearchPreviewResponseDto>> searchPreview(
-            @AuthenticationPrincipal AuthUser authUser,
             @NotBlank(message = "검색어를 입력해주세요.") @RequestParam String word
     ) {
-        SearchPreviewResponseDto result = searchService.searchPreview(authUser, word);
+        SearchPreviewResponseDto result = searchService.searchPreview(word);
         return ResponseEntity.ok(CommonResponse.success("검색이 완료되었습니다.", result));
     }
 
