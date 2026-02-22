@@ -25,14 +25,12 @@ import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -45,7 +43,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(properties = "spring.main.allow-bean-definition-overriding=true")
 @ActiveProfiles("test")
 @Transactional
-@Import(ArtistAdminServiceTest.TestConfig.class)
 class ArtistAdminServiceTest {
 
     @Autowired
@@ -64,53 +61,17 @@ class ArtistAdminServiceTest {
     private ArtistAlbumRepository artistAlbumRepository;
 
     @Autowired
-    private RecordingFileStorageService fileStorageService;
-
-    @Autowired
     private ObjectMapper objectMapper;
+
+    @MockitoBean
+    private FileStorageService fileStorageService;
 
     @PersistenceContext
     EntityManager em;
 
-    @TestConfiguration
-    static class TestConfig {
-
-        @Bean(name = "fileStorageService")
-        @Primary
-        RecordingFileStorageService fileStorageService() {
-            return new RecordingFileStorageService() {
-                @Override
-                public String storeFile(MultipartFile file, FileType type, String baseName) {
-                    return "artists/test/profile.png";
-                }
-            };
-        }
-    }
-
-    static class RecordingFileStorageService extends FileStorageService {
-        String lastDeletedPath;
-        int deleteCount;
-
-        @Override
-        public String storeFile(MultipartFile file, FileType type, String baseName) {
-            return "artists/" + baseName + "/new.png";
-        }
-
-        @Override
-        public void deleteFileByPath(String path) {
-            deleteCount++;
-            lastDeletedPath = path;
-        }
-
-        void reset() {
-            deleteCount = 0;
-            lastDeletedPath = null;
-        }
-    }
-
-    private Artist savedArtist(String name) {
+    private Artist savedArtist() {
         return artistRepository.save(new Artist(
-                        name,
+                "아이유",
                         "artists/old/profile.png",
                         "대한민국",
                         ArtistType.SOLO,
@@ -120,9 +81,9 @@ class ArtistAdminServiceTest {
         );
     }
 
-    private Artist savedArtist(String name, String profileImage) {
+    private Artist savedArtist(String profileImage) {
         return artistRepository.save(new Artist(
-                name,
+                "아이유",
                 profileImage,
                 "대한민국",
                 ArtistType.SOLO,
@@ -131,23 +92,23 @@ class ArtistAdminServiceTest {
         ));
     }
 
-    private Album savedAlbum(String name, LocalDate date, String imagePath) {
-        return albumRepository.save(new Album(name, date, imagePath));
+    private Album savedAlbum(LocalDate date) {
+        return albumRepository.save(new Album("앨범1", date));
     }
 
-    private Song savedSong(Album album, String name) {
+    private Song savedSong(Album album) {
         return songRepository.save(new Song(
-                        album,
-                        name,
-                        180L,
-                        "https://license.test",
-                        1L,
-                        "https://audio.test" + UUID.randomUUID(),
-                        "vocal",
-                        "en",
-                        "medium",
-                        "guitar",
-                        "test"
+                album,
+                "수록곡1",
+                180L,
+                "https://license.test",
+                1L,
+                "https://audio.test" + UUID.randomUUID(),
+                "vocal",
+                "en",
+                "medium",
+                "guitar",
+                "test"
                 )
         );
     }
@@ -156,7 +117,7 @@ class ArtistAdminServiceTest {
         artistAlbumRepository.save(new ArtistAlbum(artist, album));
     }
 
-    private ArtistCreateRequestDto requestDto(String artistName, String country, ArtistType artistType, LocalDate debutDate, String bio) throws Exception {
+    private ArtistCreateRequestDto requestDto(LocalDate debutDate) throws Exception {
         String json = """
                 {
                     "artistName": "%s",
@@ -165,7 +126,7 @@ class ArtistAdminServiceTest {
                     "debutDate": "%s",
                     "bio": "%s"
                 }
-                """.formatted(artistName, country, artistType.name(), debutDate, bio);
+                """.formatted("  아이유  ", "대한민국", ArtistType.SOLO.name(), debutDate, "안녕하세요.");
         return objectMapper.readValue(json, ArtistCreateRequestDto.class);
     }
 
@@ -183,42 +144,34 @@ class ArtistAdminServiceTest {
     }
 
     @BeforeEach
-    void resetSpy() {
-        fileStorageService.reset();
+    void setupStorageMock() {
+        Mockito.when(fileStorageService.storeFile(
+                Mockito.any(MultipartFile.class),
+                Mockito.any(FileType.class),
+                Mockito.anyString()
+        )).thenReturn("artists/test/profile.png");
     }
 
     @Test
-    @DisplayName("아티스트 생성 성공 - 프로필 이미지 없이 생성하면 이미지 경로는 null로 저장된다")
+    @DisplayName("아티스트 생성 성공 - 프로필 이미지 없이 생성하면 디폴트 이미지 경로로 저장된다")
     void createArtist_withoutProfileImage_success() throws Exception {
         // given
-        ArtistCreateRequestDto dto = requestDto(
-                "  아이유  ",
-                "대한민국",
-                ArtistType.SOLO,
-                LocalDate.of(2024, 1, 1),
-                "안녕하세요."
-        );
+        ArtistCreateRequestDto dto = requestDto(LocalDate.of(2024, 1, 1));
 
         // when
         ArtistCreateResponseDto responseDto = artistAdminService.createArtist(dto, null);
 
         // then
         Artist saved = artistRepository.findById(responseDto.getArtistId()).orElseThrow();
-        assertThat(saved.getArtistName()).isEqualTo("아이유"); // trim 반영
-        assertThat(saved.getProfileImage()).isNull();
+        assertThat(saved.getArtistName()).isEqualTo("아이유");
+        assertThat(saved.getProfileImage()).isEqualTo("https://img.peachmusics.com/storage/image/default-image.jpg");
     }
 
     @Test
     @DisplayName("아티스트 생성 성공 - 프로필 이미지가 있으면 저장된 경로가 이미지 경로로 저장된다")
     void createArtist_withProfileImage_success() throws Exception {
         // given
-        ArtistCreateRequestDto request = requestDto(
-                "  아이유  ",
-                "대한민국",
-                ArtistType.SOLO,
-                LocalDate.of(2024, 1, 1),
-                "안녕하세요."
-        );
+        ArtistCreateRequestDto request = requestDto(LocalDate.of(2024, 1, 1));
 
         MockMultipartFile profileImage = new MockMultipartFile("profileImage", "profile.png", "image/png", "dummy".getBytes());
 
@@ -235,7 +188,7 @@ class ArtistAdminServiceTest {
     @DisplayName("아티스트 기본 정보 수정 성공")
     void updateArtist_basicInfo_success() throws Exception {
         // given
-        Artist artist = savedArtist("아이유");
+        Artist artist = savedArtist();
 
         ArtistUpdateRequestDto requestDto =
                 updateRequestDto(
@@ -279,7 +232,8 @@ class ArtistAdminServiceTest {
     @DisplayName("아티스트 프로필 이미지 수정 성공 - 기존 이미지가 있으면 삭제 후 새 경로로 업데이트된다")
     void updateProfileImage_withOldImage_success() {
         // given
-        Artist artist = savedArtist("아이유", "artists/old/profile.png");
+        String oldPath = "artists/old/profile.png";
+        Artist artist = savedArtist(oldPath);
 
         MockMultipartFile newProfileImage = new MockMultipartFile("profileImage", "profile.png", "image/png", "dummy".getBytes());
 
@@ -293,15 +247,14 @@ class ArtistAdminServiceTest {
         assertThat(updated.getProfileImage()).isEqualTo("artists/test/profile.png");
 
         // oldPath 삭제 호출 확인
-        assertThat(fileStorageService.deleteCount).isEqualTo(1);
-        assertThat(fileStorageService.lastDeletedPath).isEqualTo("artists/old/profile.png");
+        Mockito.verify(fileStorageService, Mockito.times(1)).deleteFileByPath(oldPath);
     }
 
     @Test
     @DisplayName("아티스트 프로필 이미지 수정 성공 - 기존 이미지가 없으면 삭제를 호출하지 않는다")
     void updateProfileImage_withoutOldImage_success() {
         // given
-        Artist artist = savedArtist("아이유", null);
+        Artist artist = savedArtist(null);
 
         MockMultipartFile newProfileImage = new MockMultipartFile("profileImage", "profile.png", "image/png", "dummy".getBytes());
 
@@ -314,8 +267,7 @@ class ArtistAdminServiceTest {
         assertThat(updated.getProfileImage()).isEqualTo("artists/test/profile.png");
 
         // oldPath가 null이면 삭제 호출 없어야 함
-        assertThat(fileStorageService.deleteCount).isEqualTo(0);
-        assertThat(fileStorageService.lastDeletedPath).isNull();
+        Mockito.verify(fileStorageService, Mockito.never()).deleteFileByPath(Mockito.anyString());
     }
 
     @Test
@@ -332,15 +284,15 @@ class ArtistAdminServiceTest {
     }
 
     @Test
-    @DisplayName("아티스트 비활성화 성공 - 연결된 앨범/음원도 함께 soft-delete 된다")
+    @DisplayName("아티스트 비활성화 성공 - orphan 앨범이면 연결된 앨범/음원도 함께 soft-delete 된다")
     void deleteArtist_withAlbums_success() {
         // given
-        Artist artist = savedArtist("아이유", null);
+        Artist artist = savedArtist(null);
 
-        Album album = savedAlbum("앨범1", LocalDate.of(2024, 1, 1), "albums/test.png");
+        Album album = savedAlbum(LocalDate.of(2024, 1, 1));
         mapArtistToAlbum(artist, album);
 
-        Song song = savedSong(album, "수록곡1");
+        Song song = savedSong(album);
 
         // when
         artistAdminService.deleteArtist(artist.getArtistId());
@@ -349,20 +301,41 @@ class ArtistAdminServiceTest {
         em.flush();
         em.clear();
 
-        Artist deletedArtist = artistRepository.findById(artist.getArtistId()).orElseThrow();
-        Album deletedAlbum = albumRepository.findById(album.getAlbumId()).orElseThrow();
-        Song deletedSong = songRepository.findById(song.getSongId()).orElseThrow();
+        assertThat(artistRepository.findById(artist.getArtistId()).orElseThrow().isDeleted()).isTrue();
+        assertThat(albumRepository.findById(album.getAlbumId()).orElseThrow().isDeleted()).isTrue();
+        assertThat(songRepository.findById(song.getSongId()).orElseThrow().isDeleted()).isTrue();
+    }
 
-        assertThat(deletedArtist.isDeleted()).isTrue();
-        assertThat(deletedAlbum.isDeleted()).isTrue();
-        assertThat(deletedSong.isDeleted()).isTrue();
+    @Test
+    @DisplayName("아티스트 비활성화 - 앨범에 다른 활성 아티스트가 있으면 앨범/음원은 삭제되지 않는다")
+    void deleteArtist_notOrphanAlbum_albumNotDeleted() {
+        // given
+        Artist artistA = savedArtist(null);
+        Artist artistB = savedArtist(null);
+
+        Album album = savedAlbum(LocalDate.of(2024, 1, 1));
+        mapArtistToAlbum(artistA, album);
+        mapArtistToAlbum(artistB, album);
+
+        Song song = savedSong(album);
+
+        // when
+        artistAdminService.deleteArtist(artistA.getArtistId());
+
+        // then
+        em.flush();
+        em.clear();
+
+        assertThat(artistRepository.findById(artistA.getArtistId()).orElseThrow().isDeleted()).isTrue();
+        assertThat(albumRepository.findById(album.getAlbumId()).orElseThrow().isDeleted()).isFalse();
+        assertThat(songRepository.findById(song.getSongId()).orElseThrow().isDeleted()).isFalse();
     }
 
     @Test
     @DisplayName("아티스트 비활성화 성공 - 연결된 앨범이 없어도 아티스트만 soft-delete 된다")
     void deleteArtist_withoutAlbums_success() {
         // given
-        Artist artist = savedArtist("아이유", null);
+        Artist artist = savedArtist(null);
 
         // when
         artistAdminService.deleteArtist(artist.getArtistId());
@@ -389,42 +362,40 @@ class ArtistAdminServiceTest {
     }
 
     @Test
-    @DisplayName("아티스트 활성화 성공 - 연결된 앨범/음원도 함께 restore 된다")
-    void restoreArtist_withAlbums_success() {
-        // given
-        Artist artist = savedArtist("아이유", null);
+    @DisplayName("아티스트 활성화 성공 - 삭제된 앨범이 활성 아티스트를 다시 가지면 앨범/음원도 restore 된다")
+    void restoreArtist_restoreDeletedAlbum_success() {
+        Artist artistA = savedArtist(null);
+        Artist artistB = savedArtist(null);
 
-        Album album = savedAlbum("앨범1", LocalDate.of(2024, 1, 1), "albums/test.png");
-        mapArtistToAlbum(artist, album);
+        Album album = savedAlbum(LocalDate.of(2024, 1, 1));
+        mapArtistToAlbum(artistA, album);
+        mapArtistToAlbum(artistB, album);
 
-        Song song = savedSong(album, "수록곡1");
+        Song song = savedSong(album);
 
-        // 먼저 삭제 상태로 만든다
-        artistAdminService.deleteArtist(artist.getArtistId());
+        // 둘 다 삭제 -> orphan -> 앨범/음원 삭제됨
+        artistAdminService.deleteArtist(artistA.getArtistId());
+        artistAdminService.deleteArtist(artistB.getArtistId());
+
         em.flush();
         em.clear();
 
-        // when
-        artistAdminService.restoreArtist(artist.getArtistId());
+        // A만 복구 -> 앨범에 활성 아티스트 생김 -> 앨범/음원 복구되어야 함
+        artistAdminService.restoreArtist(artistA.getArtistId());
 
-        // then
         em.flush();
         em.clear();
 
-        Artist restoredArtist = artistRepository.findById(artist.getArtistId()).orElseThrow();
-        Album restoredAlbum = albumRepository.findById(album.getAlbumId()).orElseThrow();
-        Song restoredSong = songRepository.findById(song.getSongId()).orElseThrow();
-
-        assertThat(restoredArtist.isDeleted()).isFalse();
-        assertThat(restoredAlbum.isDeleted()).isFalse();
-        assertThat(restoredSong.isDeleted()).isFalse();
+        assertThat(artistRepository.findById(artistA.getArtistId()).orElseThrow().isDeleted()).isFalse();
+        assertThat(albumRepository.findById(album.getAlbumId()).orElseThrow().isDeleted()).isFalse();
+        assertThat(songRepository.findById(song.getSongId()).orElseThrow().isDeleted()).isFalse();
     }
 
     @Test
     @DisplayName("아티스트 활성화 성공 - 연결된 앨범이 없어도 아티스트만 restore 된다")
     void restoreArtist_withoutAlbums_success() {
         // given
-        Artist artist = savedArtist("아이유", null);
+        Artist artist = savedArtist(null);
 
         artistAdminService.deleteArtist(artist.getArtistId());
         em.flush();

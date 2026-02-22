@@ -31,7 +31,7 @@ public class DistributeLockTest {
     @Test
     void redis_분산락_테스트() throws InterruptedException {
 
-        Album album = albumRepository.save(new Album( "테스트 앨범", LocalDate.of(2024, 1, 1), "https://image.test/" + UUID.randomUUID()));
+        Album album = albumRepository.save(new Album( "테스트 앨범", LocalDate.of(2024, 1, 1)));
         Song song = songRepository.save(new Song(album, "Test Song Title", 210L, "https://license.test", 1L, "https://audio.test/" + UUID.randomUUID() + ".mp3", "VOCAL", "en", "120", "guitar, drums", "pop, test"));
 
         int num = 5;
@@ -41,7 +41,7 @@ public class DistributeLockTest {
 
         Runnable task = () -> {
             try {
-                songService.play(song.getSongId());
+                songService.playSong(song.getSongId());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
