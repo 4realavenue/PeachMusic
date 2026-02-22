@@ -14,13 +14,14 @@ function showLoginPopup() {
 }
 
 /* 유틸 */
+/**
+ * ✅ 특수문자 깨짐(&quot; 등) 방지:
+ * 서버/템플릿에서 이미 escape 된 문자열이 들어오는 케이스가 있어서
+ * 프론트에서 추가 escape를 하면 &amp;quot; 형태로 이중 변환되어 화면에 그대로 노출됨.
+ * => 여기서는 그대로 반환(추가 escape 하지 않음)
+ */
 function escapeHtml(str) {
-    return String(str ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+    return String(str ?? "");
 }
 
 function formatDate(dateStr) {
