@@ -9,20 +9,24 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
   jpa:
-    show-sql: true
+    show-sql: false
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
         format_sql: true
     defer-datasource-initialization: true
-  web:
-    resources:
-      add-mappings: false
   servlet:
     multipart:
       max-file-size: 30MB
       max-request-size: 30MB
+  thymeleaf:
+    prefix: classpath:/templates/
+    check-template-location: true
+    suffix: .html
+    mode: HTML
+    cache: false # 배포시에 true로 전환
+
 
   mail:
     host: ${MAIL_HOST}
@@ -49,3 +53,27 @@ peachmusic:
 
 worker:
   base-url: ${WORKER_URL}
+
+r2:
+  account-id: ${R2_ACCOUNT_ID}
+  access-key-id: ${R2_ACCESS_KEY_ID}
+  secret-access-key: ${R2_SECRET_ACCESS_KEY}
+  bucket:
+    assets: ${R2_BUCKET_ASSETS}
+    media: ${R2_BUCKET_MEDIA}
+  public-base: ${ASSETS_PUBLIC_BASE}
+  public-streaming-base: ${STREAMING_BASE}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.hibernate.SQL: off
+    org.hibernate.type.descriptor.sql: off

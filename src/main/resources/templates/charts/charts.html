@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>인기차트 | PeachMusic</title>
+
+    <link rel="stylesheet" href="/css/design-system.css"/>
+    <link rel="stylesheet" th:href="@{/css/layout.css}" />
+    <link rel="stylesheet" th:href="@{/css/charts.css}" />
+
+    <script th:src="@{/js/sidebar.js}" defer></script>
+</head>
+
+<body>
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+    <section class="chart-page">
+
+        <div class="chart-header">
+            <div>
+                <h1 class="chart-title">인기차트 Top 100</h1>
+                <p class="chart-sub">최근 1주일 기준 · 10개씩 페이지 이동</p>
+            </div>
+
+            <div class="chart-pagination">
+                <button id="prevBtn" class="nav-btn" type="button" disabled>이전</button>
+                <span id="pageInfo" class="page-info">1 / 1</span>
+                <button id="nextBtn" class="nav-btn" type="button">다음</button>
+            </div>
+        </div>
+
+        <ul id="chartList" class="chart-list"></ul>
+
+        <div id="errorBox" class="chart-error hidden"></div>
+
+        <!-- ✅ 비로그인 좋아요 클릭 시 안내 (index.css 톤과 동일) -->
+        <div id="loginPopup" class="login-popup hidden">로그인이 필요한 기능입니다.</div>
+
+    </section>
+</div>
+
+<script type="module" th:src="@{/js/charts.js}"></script>
+</body>
+</html>

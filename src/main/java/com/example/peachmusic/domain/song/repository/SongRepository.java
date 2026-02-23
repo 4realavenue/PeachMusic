@@ -2,15 +2,11 @@ package com.example.peachmusic.domain.song.repository;
 
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.song.entity.Song;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
 import java.util.Optional;
-
 import java.util.List;
 import java.util.Set;
 
@@ -18,17 +14,13 @@ public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRep
 
     Optional<Song> findBySongIdAndIsDeletedFalse(Long songId);
 
-    Page<Song> findAll(Pageable pageable);
+    Optional<Song> findBySongIdAndIsDeletedFalseAndStreamingStatusTrue(Long songId);
 
     boolean existsSongByAlbumAndPosition(Album album, Long position);
-
-    boolean existsSongByAudio(String audioUrl);
 
     // 앨범 음원 목록 조회
     List<Song> findAllByAlbum_AlbumIdAndIsDeletedFalse(Long albumId);
     List<Song> findAllByAlbum_AlbumIdAndIsDeletedTrue(Long albumId);
-
-    List<Song> findAllByAlbum_AlbumIdAndIsDeletedFalseAndStreamingStatusTrue(Long albumId);
 
     @Query("""
             select s.songId from Song s
@@ -36,16 +28,11 @@ public interface SongRepository extends JpaRepository<Song, Long>, SongCustomRep
             """)
     Set<Long> findSongIdSetBySongIdSet(Set<Long> songIdSet);
 
-    boolean existsByAudioAndSongIdNot(String audio, Long songId);
-
     @Query("""
             select s.album.albumId from Song s
             where s = :song
             """)
     Long findSongs_AlbumIdBySongId(Song song);
-
-    @Query("select s.jamendoSongId from Song s where s.jamendoSongId is not null")
-    Set<Long> findJamendoSongIdList();
 
     boolean existsByAlbumAndName(Album album, String name);
 

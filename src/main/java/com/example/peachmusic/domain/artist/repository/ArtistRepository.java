@@ -5,16 +5,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
 import java.util.List;
 import java.util.Optional;
 
 public interface ArtistRepository extends JpaRepository<Artist, Long>, ArtistCustomRepository {
 
-    Optional<Artist> findByArtistIdAndIsDeleted(Long artistId, boolean isDeleted);
+    Optional<Artist> findByArtistIdAndIsDeletedFalse(Long artistId);
 
     // 전달받은 artistIdList에 해당하는 활성 상태(isDeleted=false) 아티스트 조회
-    List<Artist> findAllByArtistIdInAndIsDeletedFalse(List<Long> artistIds);
+    List<Artist> findAllByArtistIdInAndIsDeletedFalse(List<Long> artistIdList);
 
     @Query("""
         select a.likeCount

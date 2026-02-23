@@ -41,7 +41,6 @@ dependencies {
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-mail', version: '3.0.5'
     implementation 'javax.mail:javax.mail-api:1.6.2'
     implementation group: 'com.sun.mail', name: 'javax.mail', version: '1.6.2'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
@@ -68,9 +67,20 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation "com.squareup.okhttp3:mockwebserver:4.12.0"
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
+    testImplementation 'org.testcontainers:testcontainers:1.19.7'
 
     implementation 'org.springframework.retry:spring-retry'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+    // storage
+    implementation platform('software.amazon.awssdk:bom:2.25.62')
+    implementation 'software.amazon.awssdk:s3'
+    implementation "software.amazon.awssdk:auth"
+
+    // 모니터링
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 tasks.named('test') {

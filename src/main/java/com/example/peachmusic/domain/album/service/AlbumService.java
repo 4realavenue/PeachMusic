@@ -42,19 +42,21 @@ public class AlbumService {
     @Transactional(readOnly = true)
     public AlbumGetDetailResponseDto getAlbumDetail(AuthUser authUser, Long albumId) {
 
-        Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_DETAIL_NOT_FOUND));
+        Album foundAlbum = albumRepository.findActiveAlbumWithActiveSong(albumId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
+
+        Long userId = (authUser != null) ? authUser.getUserId() : null;
 
         boolean isLiked = false;
-
-        if (authUser != null) {
-            Long userId = authUser.getUserId();
+        if (userId != null) {
             isLiked = albumLikeService.isAlbumLiked(albumId, userId);
         }
 
-        List<ArtistSummaryDto> artistAlbumList = artistAlbumRepository.findArtistSummaryListByAlbumId(albumId);
+        List<ArtistSummaryDto> artistAlbumList =
+                artistAlbumRepository.findArtistSummaryListByAlbumId(albumId);
 
-        List<SongSummaryDto> songList = songRepository.findSongSummaryListByAlbumId(albumId);
+        List<SongSummaryDto> songList =
+                songRepository.findSongSummaryListByAlbumId(albumId, userId);
 
         return AlbumGetDetailResponseDto.from(foundAlbum, artistAlbumList, songList, isLiked);
     }
@@ -65,25 +67,24 @@ public class AlbumService {
     @Transactional(readOnly = true)
     public KeysetResponse<AlbumArtistDetailResponseDto> getArtistAlbums(AuthUser authUser, Long artistId, CursorParam cursor) {
 
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
+        Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
 
         SortType sortType = SortType.RELEASE_DATE;
         SortDirection direction = sortType.getDefaultDirection();
-        final int size = DETAIL_SIZE;
 
-        List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, direction, cursor, size);
+        List<AlbumArtistDetailResponseDto> content = albumRepository.findAlbumByArtistKeyset(authUser, foundArtist.getArtistId(), sortType, direction, cursor, DETAIL_SIZE);
 
-        return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), last.getAlbumReleaseDate()));
+        return KeysetResponse.of(content, DETAIL_SIZE, last -> new NextCursor(last.getAlbumId(), last.getAlbumReleaseDate()));
     }
 
     /**
      * 앨범 검색 - 자세히 보기
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<AlbumSearchResponseDto> searchAlbumPage(SearchConditionParam condition, CursorParam cursor) {
+    public KeysetResponse<AlbumSearchResponseDto> searchAlbumPage(AuthUser authUser, SearchConditionParam condition, CursorParam cursor) {
 
-        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
+        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(authUser, condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
 
         return KeysetResponse.of(content, DETAIL_SIZE, last -> last.toCursor(condition.getSortType()));
     }
@@ -95,6 +96,6 @@ public class AlbumService {
      */
     @Transactional(readOnly = true)
     public List<AlbumSearchResponseDto> searchAlbumList(String word) {
-        return albumRepository.findAlbumListByWord(word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
+        return albumRepository.findAlbumListByWord(null, word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
     }
 }

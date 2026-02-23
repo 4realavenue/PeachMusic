@@ -33,8 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+
 import java.util.List;
 import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
 import static com.example.peachmusic.common.constants.UserViewScope.ADMIN_VIEW;
@@ -70,12 +69,17 @@ public class SongAdminService {
             throw new CustomException(ErrorCode.ALBUM_EXIST_SONG_POSITION);
         }
 
-        String storedPath = storeAudio(audio, requestDto.getName());
+        String storedPath = "not ready";
 
         try {
+
             Song song = new Song(findAlbum, requestDto.getName(), requestDto.getDuration(), requestDto.getLicenseCcurl(), requestDto.getPosition(), storedPath, requestDto.getVocalinstrumental(), requestDto.getLang(), requestDto.getSpeed(), requestDto.getInstruments(), requestDto.getVartags());
 
             Song saveSong = songRepository.save(song);
+
+            storedPath = storeAudio(audio, saveSong.getSongId());
+
+            saveSong.updateAudio(storedPath);
 
             List<Genre> genreList = genreRepository.findAllById(requestDto.getGenreIdList());
 
@@ -118,7 +122,7 @@ public class SongAdminService {
 
         final int size = DETAIL_SIZE;
 
-        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(word, size, ADMIN_VIEW, null, null, cursor);
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(null, word, size, ADMIN_VIEW, null, null, cursor);
 
         return KeysetResponse.of(content, size, last -> new NextCursor(last.getSongId(), null));
     }
@@ -173,7 +177,7 @@ public class SongAdminService {
         // 기존 파일 경로 백업
         String oldPath = findSong.getAudio();
 
-        String newPath = storeAudio(audio, findSong.getName());
+        String newPath = storeAudio(audio, findSong.getSongId());
 
         findSong.updateAudio(newPath);
 
@@ -190,8 +194,12 @@ public class SongAdminService {
     @Transactional
     public void deleteSong(Long songId) {
 
-        Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
+        Song findSong = songRepository.findById(songId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
+
+        if (findSong.isDeleted()) {
+            throw new CustomException(ErrorCode.ALREADY_IN_REQUESTED_STATE);
+        }
 
         findSong.deleteSong();
 
@@ -207,7 +215,7 @@ public class SongAdminService {
                 .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
         if (!findSong.isDeleted()) {
-            throw new CustomException(ErrorCode.SONG_EXIST_ACTIVATION_SONG);
+            throw new CustomException(ErrorCode.ALREADY_IN_REQUESTED_STATE);
         }
 
         findSong.restoreSong();
@@ -226,9 +234,8 @@ public class SongAdminService {
         }
     }
 
-    private String storeAudio(MultipartFile audio, String name) {
-        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        String baseName = "PeachMusic_song_" + name + "_" + date;
+    private String storeAudio(MultipartFile audio, Long songId) {
+        String baseName = songId.toString();
         return fileStorageService.storeFile(audio, FileType.AUDIO, baseName);
     }
 

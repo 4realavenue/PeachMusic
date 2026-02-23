@@ -1,0 +1,294 @@
+/* =========================
+   Page
+========================= */
+.playlist-detail{
+    width:100%;
+    max-width: var(--page-max-width);
+    margin: 30px auto 80px;
+    padding: 0 28px;
+}
+
+/* =========================
+   Header
+========================= */
+.playlist-header{
+    display:flex;
+    gap:60px;
+    align-items:flex-start;
+    margin-bottom:60px;
+}
+
+.image-area{
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+}
+
+/* 커버 */
+.playlist-image{
+    width:260px;
+    height:260px;
+    background:#ddd;
+    background-size:cover;
+    background-position:center;
+
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+}
+
+/* 정보 */
+.info-area{
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+    padding-top:8px;
+}
+
+#playlistName{
+    font-size: var(--font-title);
+    font-weight:900;
+    margin:0;
+    letter-spacing:-0.02em;
+}
+
+/* =========================
+   Buttons
+========================= */
+.button-row{
+    display:flex;
+    gap:12px;
+}
+
+.gray-btn{
+    height: var(--btn-height);
+    padding:0 20px;
+    border-radius: var(--radius-md);
+
+    border:1px solid var(--border);
+    background:#fff;
+
+    font-size: var(--font-sm);
+    font-weight:700;
+
+    cursor:pointer;
+    transition:background .15s ease, transform .1s ease;
+}
+
+.gray-btn:hover{
+    background:#f7f7f7;
+    transform:translateY(-1px);
+}
+
+.danger-btn{
+    height: var(--btn-height);
+    padding:0 20px;
+    border-radius: var(--radius-md);
+
+    background: rgba(255,77,79,0.08);
+    border:1px solid rgba(255,77,79,0.4);
+    color: var(--danger);
+
+    font-size: var(--font-sm);
+    font-weight:700;
+
+    cursor:pointer;
+    transition:background .15s ease;
+}
+
+/* =========================
+   Name Edit
+========================= */
+#nameEditArea{
+    display:flex;
+    gap:10px;
+    align-items:center;
+}
+
+#nameInput{
+    height: var(--input-height);
+    padding:0 16px;
+    border:1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: var(--font-md);
+    width:260px;
+    outline:none;
+}
+
+#nameInput:focus{
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(248,140,174,0.15);
+}
+
+/* =========================
+   Song Section
+========================= */
+.song-container{
+    margin-top:30px;
+}
+
+.song-action-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+}
+
+/* =========================
+   Song Row
+========================= */
+.song-row{
+    display:grid;
+    grid-template-columns: 40px 60px 1fr 200px; /* ✅ 액션 여유 조금 */
+    align-items:center;
+
+    padding:18px 12px;
+    border-bottom:1px solid var(--border);
+
+    cursor:pointer;
+    transition:background .15s ease;
+}
+
+.song-row:last-child{
+    border-bottom:none;
+}
+
+.song-row:hover{
+    background:#fafafa;
+}
+
+/* 커버 */
+.song-cover{
+    width:50px;
+    height:50px;
+    background:#ddd;
+    background-size:cover;
+    background-position:center;
+    border-radius: var(--radius-md);
+}
+
+/* =========================
+   Song Info
+========================= */
+.song-info{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    min-width:0;
+}
+
+.song-title{
+    font-weight:700;
+    font-size: var(--font-md);
+    color: var(--text-main);
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+/* 체크박스 */
+.song-check{
+    cursor:pointer;
+}
+
+/* 아티스트 · 앨범 */
+.song-sub{
+    font-size: var(--font-sm);
+    color: var(--text-sub);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+/* =========================
+   Actions
+========================= */
+.song-actions{
+    justify-self:end;
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+/* 재생 */
+.track-play{
+    width:36px;
+    height:36px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:#fff;
+    cursor:pointer;
+
+    font-weight:900;
+    line-height:1;
+
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+
+    transition: transform .1s ease, background .15s ease;
+}
+
+.track-play:hover{
+    background:#f7f7f7;
+    transform: translateY(-1px);
+}
+
+.track-play.playing{
+    border-color: rgba(248,140,174,0.55);
+    box-shadow: 0 0 0 3px rgba(248,140,174,0.15);
+}
+
+/* ✅ 좋아요 묶음 (숫자 + 하트) */
+.like-group{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+}
+
+/* 숫자 */
+.song-like-count{
+    font-size: var(--font-sm);
+    color: var(--text-sub);
+    font-weight: 700;
+    min-width: 22px;
+    text-align: right;
+}
+
+/* 하트 */
+.mini-heart-btn{
+    border:none;
+    background:none;
+    font-size:18px;
+    line-height:1;
+    padding:0;
+    cursor:pointer;
+    color:#bdbdbd;
+    transition: transform .1s ease, color .15s ease;
+}
+
+.mini-heart-btn:hover{ transform: scale(1.12); }
+.mini-heart-btn.liked{ color:var(--primary); }
+.mini-heart-btn.disabled{ color:#ddd; cursor:not-allowed; }
+
+/* =========================
+   Responsive
+========================= */
+@media (max-width:900px){
+    .playlist-header{
+        flex-direction:column;
+        gap:30px;
+    }
+
+    .playlist-image{
+        width:100%;
+        height:auto;
+        aspect-ratio:1/1;
+    }
+
+    .song-row{
+        grid-template-columns: 40px 50px 1fr 190px;
+    }
+}
+
+.hidden{ display:none; }

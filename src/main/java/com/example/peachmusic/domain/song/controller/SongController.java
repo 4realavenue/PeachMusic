@@ -1,8 +1,11 @@
 package com.example.peachmusic.domain.song.controller;
 
+import com.example.peachmusic.common.enums.SortDirection;
+import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.model.*;
 import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongGetDetailResponseDto;
+import com.example.peachmusic.domain.song.dto.response.SongPlayResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.example.peachmusic.domain.song.service.SongService;
 import jakarta.validation.Valid;
@@ -17,6 +20,21 @@ import org.springframework.web.bind.annotation.*;
 public class SongController {
 
     private final SongService songService;
+
+    /**
+     * 음원 전체 조회 API
+     */
+    @GetMapping("/songs")
+    public ResponseEntity<CommonResponse<KeysetResponse<SongSearchResponseDto>>> getSongList(
+            @AuthenticationPrincipal AuthUser authUser,
+            @RequestParam(defaultValue = "LIKE") SortType sortType,
+            @RequestParam(required = false) SortDirection direction,
+            @ModelAttribute CursorParam cursor
+    ) {
+        KeysetResponse<SongSearchResponseDto> responseDtoPage = songService.getSongList(authUser, sortType, direction, cursor);
+
+        return ResponseEntity.ok(CommonResponse.success("음원 전체 조회에 성공했습니다.", responseDtoPage));
+    }
 
     /**
      * 음원 단건 조회 API
@@ -53,10 +71,11 @@ public class SongController {
      */
     @GetMapping("/search/songs")
     public ResponseEntity<CommonResponse<KeysetResponse<SongSearchResponseDto>>> searchSong(
+            @AuthenticationPrincipal AuthUser authUser,
             @Valid @ModelAttribute SearchConditionParam condition,
             @ModelAttribute CursorParam cursor
     ) {
-        KeysetResponse<SongSearchResponseDto> responseDto = songService.searchSongPage(condition, cursor);
+        KeysetResponse<SongSearchResponseDto> responseDto = songService.searchSongPage(authUser, condition, cursor);
 
         return ResponseEntity.ok(CommonResponse.success("음원 검색이 완료되었습니다.", responseDto));
     }
@@ -65,10 +84,11 @@ public class SongController {
      * 음원 재생
      */
     @GetMapping("/songs/{songId}/play")
-    public ResponseEntity<CommonResponse<Void>> playSong(
+    public ResponseEntity<CommonResponse<SongPlayResponseDto>> playSong(
             @PathVariable Long songId
     ) {
-        songService.play(songId);
-        return ResponseEntity.ok(CommonResponse.success("음원 재생에 성공했습니다."));
+        SongPlayResponseDto responseDto = songService.playSong(songId);
+
+        return ResponseEntity.ok(CommonResponse.success("음원 재생에 성공했습니다.", responseDto));
     }
 }

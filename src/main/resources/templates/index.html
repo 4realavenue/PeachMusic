@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PeachMusic</title>
+
+    <link rel="stylesheet" href="/css/design-system.css"/>
+    <link rel="stylesheet" th:href="@{/css/layout.css}" />
+    <link rel="stylesheet" th:href="@{/css/index.css}" />
+
+    <script th:src="@{/js/sidebar.js}" defer></script>
+</head>
+
+<body>
+
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+    <section class="songs-page">
+
+        <!-- 로그인 필요 팝업(좋아요 누를 때만) -->
+        <div id="loginPopup" class="login-popup hidden">로그인이 필요한 기능입니다.</div>
+
+        <!-- ✅ 사이트 타이틀 -->
+        <header class="site-hero">
+            <h1 class="site-title">🍑PeachMusic🍑</h1>
+            <p class="site-tagline">너의 취향에 Pitch를 맞추다, PeachMusic</p>
+        </header>
+
+        <!-- ✅ 오늘의 추천 (상단 5개 프리뷰) -->
+        <div id="recommendSection" class="recommend-section">
+            <div class="recommend-head">
+                <h2 class="recommend-title">오늘의 추천</h2>
+                <p class="recommend-sub">당신을 위한 추천 5곡</p>
+            </div>
+            <div id="recommendGrid" class="recommend-grid"></div>
+        </div>
+
+        <!-- ✅ 음원 전체 -->
+        <div class="page-head">
+            <div class="page-head-left">
+                <h1 class="page-title">음원 전체</h1>
+                <div class="sort-pill">
+                    <span class="sort-pill-label">현재 정렬</span>
+                    <strong id="sortStatus" class="sort-pill-value">좋아요 · 내림차순</strong>
+                </div>
+            </div>
+
+            <div class="page-tools">
+                <select id="sortSelect" class="select" aria-label="정렬 기준">
+                    <option value="LIKE" selected>좋아요순</option>
+                    <option value="PLAY">재생수순</option>
+                    <option value="RELEASE_DATE">발매일순</option>
+                    <option value="NAME">이름순</option>
+                </select>
+
+                <select id="directionSelect" class="select" aria-label="정렬 방향">
+                    <option value="DESC" selected>내림차순</option>
+                    <option value="ASC">오름차순</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="songsList" class="song-list"></div>
+
+        <!-- ✅ 상태 영역 -->
+        <div id="loadingBox" class="load-area hidden">불러오는 중…</div>
+        <div id="errorBox" class="error-box hidden"></div>
+
+        <!-- ✅ 더보기 버튼(옵션) -->
+        <div class="more-wrap">
+            <button id="moreBtn" class="nav-btn" type="button">더보기</button>
+            <p id="endMsg" class="end-msg hidden">마지막 곡까지 다 봤어요.</p>
+        </div>
+
+        <!-- ✅ 무한 스크롤 트리거 -->
+        <div id="sentinel" class="sentinel" aria-hidden="true"></div>
+
+        <!-- ✅ 맨 위로 이동 버튼 -->
+        <button id="toTopBtn" class="to-top hidden" type="button" aria-label="맨 위로">↑</button>
+
+    </section>
+</div>
+
+<script type="module" th:src="@{/js/index.js}"></script>
+</body>
+</html>

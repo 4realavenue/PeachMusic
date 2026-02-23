@@ -39,8 +39,7 @@ public class ArtistService {
     @Transactional(readOnly = true)
     public ArtistGetDetailResponseDto getArtistDetail(AuthUser authUser, Long artistId) {
 
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
+        Artist foundArtist = findActiveArtistOrThrow(artistId);
 
         boolean isLiked = false;
 
@@ -57,12 +56,13 @@ public class ArtistService {
      */
     @Transactional(readOnly = true)
     public ArtistPreviewResponseDto getArtistDetailPreview(AuthUser authUser, Long artistId) {
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
+
+        Artist foundArtist = findActiveArtistOrThrow(artistId);
 
         int size = PREVIEW_SIZE;
-        List<AlbumArtistDetailResponseDto> albumList = albumRepository.findAlbumList(authUser.getUserId(), foundArtist.getArtistId(), size);
-        List<SongArtistDetailResponseDto> songList = songRepository.findSongList(authUser.getUserId(), foundArtist.getArtistId(), size);
+
+        List<AlbumArtistDetailResponseDto> albumList = albumRepository.findAlbumList(authUser, foundArtist.getArtistId(), size);
+        List<SongArtistDetailResponseDto> songList = songRepository.findSongList(authUser, foundArtist.getArtistId(), size);
 
         return ArtistPreviewResponseDto.of(albumList, songList);
     }
@@ -71,9 +71,9 @@ public class ArtistService {
      * 아티스트 검색 - 자세히 보기
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<ArtistSearchResponseDto> searchArtistPage(SearchConditionParam condition, CursorParam cursor) {
+    public KeysetResponse<ArtistSearchResponseDto> searchArtistPage(AuthUser authUser, SearchConditionParam condition, CursorParam cursor) {
 
-        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
+        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(authUser, condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
 
         return KeysetResponse.of(content, DETAIL_SIZE, last -> last.toCursor(condition.getSortType()));
     }
@@ -85,6 +85,11 @@ public class ArtistService {
      */
     @Transactional(readOnly = true)
     public List<ArtistSearchResponseDto> searchArtistList(String word) {
-        return artistRepository.findArtistListByWord(word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC);
+        return artistRepository.findArtistListByWord(null, word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC);
+    }
+
+    public Artist findActiveArtistOrThrow(Long artistId) {
+        return artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
     }
 }

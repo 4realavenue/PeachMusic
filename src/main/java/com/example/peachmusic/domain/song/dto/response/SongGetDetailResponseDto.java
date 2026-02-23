@@ -1,5 +1,6 @@
 package com.example.peachmusic.domain.song.dto.response;
 
+import com.example.peachmusic.domain.album.dto.response.ArtistSummaryDto;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.song.entity.Song;
 import lombok.Getter;
@@ -13,7 +14,10 @@ public class SongGetDetailResponseDto {
 
     private final Long albumId;
     private final String albumName;
+    private final String albumImage;
     private final Long position;
+
+    private final List<ArtistSummaryDto> artistList;
 
     private final Long songId;
     private final String name;
@@ -30,7 +34,7 @@ public class SongGetDetailResponseDto {
     private final Long likeCount;
     private final boolean liked;
 
-    public static SongGetDetailResponseDto from(Song song, List<String> genreNameList, Album album, boolean liked) {
-        return new SongGetDetailResponseDto(album.getAlbumId(), album.getAlbumName(), song.getPosition(), song.getSongId(), song.getName(), song.getAudio(), song.getDuration(), song.getLicenseCcurl(), song.getVocalinstrumental(), song.getLang(), song.getSpeed(), genreNameList, song.getInstruments(), song.getVartags(), song.getLikeCount(), liked);
+    public static SongGetDetailResponseDto from(Album album, List<ArtistSummaryDto> artistList, Song song, List<String> genreNameList, boolean liked) {
+        return new SongGetDetailResponseDto(album.getAlbumId(), album.getAlbumName(), album.getAlbumImage(), song.getPosition(), artistList, song.getSongId(), song.getName(), song.getAudio(), song.getDuration(), song.getLicenseCcurl(), song.getVocalinstrumental(), song.getLang(), song.getSpeed(), genreNameList, song.getInstruments(), song.getVartags(), song.getLikeCount(), liked);
     }
 }

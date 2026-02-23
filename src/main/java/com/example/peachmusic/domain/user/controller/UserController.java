@@ -37,7 +37,7 @@ public class UserController {
             @AuthenticationPrincipal AuthUser authUser
     ) {
         UserGetResponseDto response = userService.getUser(authUser);
-        return ResponseEntity.ok(CommonResponse.success("유저 조회 성공", response));
+        return ResponseEntity.ok(CommonResponse.success("유저 조회에 성공했습니다.", response));
     }
 
     /**

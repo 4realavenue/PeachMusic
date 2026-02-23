@@ -1,8 +1,8 @@
 package com.example.peachmusic.domain.artist.service;
 
+import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.enums.FileType;
 import com.example.peachmusic.common.exception.CustomException;
-import com.example.peachmusic.common.enums.ErrorCode;
 import com.example.peachmusic.common.model.CursorParam;
 import com.example.peachmusic.common.model.NextCursor;
 import com.example.peachmusic.common.model.KeysetResponse;
@@ -22,8 +22,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
 import static com.example.peachmusic.common.constants.UserViewScope.ADMIN_VIEW;
@@ -32,6 +30,7 @@ import static com.example.peachmusic.common.constants.UserViewScope.ADMIN_VIEW;
 @RequiredArgsConstructor
 public class ArtistAdminService {
 
+    private final ArtistService artistService;
     private final ArtistRepository artistRepository;
     private final SongRepository songRepository;
     private final ArtistAlbumRepository artistAlbumRepository;
@@ -51,13 +50,16 @@ public class ArtistAdminService {
         String country = normalize(requestDto.getCountry());
         String bio = normalize(requestDto.getBio());
 
-        String storedPath = null;
-        if (profileImage != null && !profileImage.isEmpty()) {
-            storedPath = storeProfileImage(profileImage, artistName);
-        }
+        String storedPath = "https://img.peachmusics.com/storage/image/default-image.jpg";
 
         Artist artist = new Artist(artistName, storedPath, country, requestDto.getArtistType(), requestDto.getDebutDate(), bio);
         Artist savedArtist = artistRepository.save(artist);
+
+        if (profileImage != null && !profileImage.isEmpty()) {
+            storedPath = storeProfileImage(profileImage, savedArtist.getArtistId());
+
+            savedArtist.updateProfileImage(storedPath);
+        }
 
         return ArtistCreateResponseDto.from(savedArtist);
     }
@@ -71,7 +73,7 @@ public class ArtistAdminService {
 
         final int size = DETAIL_SIZE;
 
-        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(word, size, ADMIN_VIEW, null, null, cursor);
+        List<ArtistSearchResponseDto> content = artistRepository.findArtistKeysetPageByWord(null, word, size, ADMIN_VIEW, null, null, cursor);
 
         return KeysetResponse.of(content, size, last -> new NextCursor(last.getArtistId(), null));
     }
@@ -85,7 +87,7 @@ public class ArtistAdminService {
     @Transactional
     public ArtistUpdateResponseDto updateArtist(Long artistId, ArtistUpdateRequestDto requestDto) {
 
-        Artist foundArtist = getArtistOrThrow(artistId, false, ErrorCode.ARTIST_NOT_FOUND);
+        Artist foundArtist = artistService.findActiveArtistOrThrow(artistId);
 
         foundArtist.updateArtistInfo(requestDto);
 
@@ -101,11 +103,11 @@ public class ArtistAdminService {
     @Transactional
     public ArtistImageUpdateResponseDto updateProfileImage(Long artistId, MultipartFile profileImage) {
 
-        Artist foundArtist = getArtistOrThrow(artistId, false, ErrorCode.ARTIST_NOT_FOUND);
+        Artist foundArtist = artistService.findActiveArtistOrThrow(artistId);
 
         String oldPath = foundArtist.getProfileImage();
 
-        String newPath = storeProfileImage(profileImage, foundArtist.getArtistName());
+        String newPath = storeProfileImage(profileImage, foundArtist.getArtistId());
 
         foundArtist.updateProfileImage(newPath);
 
@@ -123,16 +125,31 @@ public class ArtistAdminService {
     @Transactional
     public void deleteArtist(Long artistId) {
 
-        Artist foundArtist = getArtistOrThrow(artistId, false, ErrorCode.ARTIST_DETAIL_NOT_FOUND);
+        Artist foundArtist = artistRepository.findById(artistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
+
+        if (foundArtist.isDeleted()) {
+            throw new CustomException(ErrorCode.ALREADY_IN_REQUESTED_STATE);
+        }
+
+        // 아티스트가 참여한 앨범들 전부 확보 (앨범 삭제 여부와 무관)
+        List<Long> relatedAlbumIdList = artistAlbumRepository.findDistinctAlbumIdListByArtistId(artistId);
 
         foundArtist.delete();
 
-        List<Long> albumIdList = artistAlbumRepository.findAlbumIdListByArtistIdAndIsDeleted(artistId, false);
-
-        if (!albumIdList.isEmpty()) {
-            songRepository.softDeleteByAlbumIdList(albumIdList);
-            albumRepository.softDeleteByAlbumIdList(albumIdList);
+        if (relatedAlbumIdList.isEmpty()) {
+            return;
         }
+
+        // 관련 앨범 중 활성 아티스트가 0명인 앨범만 삭제
+        List<Long> orphanAlbumIdList = albumRepository.findOrphanAlbumIdListWhereNoActiveArtistList(relatedAlbumIdList);
+
+        if (orphanAlbumIdList.isEmpty()) {
+            return;
+        }
+
+        songRepository.softDeleteByAlbumIdList(orphanAlbumIdList);
+        albumRepository.softDeleteByAlbumIdList(orphanAlbumIdList);
     }
 
     /**
@@ -142,30 +159,38 @@ public class ArtistAdminService {
     @Transactional
     public void restoreArtist(Long artistId) {
 
-        Artist foundArtist = getArtistOrThrow(artistId, true, ErrorCode.ARTIST_DETAIL_NOT_FOUND);
+        Artist foundArtist = artistRepository.findById(artistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
+
+        if (!foundArtist.isDeleted()) {
+            throw new CustomException(ErrorCode.ALREADY_IN_REQUESTED_STATE);
+        }
 
         foundArtist.restore();
 
-        List<Long> albumIdList = artistAlbumRepository.findAlbumIdListByArtistIdAndIsDeleted(artistId, true);
+        List<Long> relatedAlbumIdList = artistAlbumRepository.findDistinctAlbumIdListByArtistId(artistId);
 
-        if (!albumIdList.isEmpty()) {
-            songRepository.restoreByAlbumIdList(albumIdList);
-            albumRepository.restoreByAlbumIdList(albumIdList);
+        if (relatedAlbumIdList.isEmpty()) {
+            return;
         }
-    }
 
-    private Artist getArtistOrThrow(Long artistId, boolean isDeleted, ErrorCode errorCode) {
-        return artistRepository.findByArtistIdAndIsDeleted(artistId, isDeleted)
-                .orElseThrow(() -> new CustomException(errorCode));
+        // 삭제된 앨범 중에서 활성 아티스트가 1명 이상인 앨범만 복구
+        List<Long> restorableAlbumIdList = albumRepository.findRestorableAlbumIdListWithActiveArtistList(relatedAlbumIdList);
+
+        if (restorableAlbumIdList.isEmpty()) {
+            return;
+        }
+
+        albumRepository.restoreByAlbumIdList(restorableAlbumIdList);
+        songRepository.restoreByAlbumIdList(restorableAlbumIdList);
     }
 
     private String normalize(String value) {
         return (value != null && !value.isBlank()) ? value.trim() : null;
     }
 
-    private String storeProfileImage(MultipartFile profileImage, String artistName) {
-        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        String baseName = "PeachMusic_artist_" + artistName + "_" + date;
+    private String storeProfileImage(MultipartFile profileImage, Long artistId) {
+        String baseName = artistId.toString();
         return fileStorageService.storeFile(profileImage, FileType.ARTIST_PROFILE, baseName);
     }
 }

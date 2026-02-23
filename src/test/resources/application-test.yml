@@ -45,6 +45,24 @@ jamendo:
     url: ${JAMENDO_API_BASE_URL}
     key: ${JAMENDO_CLIENT_ID}
 
+peachmusic:
+  media:
+    audio-path: ${UPLOAD_PATH:./build/test-media/audio}
+    transcode-path: ${TRANSCODE_PATH:./build/test-media/transcode}
+
+worker:
+  base-url: ${WORKER_URL:http://localhost:9999}
+
+r2:
+  account-id: ${R2_ACCOUNT_ID:dummy-account}
+  access-key-id: ${R2_ACCESS_KEY_ID:dummy-access}
+  secret-access-key: ${R2_SECRET_ACCESS_KEY:dummy-secret}
+  bucket:
+    assets: ${R2_BUCKET_ASSETS:dummy-assets}
+    media: ${R2_BUCKET_MEDIA:dummy-media}
+  public-base: ${ASSETS_PUBLIC_BASE:http://localhost:8080/assets}
+  public-streaming-base: ${STREAMING_BASE:http://localhost:8080/streaming}
+
 logging:
   level:
     org.hibernate.SQL: debug

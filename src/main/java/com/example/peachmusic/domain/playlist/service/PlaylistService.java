@@ -43,16 +43,19 @@ public class PlaylistService {
 
         String playlistName = requestDto.getPlaylistName().trim();
 
-        String storedPath = null;
-        if (playlistImage != null && !playlistImage.isEmpty()) {
-            storedPath = storePlaylistImage(playlistImage, playlistName);
-        }
+        String storedPath = "https://img.peachmusics.com/storage/image/default-image.jpg";
 
         Playlist playlist = new Playlist(findUser, playlistName, storedPath);
 
-        playlistRepository.save(playlist);
+        Playlist savedPlaylist = playlistRepository.save(playlist);
 
-        return PlaylistCreateResponseDto.from(playlist);
+        if (playlistImage != null && !playlistImage.isEmpty()) {
+            storedPath = storePlaylistImage(playlistImage, savedPlaylist.getPlaylistId());
+
+            savedPlaylist.updatePlaylistImage(storedPath);
+        }
+
+        return PlaylistCreateResponseDto.from(savedPlaylist);
 
     }
 
@@ -104,7 +107,7 @@ public class PlaylistService {
 
         String oldPath = findPlaylist.getPlaylistImage();
 
-        String newPath = storePlaylistImage(playlistImage, findPlaylist.getPlaylistName());
+        String newPath = storePlaylistImage(playlistImage, findPlaylist.getPlaylistId());
 
         findPlaylist.updatePlaylistImage(newPath);
 
@@ -134,9 +137,8 @@ public class PlaylistService {
 
     }
 
-    private String storePlaylistImage(MultipartFile playlistImage, String playlistName) {
-        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        String baseName = "PeachMusic_playlist_" + playlistName + "_" + date;
+    private String storePlaylistImage(MultipartFile playlistImage, Long playlistId) {
+        String baseName = playlistId.toString();
         return fileStorageService.storeFile(playlistImage, FileType.PLAYLIST_IMAGE, baseName);
     }
 }

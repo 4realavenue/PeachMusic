@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>앨범 수정 | PeachMusic Admin</title>
+
+    <link rel="stylesheet" href="/css/design-system.css"/>
+    <link rel="stylesheet" href="/css/layout.css" />
+    <link rel="stylesheet" href="/css/admin-album-update.css" />
+
+    <script th:src="@{/js/sidebar.js}" defer></script>
+    <script type="module" th:src="@{/js/admin-album-update.js}" defer></script>
+</head>
+
+<body>
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+    <section class="page">
+
+        <header class="page-head">
+            <div>
+                <h1 class="page-title">앨범 수정</h1>
+                <p class="page-sub">기본 정보 / 참여 아티스트 / 앨범 이미지는 각각 저장됩니다.</p>
+            </div>
+
+            <div class="page-actions">
+                <a class="btn btn-back" th:href="@{/admin/albums}">목록으로</a>
+            </div>
+        </header>
+
+        <div id="albumMeta" th:attr="data-album-id=${album.albumId}"></div>
+
+        <div class="grid">
+            <!-- LEFT: IMAGE -->
+            <article class="card">
+                <div class="card-head">
+                    <div>
+                        <div class="card-title">앨범 이미지</div>
+                        <div class="card-desc">jpg / jpeg / png 만 가능 (최대 5MB)</div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="preview" id="imgBox">
+                        <span class="badge">PROFILE</span>
+                        <div class="img-placeholder" id="imgPlaceholder">이미지 미리보기</div>
+                    </div>
+
+                    <input class="sr-only" id="albumImage" name="albumImage" type="file"
+                           accept="image/jpeg,image/jpg,image/png" />
+
+                    <div class="file-actions">
+                        <button type="button" class="btn btn-ghost" id="btnPickImage">이미지 선택</button>
+                        <button type="button" class="btn btn-ghost" id="btnResetImage">초기화</button>
+                    </div>
+
+                    <div class="file-hint" id="fileHint">선택된 파일 없음</div>
+
+                    <button class="btn btn-primary btn-wide" id="btnSaveImage" type="button">이미지 저장</button>
+                    <div class="help" id="imgHelp"></div>
+                </div>
+            </article>
+
+            <!-- RIGHT STACK -->
+            <div class="stack">
+                <!-- 현재 값 (토글) -->
+                <article class="card">
+                    <div class="card-head">
+                        <div>
+                            <div class="card-title">현재 값</div>
+                            <div class="card-desc">이 페이지는 서버 렌더링 값으로 표시됩니다.</div>
+                        </div>
+                        <button type="button" class="btn btn-ghost" id="btnToggleCurrent">현재 값 보기</button>
+                    </div>
+
+                    <div class="card-body" id="currentBody">
+                        <div class="kv-grid">
+                            <div class="kv"><div class="k">ID</div><div class="v" th:text="${album.albumId}">-</div></div>
+                            <div class="kv"><div class="k">앨범명</div><div class="v" th:text="${album.albumName}">-</div></div>
+                            <div class="kv"><div class="k">발매일</div><div class="v" th:text="${album.albumReleaseDate}">-</div></div>
+                            <div class="kv"><div class="k">좋아요</div><div class="v" th:text="${album.likeCount}">0</div></div>
+                            <div class="kv">
+                                <div class="k">상태</div>
+                                <div class="v" th:text="${album.isDeleted} ? '비활성' : '활성'">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- 기본 정보 -->
+                <article class="card">
+                    <div class="card-head">
+                        <div>
+                            <div class="card-title">기본 정보</div>
+                            <div class="card-desc">비워두면 해당 값은 수정되지 않습니다.</div>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="field">
+                            <div class="label">앨범명</div>
+                            <input id="albumName" type="text" placeholder="예) Andromeda" />
+                        </div>
+
+                        <div class="field">
+                            <div class="label">발매일</div>
+                            <input id="albumReleaseDate" type="date" />
+                            <div class="mini">형식: yyyy-MM-dd</div>
+                        </div>
+
+                        <div class="actions">
+                            <button type="button" class="btn btn-ghost" id="btnCancelInfo">취소</button>
+                            <button type="button" class="btn btn-primary" id="btnSaveInfo">저장</button>
+                        </div>
+
+                        <div class="help" id="infoHelp"></div>
+                    </div>
+                </article>
+            </div>
+        </div>
+
+        <!-- 참여 아티스트 -->
+        <article class="card">
+            <div class="card-head">
+                <div>
+                    <div class="card-title">참여 아티스트</div>
+                    <div class="card-desc">검색해서 추가/삭제 후 “참여 아티스트 저장”을 누르세요. (전체 갱신)</div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div id="initialArtists" class="hidden"
+                     th:attr="data-initial='[[${#objectMapper.writeValueAsString(artistList)}]]'"></div>
+
+                <div class="search-row">
+                    <input id="artistSearchInput" type="text" placeholder="아티스트명 검색" />
+                    <button class="btn btn-ghost" id="btnSearchArtist" type="button">검색</button>
+                </div>
+
+                <div class="artist-grid">
+                    <div class="panel">
+                        <div class="panel-title">검색 결과</div>
+                        <div id="artistSearchResult" class="panel-body">
+                            <div class="panel-empty">검색어를 입력하고 검색하세요.</div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-title">
+                            선택된 아티스트
+                            <span class="panel-hint" id="selectedHint">최소 1명 이상 선택해야 합니다.</span>
+                        </div>
+                        <div id="selectedArtists" class="panel-body">
+                            <!-- JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn btn-primary" id="btnSaveArtists" type="button">참여 아티스트 저장</button>
+                </div>
+                <div class="help" id="artistHelp"></div>
+            </div>
+        </article>
+
+    </section>
+</div>
+</body>
+</html>

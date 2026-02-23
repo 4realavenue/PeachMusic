@@ -1,0 +1,80 @@
+/* =========================
+   ADMIN DASHBOARD
+========================= */
+
+.admin-dashboard {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 28px 18px;
+    background: #f7f7f9; /* 카드 대비 확보 */
+}
+
+
+/* =========================
+   GRID
+========================= */
+
+.admin-grid {
+    width: min(720px, 100%);
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+
+/* =========================
+   CARD
+========================= */
+
+.admin-card {
+    height: 120px;
+    border-radius: var(--radius-lg);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: var(--font-md);
+    font-weight: 900;
+
+    text-decoration: none;
+    color: var(--text-main);
+
+    background: #ffffff;
+
+    border: 1.5px solid var(--border);
+
+    box-shadow:
+            0 6px 14px rgba(0,0,0,0.06),
+            0 12px 28px rgba(0,0,0,0.05);
+
+    transition: transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+
+/* =========================
+   HOVER EFFECT
+========================= */
+
+.admin-card:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+            0 10px 20px rgba(0,0,0,0.08),
+            0 20px 40px rgba(0,0,0,0.08);
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 600px) {
+    .admin-grid {
+        grid-template-columns: 1fr;
+    }
+}

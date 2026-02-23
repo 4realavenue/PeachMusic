@@ -62,6 +62,13 @@ public class JwtFilter extends OncePerRequestFilter {
             if (!user.getTokenVersion().equals(tokenVersion)) {
                 SecurityContextHolder.clearContext();
 
+                String uri = request.getRequestURI();
+
+                if (!uri.startsWith("/api")) {
+                    response.sendRedirect("/login");
+                    return;
+                }
+
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json;charset=UTF-8");
                 response.getWriter().write("{\"message\":\"만료된 토큰입니다.\"}");

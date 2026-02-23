@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>좋아요한 앨범 | PeachMusic</title>
+
+    <link rel="stylesheet" href="/css/design-system.css"/>
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/liked-albums.css}">
+    <script th:src="@{/js/sidebar.js}" defer></script>
+</head>
+<body>
+
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+
+    <section class="liked-albums-page">
+
+        <h2 class="page-title">좋아요한 앨범</h2>
+
+        <div id="albumGrid" class="album-grid"></div>
+
+        <div id="sentinel" style="height:1px;"></div>
+
+        <div id="loading" class="loading hidden">로딩 중...</div>
+        <div id="endMessage" class="end hidden">마지막 앨범입니다.</div>
+
+    </section>
+
+</div>
+
+<script type="module" th:src="@{/js/liked-albums.js}"></script>
+</body>
+</html>

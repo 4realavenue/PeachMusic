@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import static com.example.peachmusic.common.constants.SearchViewSize.DETAIL_SIZE;
 import static com.example.peachmusic.common.constants.UserViewScope.ADMIN_VIEW;
@@ -63,10 +62,12 @@ public class AlbumAdminService {
             throw new CustomException(ErrorCode.ALBUM_EXIST_NAME_RELEASE_DATE);
         });
 
-        String storedPath = storeAlbumImage(albumImage, albumName);
-
-        Album album = new Album(albumName, albumReleaseDate, storedPath);
+        Album album = new Album(albumName, albumReleaseDate);
         Album savedAlbum = albumRepository.save(album);
+
+        String storedPath = storeAlbumImage(albumImage, savedAlbum.getAlbumId());
+
+        savedAlbum.updateAlbumImage(storedPath);
 
         // 참여 아티스트와 앨범의 N:M 관계를 매핑 테이블(ArtistAlbum)에 저장
         List<ArtistAlbum> artistAlbumList = artistList.stream()
@@ -88,7 +89,7 @@ public class AlbumAdminService {
 
         final int size = DETAIL_SIZE;
 
-        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(word, size, ADMIN_VIEW, null, null, cursor);
+        List<AlbumSearchResponseDto> content = albumRepository.findAlbumKeysetPageByWord(null, word, size, ADMIN_VIEW, null, null, cursor);
 
         return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), null));
     }
@@ -102,7 +103,8 @@ public class AlbumAdminService {
     @Transactional
     public AlbumUpdateResponseDto updateAlbumInfo(Long albumId, AlbumUpdateRequestDto requestDto) {
 
-        Album foundAlbum = getAlbumOrThrow(albumId);
+        Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 
         foundAlbum.updateAlbumInfo(requestDto);
 
@@ -125,7 +127,8 @@ public class AlbumAdminService {
     @Transactional
     public ArtistAlbumUpdateResponseDto updateAlbumArtistList(Long albumId, ArtistAlbumUpdateRequestDto requestDto) {
 
-        Album foundAlbum = getAlbumOrThrow(albumId);
+        Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 
         List<Long> artistIdList = distinctArtistIdList(requestDto.getArtistIdList());
         List<Artist> artistList = getActiveArtistListOrThrow(artistIdList);
@@ -153,10 +156,12 @@ public class AlbumAdminService {
     @Transactional
     public AlbumImageUpdateResponseDto updateAlbumImage(Long albumId, MultipartFile albumImage) {
 
-        Album foundAlbum = getAlbumOrThrow(albumId);
+        Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
+
         String oldPath = foundAlbum.getAlbumImage();
 
-        String newPath = storeAlbumImage(albumImage, foundAlbum.getAlbumName());
+        String newPath = storeAlbumImage(albumImage, foundAlbum.getAlbumId());
 
         foundAlbum.updateAlbumImage(newPath);
 
@@ -176,8 +181,12 @@ public class AlbumAdminService {
     @Transactional
     public void deleteAlbum(Long albumId) {
 
-        Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_DETAIL_NOT_FOUND));
+        Album foundAlbum = albumRepository.findById(albumId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
+
+        if (foundAlbum.isDeleted()) {
+            throw new CustomException(ErrorCode.ALREADY_IN_REQUESTED_STATE);
+        }
 
         List<Song> foundSongList = songRepository.findAllByAlbum_AlbumIdAndIsDeletedFalse(albumId);
 
@@ -193,8 +202,12 @@ public class AlbumAdminService {
     @Transactional
     public void restoreAlbum(Long albumId) {
 
-        Album foundAlbum = albumRepository.findByAlbumIdAndIsDeletedTrue(albumId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_DETAIL_NOT_FOUND));
+        Album foundAlbum = albumRepository.findById(albumId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
+
+        if (!foundAlbum.isDeleted()) {
+            throw new CustomException(ErrorCode.ALREADY_IN_REQUESTED_STATE);
+        }
 
         List<Song> foundSongList = songRepository.findAllByAlbum_AlbumIdAndIsDeletedTrue(albumId);
 
@@ -203,10 +216,6 @@ public class AlbumAdminService {
         foundAlbum.restore();
     }
 
-    private Album getAlbumOrThrow(Long albumId) {
-        return albumRepository.findByAlbumIdAndIsDeletedFalse(albumId)
-                .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
-    }
 
     private List<Long> distinctArtistIdList(List<Long> artistIdList) {
         return artistIdList.stream().distinct().toList();
@@ -232,9 +241,8 @@ public class AlbumAdminService {
                 .toList();
     }
 
-    private String storeAlbumImage(MultipartFile albumImage, String albumName) {
-        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        String baseName = "PeachMusic_album_" + albumName + "_" + date;
+    private String storeAlbumImage(MultipartFile albumImage, Long albumId) {
+        String baseName = albumId.toString();
         return fileStorageService.storeFile(albumImage, FileType.ALBUM_IMAGE, baseName);
     }
 

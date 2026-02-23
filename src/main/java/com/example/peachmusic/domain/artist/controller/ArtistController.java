@@ -55,10 +55,11 @@ public class ArtistController {
      */
     @GetMapping("/search/artists")
     public ResponseEntity<CommonResponse<KeysetResponse<ArtistSearchResponseDto>>> searchArtist(
+            @AuthenticationPrincipal AuthUser authUser,
             @Valid @ModelAttribute SearchConditionParam condition,
             @ModelAttribute CursorParam cursor
     ) {
-        KeysetResponse<ArtistSearchResponseDto> responseDto = artistService.searchArtistPage(condition, cursor);
+        KeysetResponse<ArtistSearchResponseDto> responseDto = artistService.searchArtistPage(authUser, condition, cursor);
 
         return ResponseEntity.ok(CommonResponse.success("아티스트 검색이 완료되었습니다.", responseDto));
     }

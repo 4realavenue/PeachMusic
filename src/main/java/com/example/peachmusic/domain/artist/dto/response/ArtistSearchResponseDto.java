@@ -11,7 +11,9 @@ public class ArtistSearchResponseDto {
 
     private final Long artistId;
     private final String artistName;
+    private final String profileImage;
     private final Long likeCount;
+    private final boolean isLiked;
     private final boolean isDeleted;
 
     public NextCursor toCursor(SortType sortType) {

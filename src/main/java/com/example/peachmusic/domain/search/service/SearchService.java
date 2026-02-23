@@ -7,10 +7,14 @@ import com.example.peachmusic.domain.artist.service.ArtistService;
 import com.example.peachmusic.domain.search.dto.SearchPreviewResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.example.peachmusic.domain.song.service.SongService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +25,10 @@ public class SearchService {
     private final AlbumService albumService;
     private final SongService songService;
 
+    private final ObjectMapper objectMapper;
+    private final RedisTemplate<String, String> redisTemplate;
+    private static final String SEARCH_RESULT_KEY = "search:result:";
+
     /**
      * 통합 검색 - 미리보기
      * @param word 검색어
@@ -29,12 +37,59 @@ public class SearchService {
     @Transactional(readOnly = true)
     public SearchPreviewResponseDto searchPreview(String word) {
 
+        word = word.trim();
+        searchHistoryService.recordSearchRank(word); // 검색어 랭킹 기록
+
+        String key = SEARCH_RESULT_KEY + word;
+
+        SearchPreviewResponseDto cachedResult = getCachedResult(key);
+        if (cachedResult != null) {
+            return cachedResult;
+        }
+
+        SearchPreviewResponseDto result = createSearchResult(word); // DB 조회
+
+        boolean isPopular = searchHistoryService.isPopularKeyword(word);
+        if (isPopular) {
+            saveCacheResult(key, result);
+        }
+
+        return result;
+    }
+
+    /**
+     * Redis에서 검색 결과 조회
+     */
+    private SearchPreviewResponseDto getCachedResult(String key) {
+        try {
+            String cached = redisTemplate.opsForValue().get(key);
+            return cached == null ? null :objectMapper.readValue(cached, SearchPreviewResponseDto.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Redis 조회 실패: ", e);
+        }
+    }
+
+
+    /**
+     * DB에서 검색 결과 조회
+     */
+    private SearchPreviewResponseDto createSearchResult(String word) {
         List<ArtistSearchResponseDto> artistList = artistService.searchArtistList(word);
         List<AlbumSearchResponseDto> albumList = albumService.searchAlbumList(word);
         List<SongSearchResponseDto> songList = songService.searchSongList(word);
 
-        searchHistoryService.recordSearch(word); // 검색어 기록
-
         return SearchPreviewResponseDto.of(word, artistList, albumList, songList);
+    }
+
+    /**
+     * Redis에 검색 결과 저장
+     */
+    private void saveCacheResult(String key, SearchPreviewResponseDto result) {
+        try {
+            String json = objectMapper.writeValueAsString(result);
+            redisTemplate.opsForValue().set(key, json, 5, TimeUnit.MINUTES);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Redis 저장 실패: ", e);
+        }
     }
 }

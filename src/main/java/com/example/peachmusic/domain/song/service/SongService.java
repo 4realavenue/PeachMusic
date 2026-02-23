@@ -7,12 +7,15 @@ import com.example.peachmusic.common.enums.SortDirection;
 import com.example.peachmusic.common.enums.SortType;
 import com.example.peachmusic.common.exception.CustomException;
 import com.example.peachmusic.common.model.*;
+import com.example.peachmusic.domain.album.dto.response.ArtistSummaryDto;
 import com.example.peachmusic.domain.album.entity.Album;
 import com.example.peachmusic.domain.album.repository.AlbumRepository;
 import com.example.peachmusic.domain.artist.entity.Artist;
 import com.example.peachmusic.domain.artist.repository.ArtistRepository;
+import com.example.peachmusic.domain.artistsong.repository.ArtistSongRepository;
 import com.example.peachmusic.domain.song.dto.response.SongArtistDetailResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongGetDetailResponseDto;
+import com.example.peachmusic.domain.song.dto.response.SongPlayResponseDto;
 import com.example.peachmusic.domain.song.dto.response.SongSearchResponseDto;
 import com.example.peachmusic.domain.song.entity.Song;
 import com.example.peachmusic.domain.song.repository.SongRepository;
@@ -22,6 +25,7 @@ import com.example.peachmusic.domain.songlike.repository.SongLikeRepository;
 import com.example.peachmusic.domain.user.entity.User;
 import com.example.peachmusic.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -47,9 +51,25 @@ public class SongService {
     private final SongLikeRepository songLikeRepository;
     private final ArtistRepository artistRepository;
     private final UserService userService;
+    private final ArtistSongRepository artistSongRepository;
+
     private final RedisTemplate<String,String> redisTemplate;
 
     public static final String MUSIC_DAILY_KEY = "music";
+
+    @Value("${r2.public-streaming-base}")
+    private String streamingBaseUrl;
+
+    /**
+     * 음원 전체 조회
+     */
+    @Transactional(readOnly = true)
+    public KeysetResponse<SongSearchResponseDto> getSongList(AuthUser authUser, SortType sortType, SortDirection direction, CursorParam cursor) {
+
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(authUser, null, DETAIL_SIZE, PUBLIC_VIEW, sortType, direction, cursor);
+
+        return KeysetResponse.of(content, DETAIL_SIZE, last -> last.toCursor(sortType));
+    }
 
     /**
      * 음원 단건 조회
@@ -57,7 +77,7 @@ public class SongService {
     @Transactional(readOnly = true)
     public SongGetDetailResponseDto getSong(Long songId, AuthUser authUser) {
 
-        Song findSong = songRepository.findBySongIdAndIsDeletedFalse(songId)
+        Song findSong = songRepository.findBySongIdAndIsDeletedFalseAndStreamingStatusTrue(songId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
         boolean liked = false;
@@ -71,7 +91,7 @@ public class SongService {
 
         Long findAlbumId = songRepository.findSongs_AlbumIdBySongId(findSong);
 
-        Album findAlbum = albumRepository.findByAlbumIdAndIsDeletedFalse(findAlbumId)
+        Album findAlbum = albumRepository.findActiveAlbumWithActiveSong(findAlbumId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ALBUM_NOT_FOUND));
 
         List<SongGenre> findSongGenreList = songGenreRepository.findAllBySong(findSong);
@@ -80,7 +100,13 @@ public class SongService {
                 .map(songGenre -> songGenre.getGenre().getGenreName())
                 .toList();
 
-        return SongGetDetailResponseDto.from(findSong, genreNameList, findAlbum, liked);
+        List<Artist> findArtist = artistSongRepository.findArtistListBySong(findSong);
+
+        List<ArtistSummaryDto> artistList = findArtist.stream()
+                .map(ArtistSummaryDto::from)
+                .toList();
+
+        return SongGetDetailResponseDto.from(findAlbum, artistList, findSong, genreNameList, liked);
 
     }
 
@@ -90,25 +116,24 @@ public class SongService {
     @Transactional(readOnly = true)
     public KeysetResponse<SongArtistDetailResponseDto> getArtistSongs(AuthUser authUser, Long artistId, CursorParam cursor) {
 
-        Artist foundArtist = artistRepository.findByArtistIdAndIsDeleted(artistId, false)
-                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_DETAIL_NOT_FOUND));
+        Artist foundArtist = artistRepository.findByArtistIdAndIsDeletedFalse(artistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTIST_NOT_FOUND));
 
         SortType sortType = SortType.RELEASE_DATE;
         SortDirection direction = sortType.getDefaultDirection();
-        final int size = DETAIL_SIZE;
 
-        List<SongArtistDetailResponseDto> content = songRepository.findSongByArtistKeyset(authUser.getUserId(), foundArtist.getArtistId(), sortType, direction, cursor, size);
+        List<SongArtistDetailResponseDto> content = songRepository.findSongByArtistKeyset(authUser, foundArtist.getArtistId(), sortType, direction, cursor, DETAIL_SIZE);
 
-        return KeysetResponse.of(content, size, last -> new NextCursor(last.getAlbumId(), last.getAlbumReleaseDate()));
+        return KeysetResponse.of(content, DETAIL_SIZE, last -> new NextCursor(last.getSongId(), last.getAlbumReleaseDate()));
     }
 
     /**
      * 음원 검색 - 자세히 보기
      */
     @Transactional(readOnly = true)
-    public KeysetResponse<SongSearchResponseDto> searchSongPage(SearchConditionParam condition, CursorParam cursor) {
+    public KeysetResponse<SongSearchResponseDto> searchSongPage(AuthUser authUser, SearchConditionParam condition, CursorParam cursor) {
 
-        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
+        List<SongSearchResponseDto> content = songRepository.findSongKeysetPageByWord(authUser, condition.getWord(), DETAIL_SIZE, PUBLIC_VIEW, condition.getSortType(), condition.getDirection(), cursor);
 
         return KeysetResponse.of(content, DETAIL_SIZE, last -> last.toCursor(condition.getSortType()));
     }
@@ -118,7 +143,7 @@ public class SongService {
      */
     @Transactional(readOnly = true)
     public List<SongSearchResponseDto> searchSongList(String word) {
-        return songRepository.findSongListByWord(word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
+        return songRepository.findSongListByWord(null, word, PREVIEW_SIZE, PUBLIC_VIEW, LIKE, DESC); // 좋아요 많은 순
     }
 
     /**
@@ -126,26 +151,23 @@ public class SongService {
      */
     @RedisLock(key = "song")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void play(Long songId) {
+    public SongPlayResponseDto playSong(Long songId) {
 
-        LocalDate currentDate = LocalDate.now();
         Song song = songRepository.findById(songId).orElseThrow(() -> new CustomException(ErrorCode.SONG_NOT_FOUND));
 
-        // 키에 날짜 반영
-        String key =  MUSIC_DAILY_KEY + currentDate;
-        // music:2025-02-04
+        String streamingUrl = streamingBaseUrl + "/" + song.getAudio();
 
-        // 레디스에 이름과 id 동시 저장을 위해 조합
-        String value = song.getName() + ":" + songId;
+        String key =  MUSIC_DAILY_KEY + LocalDate.now(); // 키에 날짜 반영
+        String value = song.getName() + ":" + songId; // 레디스에 이름과 id 동시 저장을 위해 조합
 
         // Redis에 저장
         redisTemplate.opsForZSet().incrementScore(key, value ,1);
-
-        //TTL 설정
         redisTemplate.expire(key, Duration.ofDays(RedisResetTime.RESET_DATE));
 
         // DB에 저장
         song.addPlayCount();
         songRepository.save(song);
+
+        return SongPlayResponseDto.from(streamingUrl);
     }
 }
