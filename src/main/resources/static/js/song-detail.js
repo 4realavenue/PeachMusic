@@ -8,7 +8,7 @@ let dataCache = null;
 const el = {
     albumImage: document.getElementById("albumImage"),
     songName: document.getElementById("songName"),
-    artistName: document.getElementById("artistName"), // ✅ 컨테이너(span)
+    artistName: document.getElementById("artistName"), // ✅ 컨테이너(span/div)
     albumLink: document.getElementById("albumLink"),
     position: document.getElementById("position"),
     genreChips: document.getElementById("genreChips"),
@@ -160,45 +160,54 @@ function findValueCellByLabelText(labelText) {
     return null;
 }
 
-function escapeHtml(s) {
-    return String(s ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+/**
+ * ✅ 핵심: 서버에서 &quot; 같은 엔티티로 내려오는 문자열을 " 로 복원
+ */
+function decodeHtmlEntities(str) {
+    if (str == null) return "";
+    const txt = document.createElement("textarea");
+    txt.innerHTML = String(str);
+    return txt.value;
 }
 
 /* =========================
-   ✅ Artist links render (NEW)
+   ✅ Artist links render
    - 백엔드: artistList: [{artistId, artistName}, ...]
-   - 링크: /artists/{artistId}/page
+   - 링크: /artists/{artistId}
 ========================= */
 function renderArtistLinks(data) {
     if (!el.artistName) return;
 
     const list = Array.isArray(data?.artistList) ? data.artistList : [];
 
-    // ✅ 백엔드가 아직 artistList 안주면 기존 artistName으로라도 표시(하위호환)
+    el.artistName.innerHTML = "";
+
+    // 하위호환: artistList 없으면 기존 문자열
     if (!list.length) {
-        el.artistName.textContent = data?.artistName ?? "-";
+        el.artistName.textContent = decodeHtmlEntities(data?.artistName ?? "-");
         return;
     }
 
-    el.artistName.innerHTML = list
-        .map((a) => {
-            const id = a?.artistId ?? a?.id ?? a?.artist_id ?? null;
-            const name = a?.artistName ?? a?.name ?? "-";
-            if (id == null) {
-                return `<span>${escapeHtml(name)}</span>`;
-            }
-            return `<a class="link" href="/artists/${encodeURIComponent(String(id))}">${escapeHtml(name)}</a>`;
-        })
-        .join(", ");
+    list.forEach((a, idx) => {
+        const id = a?.artistId ?? a?.id ?? a?.artist_id ?? null;
+        const name = decodeHtmlEntities(a?.artistName ?? a?.name ?? "-");
 
-    // (필요하면) 클릭이 row 클릭 같은 거에 먹히지 않게 막고 싶을 때
-    el.artistName.querySelectorAll("a").forEach((a) => {
-        a.addEventListener("click", (e) => e.stopPropagation());
+        if (idx > 0) {
+            el.artistName.appendChild(document.createTextNode(", "));
+        }
+
+        if (id != null && String(id).length > 0) {
+            const link = document.createElement("a");
+            link.className = "link";
+            link.href = `/artists/${encodeURIComponent(String(id))}`;
+            link.textContent = name;
+            link.addEventListener("click", (e) => e.stopPropagation());
+            el.artistName.appendChild(link);
+        } else {
+            const span = document.createElement("span");
+            span.textContent = name;
+            el.artistName.appendChild(span);
+        }
     });
 }
 
@@ -308,8 +317,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        const title = dataCache?.name ?? "Unknown";
-
+        const title = decodeHtmlEntities(dataCache?.name ?? "Unknown");
         setQueueForThisSong(songId, title);
 
         const playUrl = await fetchStreamingUrl(songId);
@@ -354,15 +362,18 @@ function render(data) {
 
     if (el.albumImage) el.albumImage.src = data.albumImage || "/images/default.png";
 
+    // ✅ 앨범명 디코딩해서 출력
     if (el.albumLink) {
-        el.albumLink.textContent = data.albumName ?? "-";
+        el.albumLink.textContent = decodeHtmlEntities(data.albumName ?? "-");
         el.albumLink.href = data.albumId ? `/albums/${data.albumId}/page` : "#";
     }
 
-    if (el.songName) el.songName.textContent = data.name ?? "-";
+    // ✅ 곡명 디코딩해서 출력 (여기가 스샷에서 깨지는 핵심)
+    if (el.songName) el.songName.textContent = decodeHtmlEntities(data.name ?? "-");
+
     if (el.position) el.position.textContent = data.position ?? "-";
 
-    // ✅ 핵심 변경: artistList 기반 링크 렌더링
+    // ✅ 아티스트 링크도 디코딩해서 출력
     renderArtistLinks(data);
 
     if (el.genreChips) {
@@ -370,7 +381,7 @@ function render(data) {
         (data.genreList ?? []).forEach((g) => {
             const chip = document.createElement("span");
             chip.className = "chip";
-            chip.textContent = g;
+            chip.textContent = decodeHtmlEntities(g);
             el.genreChips.appendChild(chip);
         });
     }
@@ -384,15 +395,17 @@ function render(data) {
         el.duration.textContent = formatDuration(durationRaw);
     }
 
-    if (el.lang) el.lang.textContent = data.lang ?? "-";
-    if (el.speed) el.speed.textContent = data.speed ?? "-";
-    if (el.vocalInstrumental) el.vocalInstrumental.textContent = getVocalInstrumentalValue(data) ?? "-";
-    if (el.instrumentals) el.instrumentals.textContent = data.instrumentals ?? "-";
-    if (el.vartags) el.vartags.textContent = data.vartags ?? "-";
+    if (el.lang) el.lang.textContent = decodeHtmlEntities(data.lang ?? "-");
+    if (el.speed) el.speed.textContent = decodeHtmlEntities(data.speed ?? "-");
+    if (el.vocalInstrumental) el.vocalInstrumental.textContent = decodeHtmlEntities(getVocalInstrumentalValue(data) ?? "-");
+
+    // 태그 문자열도 엔티티가 섞여있을 수 있어서 디코딩
+    if (el.instrumentals) el.instrumentals.textContent = decodeHtmlEntities(data.instrumentals ?? "-");
+    if (el.vartags) el.vartags.textContent = decodeHtmlEntities(data.vartags ?? "-");
 
     if (el.licenseLink) {
         const license = data.licenseCcurl ?? "-";
-        el.licenseLink.textContent = license;
+        el.licenseLink.textContent = decodeHtmlEntities(license);
         el.licenseLink.href = license && license !== "-" ? license : "#";
     }
 }
@@ -448,7 +461,7 @@ async function openPlaylistModal() {
     playlists.forEach((pl) => {
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.textContent = pl.playlistName ?? "-";
+        btn.textContent = decodeHtmlEntities(pl.playlistName ?? "-");
         btn.className = "pl-item";
         btn.onclick = () => addSongToPlaylist(pl.playlistId);
         el.playlistList.appendChild(btn);

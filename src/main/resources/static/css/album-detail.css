@@ -57,18 +57,23 @@
 
 .album-title{
     font-size: 44px;
-    line-height: 1.05;
+    line-height: 1.15;
     font-weight: 900;
     margin: 0 0 10px;
     letter-spacing: -0.02em;
     word-break: keep-all;
 
+    /* ✅ line-clamp 유지 */
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 
-    min-height: calc(1.05em * 2);
+    /* ✅ descender(y,g,p) 잘림 방지 핵심 */
+    padding-bottom: 6px;
+
+    /* ✅ 2줄 공간 유지(기존 의도 유지) */
+    min-height: calc(1.15em * 2 + 6px);
 }
 
 .album-sub{
@@ -111,7 +116,7 @@
 .album-actions{
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     padding: 10px 14px;
     border-radius: 999px;
     background: #f6f6f6;
@@ -120,6 +125,7 @@
 .like-count{
     font-size: 15px;
     color: #777;
+    font-weight: 800;
     font-variant-numeric: tabular-nums;
 }
 
@@ -174,10 +180,11 @@
     box-shadow: 0 10px 30px rgba(0,0,0,0.04);
 }
 
+/* ✅ 수록곡 5열 그리드: 마지막 컬럼 auto + 오른쪽 정렬 고정 */
 .track{
     display: grid;
-    grid-template-columns: 46px 46px 1fr 90px 130px;
-    gap: 10px;
+    grid-template-columns: 46px 46px 1fr 70px auto; /* ✅ 마지막 110px 제거 */
+    gap: 14px;
     align-items: center;
     padding: 14px 16px;
     border-bottom: 1px solid #f0f0f0;
@@ -211,8 +218,10 @@
     font-size: 14px;
     text-align: right;
     font-variant-numeric: tabular-nums;
+    justify-self: end; /* ✅ 오른쪽 끝 정렬 */
 }
 
+/* 재생 버튼 */
 .track-play{
     width: 36px;
     height: 36px;
@@ -233,28 +242,30 @@
     border-color:#111;
 }
 
-/* ✅ 트랙 좋아요 영역 (미니 하트 + 카운트) */
+/* ✅ 오른쪽 액션(좋아요 + +버튼): gap으로만 간격 통일 */
 .track-like{
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 10px;
-    font-size: 14px;
+    gap: 16px;            /* ✅ 좋아요 묶음 ↔ + */
     color: #777;
     font-variant-numeric: tabular-nums;
+    justify-self: end;    /* ✅ 마지막 컬럼 오른쪽 끝 */
 }
 
+/* ✅ 좋아요 수 ↔ 하트 */
 .like-group{
-    display:flex;
-    align-items:center;
-    gap:8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;             /* ✅ 요청: 8px */
 }
 
 .mini-like-count{
     font-size: 13px;
     color: #777;
-    min-width: 18px;
-    text-align: left;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
 }
 
 .mini-heart-btn{
@@ -268,11 +279,7 @@
     transition: transform 0.1s ease, color 0.15s ease;
 }
 .mini-heart-btn:hover{ transform: scale(1.12); }
-.mini-heart-btn.liked{ color: var(--primary); }
-.mini-heart-btn.disabled{
-    opacity:.45;
-    cursor:not-allowed;
-}
+.mini-heart-btn.liked{ color: #ff4d6d; }
 
 /* + 버튼 */
 .add-pl-btn{
@@ -329,7 +336,7 @@
     }
 
     .track{
-        grid-template-columns: 40px 46px 1fr 72px;
+        grid-template-columns: 40px 46px 1fr 72px; /* ✅ 모바일: 좋아요 숨김 */
     }
     .track-like{ display: none; }
 }
@@ -337,7 +344,6 @@
 /* =========================
    Playlist Modal (Safe Version)
 ========================= */
-
 .pl-modal {
     position: fixed;
     inset: 0;
@@ -454,10 +460,4 @@
     border-radius: 12px;
     padding: 8px 14px;
     cursor: pointer;
-}
-
-.pl-empty {
-    padding: 18px 10px;
-    color: #666;
-    text-align: center;
 }

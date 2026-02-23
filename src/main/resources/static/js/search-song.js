@@ -199,13 +199,14 @@ function renderSongs(list) {
     });
 }
 
+/**
+ * ✅ 특수문자(&quot; 등) 깨짐 방지
+ * 서버에서 이미 escape된 문자열이 들어올 수 있어
+ * 프론트에서 또 escape하면 &amp;quot;로 이중 변환되어 화면에 그대로 노출됨.
+ * => 여기서는 추가 escape 하지 않고 그대로 반환
+ */
 function escapeHtml(str) {
-    return String(str ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+    return String(str ?? "");
 }
 
 /* =========================
