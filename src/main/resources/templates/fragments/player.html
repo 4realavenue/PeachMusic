@@ -1,0 +1,70 @@
+<div class="player" th:fragment="player">
+    <!-- ✅ 토글 버튼 (접기/펼치기) -->
+    <button class="player-toggle" id="playerToggleBtn" type="button" aria-label="플레이어 접기/펼치기">
+        ▼
+    </button>
+
+    <!-- 실제 오디오 -->
+    <audio id="audioPlayer" preload="metadata"></audio>
+
+    <!-- 커버 -->
+    <div class="album-cover" id="playerCover" aria-label="커버">🎵</div>
+
+    <!-- 곡 정보 -->
+    <div class="song-info">
+        <div class="title" id="playerTitle">재생 중인 곡 없음</div>
+
+        <div class="progress-wrapper">
+            <span class="time" id="currentTime">0:00</span>
+
+            <div class="progress-bar" id="progressBar" role="slider" aria-label="재생 위치">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <span class="time" id="playerDuration">0:00</span>
+        </div>
+    </div>
+
+    <!-- 컨트롤 -->
+    <div class="controls">
+        <button id="playerPrevBtn" type="button" aria-label="이전 곡">⏮</button>
+
+        <!-- ✅ 재생 버튼 강조 -->
+        <button id="playBtn" class="play-main" type="button" aria-label="재생/일시정지">▶</button>
+
+        <button id="playerNextBtn" type="button" aria-label="다음 곡">⏭</button>
+
+        <!-- ✅ Volume: 아이콘 클릭 → 팝오버 -->
+        <div class="volume" id="volumeWrap">
+            <button id="volumeBtn" class="volume-btn" type="button" aria-label="음량" aria-expanded="false">
+                🔊
+            </button>
+
+            <div class="volume-popover" id="volumePopover" role="dialog" aria-label="음량 조절" aria-hidden="true">
+                <div class="volume-row">
+                    <span class="vol-ico" aria-hidden="true">🔈</span>
+                    <input
+                            id="volumeRange"
+                            class="volume-range"
+                            type="range"
+                            min="0"
+                            max="100"
+                            step="1"
+                            value="80"
+                            aria-label="음량 슬라이더"
+                    />
+                    <span class="vol-ico" aria-hidden="true">🔊</span>
+                </div>
+
+                <!-- ✅ 힌트: JS가 “처음 1회만” 보여주고 자동 숨김 -->
+                <div class="volume-hint" id="volumeHint">←/→, ↑/↓ 조절 · M 음소거 · ESC 닫기</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✅ HLS 라이브러리는 전역 플레이어에서 1번만 로드 -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+    <!-- ✅ 전역 플레이어 스크립트 -->
+    <script type="module" th:src="@{/js/player.js}"></script>
+</div>

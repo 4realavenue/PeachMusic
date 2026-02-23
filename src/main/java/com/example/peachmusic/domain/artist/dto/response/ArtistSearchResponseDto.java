@@ -1,0 +1,26 @@
+package com.example.peachmusic.domain.artist.dto.response;
+
+import com.example.peachmusic.common.enums.SortType;
+import com.example.peachmusic.common.model.NextCursor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
+public class ArtistSearchResponseDto {
+
+    private final Long artistId;
+    private final String artistName;
+    private final String profileImage;
+    private final Long likeCount;
+    private final boolean isLiked;
+    private final boolean isDeleted;
+
+    public NextCursor toCursor(SortType sortType) {
+        return switch (sortType) {
+            case LIKE -> new NextCursor(artistId, likeCount);
+            case NAME -> new NextCursor(artistId, artistName);
+            default -> null;
+        };
+    }
+}

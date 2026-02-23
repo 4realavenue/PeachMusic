@@ -1,0 +1,71 @@
+package com.example.peachmusic.domain.user.controller;
+
+import com.example.peachmusic.common.enums.UserRole;
+import com.example.peachmusic.common.model.CommonResponse;
+import com.example.peachmusic.common.model.KeysetResponse;
+import com.example.peachmusic.domain.user.dto.request.UserRoleChangeRequestDto;
+import com.example.peachmusic.domain.user.dto.response.admin.UserAdminGetResponseDto;
+import com.example.peachmusic.domain.user.service.UserAdminService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api")
+public class UserAdminController {
+
+    private final UserAdminService useradminService;
+
+    /**
+     *  유저 목록 조회
+     */
+    @GetMapping("/admin/users")
+    public ResponseEntity<CommonResponse<KeysetResponse<UserAdminGetResponseDto>>> getUserList(
+            @RequestParam(required = false) String word,
+            @RequestParam(required = false) Long lastId
+    ) {
+        KeysetResponse<UserAdminGetResponseDto> response = useradminService.getUserList(word, lastId);
+
+        return ResponseEntity.ok(CommonResponse.success("유저 목록 조회에 성공했습니다.", response));
+    }
+
+    /**
+     *  유저 삭제
+     */
+    @DeleteMapping("/admin/users/{userId}/delete")
+    public ResponseEntity<CommonResponse<Void>> deleteUser(
+            @PathVariable Long userId
+    ) {
+        useradminService.deleteUser(userId);
+
+        return ResponseEntity.ok(CommonResponse.success("유저 비활성화를 성공했습니다."));
+    }
+
+    /**
+     *  유저 복구
+     */
+    @PatchMapping("/admin/users/{userId}/restore")
+    public ResponseEntity<CommonResponse<Void>> updateUser(
+            @PathVariable Long userId
+    ) {
+        useradminService.restorationUser(userId);
+
+        return ResponseEntity.ok(CommonResponse.success("유저 활성화를 성공했습니다."));
+    }
+
+    /**
+     *  권한 부여
+     */
+    @PatchMapping("/admin/users/{userId}/role")
+    public ResponseEntity<CommonResponse<Void>> changeRole(
+            @PathVariable Long userId,
+            @RequestBody UserRoleChangeRequestDto request
+    ) {
+        UserRole newRole = request.getRole();
+
+        useradminService.role(userId, newRole);
+
+        return ResponseEntity.ok(CommonResponse.success("계정 권한 변경을 완료했습니다." ));
+    }
+}

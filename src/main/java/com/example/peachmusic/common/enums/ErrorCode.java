@@ -1,0 +1,59 @@
+package com.example.peachmusic.common.enums;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+
+@Getter
+@RequiredArgsConstructor
+public enum ErrorCode {
+
+    // 400
+    PLAYLIST_ADD_SONG_REQUIRED(HttpStatus.BAD_REQUEST, "플레이리스트에 담을 음원을 입력해 주세요."),
+    PLAYLIST_REMOVE_SONG_REQUIRED(HttpStatus.BAD_REQUEST, "플레이리스트에서 제거할 음원을 입력해 주세요."),
+    AUTH_INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 올바르지 않습니다."),
+    AUTH_TOKEN_REQUIRED(HttpStatus.BAD_REQUEST, "토큰에 버전 정보가 없습니다."),
+    FILE_REQUIRED(HttpStatus.BAD_REQUEST, "파일 등록은 필수입니다."),
+    IMAGE_TOO_LARGE(HttpStatus.BAD_REQUEST, "이미지 파일 용량이 너무 큽니다."),
+    IMAGE_INVALID_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 이미지 파일 형식입니다."),
+    AUDIO_TOO_LARGE(HttpStatus.BAD_REQUEST, "음원 파일 용량이 너무 큽니다."),
+    AUDIO_INVALID_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 음원 파일 형식입니다."),
+    ARTIST_DEBUT_DATE_INVALID(HttpStatus.BAD_REQUEST, "데뷔일은 오늘 이후일 수 없습니다."),
+    EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "이메일이 인증되지 않았습니다."),
+    JAMENDO_INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "시작 날짜는 종료 날짜보다 이전이어야 합니다."),
+    MISSING_CURSOR_PARAMETER(HttpStatus.BAD_REQUEST, "정렬 기준에 필요한 커서 파라미터가 누락되었습니다."),
+    UNSUPPORTED_SORT_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 정렬 방식입니다"),
+
+    // 401
+
+    // 403
+    AUTH_AUTHORIZATION_REQUIRED(HttpStatus.FORBIDDEN, "접근 권한이 없습니다."),
+    AUTH_CODE_EXPIRED(HttpStatus.BAD_REQUEST, "인증 코드가 만료되었습니다. 재발송을 요청해주세요."),
+    AUTH_CODE_INVALID(HttpStatus.BAD_REQUEST, "유효하지 않은 인증 코드입니다."),
+
+    // 404
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "유저가 존재하지 않습니다."),
+    ARTIST_NOT_FOUND(HttpStatus.NOT_FOUND, "아티스트를 찾을 수 없습니다."),
+    ALBUM_NOT_FOUND(HttpStatus.NOT_FOUND, "앨범을 찾을 수 없습니다."),
+    SONG_NOT_FOUND(HttpStatus.NOT_FOUND, "음원을 찾을 수 없습니다."),
+    PLAYLIST_NOT_FOUND(HttpStatus.NOT_FOUND, "플레이리스트가 존재하지 않습니다."),
+
+    // 409
+    USER_EXIST_EMAIL(HttpStatus.CONFLICT, "이미 존재하는 이메일 입니다."),
+    USER_EXIST_NICKNAME(HttpStatus.CONFLICT, "이미 존재하는 닉네임 입니다."),
+    ALBUM_EXIST_SONG_POSITION(HttpStatus.CONFLICT, "해당 앨범의 수록 번호에 이미 음원이 존재합니다."),
+    USER_EXIST_ROLE(HttpStatus.CONFLICT, "이미 부여된 권한입니다."),
+    ALBUM_EXIST_NAME_RELEASE_DATE(HttpStatus.CONFLICT, "이미 동일한 앨범이 존재합니다."),
+    ALBUM_EXIST_NAME_RELEASE_DATE_DELETED(HttpStatus.CONFLICT, "이미 비활성화 된 앨범입니다."),
+    SONG_EXIST_NAME(HttpStatus.CONFLICT, "해당 앨범에 이미 동일한 제목의 음원이 존재합니다."),
+    LIKE_CONFLICT(HttpStatus.CONFLICT, "요청이 많아 잠시 후 다시 시도해주세요."),
+    ALREADY_IN_REQUESTED_STATE(HttpStatus.CONFLICT, "이미 요청한 상태로 설정되어 있습니다."),
+
+    // 500
+    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다."),
+    FILE_DELETED_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 삭제에 실패했습니다.")
+    ;
+
+    private final HttpStatus status;
+    private final String message;
+}

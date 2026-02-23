@@ -2,6 +2,97 @@ package com.example.peachmusic.domain.album.repository;
 
 import com.example.peachmusic.domain.album.entity.Album;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 
-public interface AlbumRepository extends JpaRepository<Album, Long> {
+public interface AlbumRepository extends JpaRepository<Album, Long>, AlbumCustomRepository {
+
+    // 활성 상태(isDeleted=false)인 앨범 조회
+    Optional<Album> findByAlbumIdAndIsDeletedFalse(Long albumId);
+
+    @Query("""
+        select distinct a from Album a
+        where a.albumId = :albumId and a.isDeleted = false
+            and exists (
+                select 1
+                from Song s
+                where s.album = a
+                    and s.isDeleted = false
+                    and s.streamingStatus = true
+            )
+    """)
+    Optional<Album> findActiveAlbumWithActiveSong(Long albumId); // 앨범과 음원 모두 활성화 상태인 앨범 조회
+
+    // 앨범 이름과 앨범 발매일로 단건 조회 (삭제 여부와 관계없이 조회)
+    Optional<Album> findByAlbumNameAndAlbumReleaseDate(String albumName, LocalDate albumReleaseDate);
+
+    // 활성 상태(isDeleted=false)인 앨범 중, 현재 앨범을 제외하고 동일한 앨범이 존재하는지 확인
+    boolean existsByAlbumNameAndAlbumReleaseDateAndIsDeletedFalseAndAlbumIdNot(String albumName, LocalDate albumReleaseDate, Long albumId);
+
+    @Query("""
+        select a.likeCount
+        from Album a
+        where a.albumId = :albumId
+        and a.isDeleted = false
+        """)
+    Long findLikeCountByAlbumId(@Param("albumId") Long albumId);
+
+    @Modifying
+    @Query("update Album a set a.likeCount = a.likeCount + 1 where a.albumId = :albumId")
+    void incrementLikeCount(@Param("albumId") Long albumId);
+
+    @Modifying
+    @Query("update Album a set a.likeCount = a.likeCount - 1 where a.albumId = :albumId and a.likeCount > 0")
+    void decrementLikeCount(@Param("albumId") Long albumId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        update Album a
+        set a.isDeleted = true
+        where a.isDeleted = false
+        and a.albumId in :albumIdList
+        """)
+    void softDeleteByAlbumIdList(@Param("albumIdList") List<Long> albumIdList);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        update Album a
+        set a.isDeleted = false
+        where a.isDeleted = true
+        and a.albumId in :albumIdList
+        """)
+    void restoreByAlbumIdList(@Param("albumIdList") List<Long> albumIdList);
+
+    // albumIdList 중 활성 아티스트가 0명인 앨범만 반환
+    @Query("""
+            select a.albumId
+            from Album a
+            where a.albumId in :albumIdList
+            and 0 = (
+                select count(aa)
+                from ArtistAlbum aa
+                where aa.album.albumId = a.albumId
+                and aa.artist.isDeleted = false
+            )
+            """)
+    List<Long> findOrphanAlbumIdListWhereNoActiveArtistList(@Param("albumIdList") List<Long> albumIdList);
+
+    // albumIdList 중 삭제된 앨범이면서 활성 아티스트가 1명 이상인 앨범만 반환
+    @Query("""
+            select a.albumId
+            from Album a
+            where a.albumId in :albumIdList
+            and a.isDeleted = true
+            and (
+                select count(aa)
+                from ArtistAlbum aa
+                where aa.album.albumId = a.albumId
+                and aa.artist.isDeleted = false
+            ) > 0
+            """)
+    List<Long> findRestorableAlbumIdListWithActiveArtistList(@Param("albumIdList") List<Long> albumIdList);
 }

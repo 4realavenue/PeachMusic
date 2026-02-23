@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>플레이리스트 상세 | PeachMusic</title>
+
+    <link rel="stylesheet" href="/css/design-system.css"/>
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/playlist-detail.css}">
+
+    <script type="module" th:src="@{/js/playlist-detail.js}" defer></script>
+</head>
+<body>
+
+<input type="hidden" id="playlistId" th:value="${playlistId}"/>
+
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+    <section class="playlist-detail">
+
+        <!-- 상단 영역 -->
+        <div class="playlist-header">
+
+            <!-- 이미지 -->
+            <div class="image-area">
+                <div id="playlistImage" class="playlist-image"></div>
+
+                <button id="imageEditBtn" class="gray-btn">이미지 수정</button>
+                <input type="file" id="imageInput" hidden>
+            </div>
+
+            <!-- 정보 영역 -->
+            <div class="info-area">
+
+                <h2 id="playlistName">-</h2>
+
+                <div class="button-row">
+                    <button id="nameEditBtn" class="gray-btn">이름 수정</button>
+                    <button id="deletePlaylistBtn" class="danger-btn">플레이리스트 삭제</button>
+                </div>
+
+                <!-- 이름 수정 영역 -->
+                <div id="nameEditArea" class="hidden">
+                    <input type="text" id="nameInput">
+                    <button id="nameSaveBtn" class="gray-btn">저장</button>
+                    <button id="nameCancelBtn" class="gray-btn">취소</button>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- 곡 목록 -->
+        <div id="songList" class="song-container"></div>
+
+    </section>
+</div>
+
+</body>
+</html>

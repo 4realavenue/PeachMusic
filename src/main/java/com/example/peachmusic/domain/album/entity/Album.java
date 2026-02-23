@@ -1,6 +1,7 @@
 package com.example.peachmusic.domain.album.entity;
 
-import com.example.peachmusic.common.entity.BaseEntity;
+import com.example.peachmusic.common.model.BaseEntity;
+import com.example.peachmusic.domain.album.dto.request.AlbumUpdateRequestDto;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,6 +20,9 @@ public class Album extends BaseEntity {
     @Column(name = "album_id")
     private Long albumId;
 
+    @Column(name = "jamendo_album_id", unique = true)
+    private Long jamendoAlbumId;
+
     @Column(name = "album_name", nullable = false)
     private String albumName;
 
@@ -34,9 +38,31 @@ public class Album extends BaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
-    public Album(String albumName, LocalDate albumReleaseDate, String albumImage) {
+    public Album(String albumName, LocalDate albumReleaseDate) {
         this.albumName = albumName;
         this.albumReleaseDate = albumReleaseDate;
+        this.albumImage = "https://img.peachmusics.com/storage/image/default-image.jpg";
+    }
+
+    public void updateAlbumInfo(AlbumUpdateRequestDto requestDto) {
+        this.albumName = (requestDto.getAlbumName() == null || requestDto.getAlbumName().isBlank())
+                ? this.albumName
+                : requestDto.getAlbumName().trim();
+
+        this.albumReleaseDate = (requestDto.getAlbumReleaseDate() == null)
+                ? this.albumReleaseDate
+                : requestDto.getAlbumReleaseDate();
+    }
+
+    public void delete() {
+        this.isDeleted = true;
+    }
+
+    public void restore() {
+        this.isDeleted = false;
+    }
+
+    public void updateAlbumImage(String albumImage) {
         this.albumImage = albumImage;
     }
 }

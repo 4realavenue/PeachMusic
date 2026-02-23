@@ -1,0 +1,138 @@
+/* =========================
+   Page
+========================= */
+.mypage{
+    width:100%;
+    max-width: var(--page-max-width);
+    margin:30px auto 80px;
+    padding:0 28px;
+}
+
+/* =========================
+   Profile Card
+========================= */
+.mypage-profile{
+    display:flex;
+    gap:30px;
+    align-items:center;
+
+    padding:32px;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+}
+
+.profile-image{
+    width:100px;
+    height:100px;
+    border-radius:50%;
+    background:#eeeeee;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:40px;
+    color: var(--text-sub);
+}
+
+.profile-info h2{
+    font-size: var(--font-lg);
+    margin-bottom:6px;
+}
+
+.profile-info p{
+    color: var(--text-sub);
+    font-size: var(--font-sm);
+}
+
+.profile-actions{
+    margin-top:14px;
+    display:flex;
+    gap:10px;
+}
+
+/* =========================
+   🔥 버튼
+========================= */
+.mypage button{
+    padding:8px 18px;
+    border-radius: var(--radius-md);
+    border:1px solid var(--border);
+    background:#fff;
+
+    font-size: var(--font-sm);
+    font-weight:700;
+
+    cursor:pointer;
+    transition:background .15s ease, transform .1s ease;
+}
+
+.mypage button:hover{
+    background:#f7f7f7;
+    transform:translateY(-1px);
+}
+
+/* primary */
+.mypage .primary{
+    background: var(--primary);
+    border-color: var(--primary);
+    color:#fff;
+}
+
+/* danger */
+.mypage .danger{
+    background: rgba(255,77,79,0.08);
+    border-color: rgba(255,77,79,0.4);
+    color: var(--danger);
+}
+
+/* =========================
+   Dynamic Area
+========================= */
+.action-area{
+    margin-top:40px;
+}
+
+.card{
+    background: var(--bg-card);
+    padding:28px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+}
+
+/* =========================
+   Form
+========================= */
+.form-field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-bottom:16px;
+}
+
+.form-field input{
+    padding:10px 14px;
+    border-radius: var(--radius-md);
+    border:1px solid var(--border);
+    font-size: var(--font-sm);
+}
+
+.form-field input:focus{
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(248,140,174,0.15);
+}
+
+/* =========================
+   Warning
+========================= */
+.warning-list{
+    margin-bottom:20px;
+    padding-left:20px;
+    color: var(--text-sub);
+    font-size: var(--font-sm);
+}
+
+.hidden{
+    display:none;
+}

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>회원가입 | PeachMusic</title>
+
+    <!-- 공통 CSS -->
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+
+    <!-- 공통 JS -->
+    <script th:src="@{/js/sidebar.js}" defer></script>
+</head>
+
+<body>
+
+<div th:replace="~{fragments/layout :: mainLayout(~{::section})}">
+
+    <section class="login-content">
+
+        <form id="signupForm" class="login-card">
+
+            <h2 class="login-title">회원가입</h2>
+
+            <div class="login-field">
+                <input type="text" name="name" placeholder="Name" required />
+            </div>
+
+            <div class="login-field">
+                <input type="text" name="nickname" placeholder="Nickname" required />
+            </div>
+
+            <div class="field-row">
+                <input type="email" name="email" placeholder="Email@example.com" required />
+                <button type="button" class="check-btn" id="emailSendBtn">인증요청</button>
+            </div>
+
+            <div class="field-row">
+                <input type="text" name="authCode" placeholder="인증번호 입력" />
+                <button type="button" class="check-btn" id="emailVerifyBtn">확인</button>
+            </div>
+
+            <div class="login-field">
+                <input type="password" name="password" placeholder="Password" required />
+            </div>
+
+            <div class="login-field">
+                <input type="password" name="passwordCheck" placeholder="Password Check" required />
+            </div>
+
+            <button class="signin-btn" type="submit">회원가입</button>
+
+        </form>
+
+    </section>
+
+</div>
+
+<script type="module" th:src="@{/js/signup.js}"></script>
+
+</body>
+</html>

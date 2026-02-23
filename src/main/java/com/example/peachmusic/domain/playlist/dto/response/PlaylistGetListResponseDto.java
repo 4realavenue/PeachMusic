@@ -1,0 +1,23 @@
+package com.example.peachmusic.domain.playlist.dto.response;
+
+import com.example.peachmusic.domain.playlist.entity.Playlist;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Getter
+@RequiredArgsConstructor
+public class PlaylistGetListResponseDto {
+
+    private final Long playlistId;
+    private final String playlistName;
+    private final String playlistImage;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime modifiedAt;
+
+    public static PlaylistGetListResponseDto from(Playlist playlist) {
+        return new PlaylistGetListResponseDto(playlist.getPlaylistId(), playlist.getPlaylistName(), playlist.getPlaylistImage(), playlist.getCreatedAt(), playlist.getModifiedAt());
+    }
+}
+

@@ -1,0 +1,246 @@
+/* =========================
+   Page Layout
+========================= */
+.admin-users-page{
+    max-width: var(--page-max-width);
+    margin: 30px auto 80px;
+    padding: 0 28px;
+}
+
+/* =========================
+   Header
+========================= */
+.page-title{
+    font-size: var(--font-title);
+    font-weight:900;
+    margin-bottom:4px;
+    color: var(--text-main);
+}
+
+.page-sub{
+    font-size: var(--font-sm);
+    color: var(--text-sub);
+}
+
+/* =========================
+   Toolbar
+========================= */
+.toolbar{
+    display:flex;
+    gap:12px;
+    margin:28px 0 34px;
+}
+
+.toolbar input{
+    flex:1;
+    height: var(--input-height);
+    padding:0 18px;
+    border-radius: var(--radius-md);
+    border:1px solid var(--border);
+    font-size: var(--font-md);
+}
+
+.ghost-btn{
+    height: var(--input-height);
+    padding:0 22px;
+    border-radius: var(--radius-md);
+    border:1px solid var(--border);
+    background:#fff;
+
+    font-size: var(--font-md);
+    font-weight:700;
+    cursor:pointer;
+}
+.ghost-btn:hover{
+    background:#f7f7f7;
+}
+
+/* =========================
+   Table Card
+========================= */
+.table-card{
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    box-shadow: var(--shadow-card);
+    overflow:hidden;
+}
+
+/* =========================
+   Header Grid
+========================= */
+.table-head{
+    display:grid;
+    grid-template-columns: 80px 1.6fr 1fr 140px 110px 220px;
+    column-gap: 24px;
+    padding:18px 26px;
+    font-weight:900;
+    font-size: var(--font-sm);
+    color: var(--text-sub);
+
+    background:#fafafa;
+    border-bottom:1px solid #eee;
+}
+
+/* =========================
+   Rows
+========================= */
+.table-body .row{
+    display:grid;
+    grid-template-columns: 80px 1.6fr 1fr 140px 110px 220px;
+    column-gap: 24px;
+
+    padding:20px 26px;
+    border-bottom:1px solid #f3f3f3;
+
+    transition:background .15s ease;
+}
+.table-body .row:last-child{
+    border-bottom:none;
+}
+.table-body .row:hover{
+    background:#fafafa;
+}
+
+/* =========================
+   Column Alignment
+========================= */
+.table-head .col,
+.table-body .col{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.col.email,
+.col.nickname{
+    justify-content:flex-start;
+    min-width:0;
+}
+
+/* =========================
+   Badge
+========================= */
+.badge{
+    font-size: var(--font-xs);
+    font-weight:800;
+    padding:6px 14px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:#fff;
+}
+
+.badge.active{
+    color: var(--primary);
+    border-color: rgba(248,140,174,0.4);
+    background: rgba(248,140,174,0.08);
+}
+
+.badge.inactive{
+    color: var(--danger);
+    border-color: rgba(255,77,79,0.4);
+    background: rgba(255,77,79,0.08);
+}
+
+/* =========================
+   Action Buttons
+========================= */
+.action-group{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+}
+
+.btn{
+    height:36px;
+    padding:0 16px;
+    border-radius:16px;
+    border:1px solid var(--border);
+    background:#fff;
+
+    font-size: var(--font-sm);
+    font-weight:700;
+
+    cursor:pointer;
+}
+.btn:hover{
+    background:#f7f7f7;
+}
+
+.btn.active-btn{
+    border-color: rgba(248,140,174,0.4);
+    color: var(--primary);
+    background: rgba(248,140,174,0.08);
+}
+
+.btn.inactive-btn{
+    border-color: rgba(255,77,79,0.4);
+    color: var(--danger);
+    background: rgba(255,77,79,0.08);
+}
+
+.btn:disabled{
+    opacity:0.4;
+    cursor:not-allowed;
+}
+
+/* =========================
+   Role Select
+========================= */
+.role-select{
+    height:36px;
+    border-radius: var(--radius-md);
+    border:1px solid var(--border);
+    padding:0 10px;
+    font-size: var(--font-sm);
+    font-weight:600;
+    background:#fff;
+}
+
+/* =========================
+   Footer Messages
+========================= */
+.loading,
+.end-message{
+    text-align:center;
+    padding:24px;
+    font-size: var(--font-sm);
+    color: var(--text-sub);
+}
+
+.hidden{
+    display:none;
+}
+
+/* =========================
+   ✅ Sentinel (무한스크롤)
+========================= */
+.sentinel{
+    height: 1px;
+    width: 100%;
+}
+
+/* =========================
+   ✅ To Top Button (admin 공통 톤)
+========================= */
+:root{
+    --player-safe-bottom: 96px;
+}
+
+.to-top{
+    position: fixed;
+    right: 22px;
+    bottom: calc(22px + var(--player-safe-bottom));
+    width: 46px;
+    height: 46px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: #111;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: var(--shadow-card);
+    transition: transform .12s ease, opacity .12s ease;
+    z-index: 9999;
+}
+.to-top:hover{ transform: translateY(-2px); }
